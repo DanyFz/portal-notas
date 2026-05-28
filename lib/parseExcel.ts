@@ -241,11 +241,30 @@ function parseSheet(
 
       if (student) {
         const grades: Record<string, number | null> = {};
-        for (const qc of quizColumns) {
+        const attendance: Record<string, string> = {};
+        
+        for (let i = 0; i < quizColumns.length; i++) {
+          const qc = quizColumns[i];
           const val = row[qc.idx];
-          grades[qc.label] = parseGrade(val);
+          const parsedVal = parseGrade(val);
+          grades[qc.label] = parsedVal;
+
+          // Determine attendance based on the grade value:
+          // si la nota es cero significa ausente, si es espacio en blanco excusa y si es un numero distinto de cero asistio
+          let status = "presente";
+          if (parsedVal === 0) {
+            status = "ausente";
+          } else if (parsedVal === null) {
+            status = "excusa";
+          }
+
+          // Use corresponding date from dateColumns if available, otherwise quiz label
+          const dateLabel = dateColumns[i] ? dateColumns[i].label : qc.label;
+          attendance[dateLabel] = status;
         }
+        
         student.grades = grades;
+        student.attendance = attendance;
       }
 
       gRowIdx++;
