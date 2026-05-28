@@ -28,12 +28,6 @@ async function run() {
     if (juan) {
       console.log(JSON.stringify(juan, null, 2));
     }
-
-    // Write to public/data/students.json
-    const outputPath = path.join(__dirname, "public", "data", "students.json");
-    await fs.mkdir(path.dirname(outputPath), { recursive: true });
-    await fs.writeFile(outputPath, JSON.stringify({ students: result.students }, null, 2), "utf-8");
-    console.log("Updated public/data/students.json with new attendance rules!");
   }
 }
 
