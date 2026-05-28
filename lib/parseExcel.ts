@@ -49,6 +49,18 @@ function parseGrade(value: any): number | null {
   return isNaN(num) ? null : num;
 }
 
+/**
+ * Determines attendance status from a grade value:
+ * - 0 → "ausente"
+ * - null/empty → "excusa"
+ * - any number != 0 → "presente"
+ */
+function gradeToAttendance(grade: number | null): string {
+  if (grade === null) return "excusa";
+  if (grade === 0) return "ausente";
+  return "presente";
+}
+
 function parseSheet(
   sheet: XLSX.WorkSheet,
   groupName: string,
@@ -155,7 +167,7 @@ function parseSheet(
     const program = row[programColIdx]?.toString().trim() || "";
     const groupVal = row[groupColIdx]?.toString().trim() || groupName;
 
-    // Parse attendance states
+    // Parse attendance states from the attendance table
     const attendance: Record<string, string> = {};
     for (const dc of dateColumns) {
       const cellVal = row[dc.idx];
@@ -241,11 +253,20 @@ function parseSheet(
 
       if (student) {
         const grades: Record<string, number | null> = {};
+        // Also build attendance from grades:
+        // 0 → ausente, null/empty → excusa, nonzero → presente (asistencia)
+        const gradeAttendance: Record<string, string> = {};
+        
         for (const qc of quizColumns) {
           const val = row[qc.idx];
-          grades[qc.label] = parseGrade(val);
+          const grade = parseGrade(val);
+          grades[qc.label] = grade;
+          gradeAttendance[qc.label] = gradeToAttendance(grade);
         }
+        
         student.grades = grades;
+        // Override attendance with grade-derived attendance
+        student.attendance = gradeAttendance;
       }
 
       gRowIdx++;
