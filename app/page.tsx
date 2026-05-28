@@ -7,7 +7,6 @@ import { authenticate, saveSession } from "@/lib/auth";
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,12 +15,12 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const student = await authenticate(username.trim(), password.trim());
+      const student = await authenticate(username.trim());
       if (student) {
         saveSession(student);
         router.push("/dashboard");
       } else {
-        setError("Credenciales incorrectas. Verifica tu usuario y contraseña.");
+        setError("Usuario no encontrado. Verifica tu nombre de usuario.");
       }
     } catch {
       setError("Error de conexión. Intenta de nuevo más tarde.");
@@ -51,7 +50,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-neon-cyan glow-cyan">Portal de Notas</h1>
-          <p className="text-[#8888aa] text-sm">Ingresa con tus credenciales institucionales</p>
+          <p className="text-[#8888aa] text-sm">Ingresa tu usuario para consultar tus notas</p>
         </div>
 
         {/* Login card */}
@@ -59,7 +58,7 @@ export default function LoginPage() {
           <div className="text-center mb-6">
             <h2 className="text-lg font-bold text-neon-magenta">Iniciar Sesión</h2>
             <p className="text-xs text-[#8888aa] mt-1">
-              Usuario: parte del correo antes de @<br />Contraseña: tu programa académico
+              Usuario: parte del correo antes de @
             </p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -73,19 +72,6 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoComplete="username"
-                className="neon-input w-full h-11 rounded-lg px-3 text-sm"
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-neon-cyan">Contraseña</label>
-              <input
-                id="password"
-                type="password"
-                placeholder="ej: Ingeniería de Sistemas"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
                 className="neon-input w-full h-11 rounded-lg px-3 text-sm"
               />
             </div>

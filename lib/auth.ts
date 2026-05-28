@@ -28,8 +28,7 @@ export function loadStudentsData(): StudentsData | null {
 }
 
 export async function authenticate(
-  username: string,
-  password: string
+  username: string
 ): Promise<Student | null> {
   try {
     // First try localStorage (uploaded data)
@@ -37,8 +36,7 @@ export async function authenticate(
     if (localData && localData.students.length > 0) {
       const student = localData.students.find(
         (s) =>
-          s.username.toLowerCase() === username.toLowerCase() &&
-          s.password === password
+          s.username.toLowerCase() === username.toLowerCase()
       );
       if (student) return student;
     }
@@ -50,8 +48,7 @@ export async function authenticate(
         const data: StudentsData = await res.json();
         const student = data.students.find(
           (s) =>
-            s.username.toLowerCase() === username.toLowerCase() &&
-            s.password === password
+            s.username.toLowerCase() === username.toLowerCase()
         );
         if (student) return student;
       }

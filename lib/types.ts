@@ -1,6 +1,5 @@
 export interface Student {
   username: string;
-  password: string;
   email: string;
   group: string;
   fullName: string;

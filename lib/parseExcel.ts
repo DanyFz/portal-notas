@@ -187,7 +187,6 @@ function parseSheet(
 
     studentsMap.set(username, {
       username,
-      password: program,
       email,
       group: groupVal,
       fullName: name,
