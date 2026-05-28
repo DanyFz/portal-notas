@@ -151,6 +151,43 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* EROFS Help Card */}
+        {saveStatus && !saveStatus.success && (saveStatus.message.includes("EROFS") || saveStatus.message.includes("read-only") || saveStatus.message.includes("solo lectura") || saveStatus.message.includes("sistema de archivos")) && result && result.students.length > 0 && (
+          <Card className="border-amber-200 bg-amber-50/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                ¿Desplegado en Vercel o Servidor de Solo Lectura?
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Dado que los servidores en producción como Vercel tienen un sistema de archivos de solo lectura, no es posible escribir directamente el archivo en el servidor.
+              </p>
+              <p className="text-xs font-medium text-amber-800">
+                ¡No te preocupes! El procesamiento ya se completó con éxito en tu navegador. Puedes descargar el archivo generado aquí mismo, guardarlo en tu proyecto local en la ruta <code className="bg-amber-100/80 px-1 py-0.5 rounded font-mono text-[10px]">public/data/students.json</code>, hacer commit y redesplegar:
+              </p>
+              <Button 
+                onClick={() => {
+                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students: result.students }, null, 2));
+                  const downloadAnchor = document.createElement('a');
+                  downloadAnchor.setAttribute("href", dataStr);
+                  downloadAnchor.setAttribute("download", "students.json");
+                  document.body.appendChild(downloadAnchor);
+                  downloadAnchor.click();
+                  downloadAnchor.remove();
+                }} 
+                variant="outline" 
+                size="sm" 
+                className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white border-amber-600 hover:text-white flex items-center gap-2 cursor-pointer mt-1"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Descargar students.json para Despliegue
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Warnings */}
         {result && result.warnings.length > 0 && (
           <Card className="border-amber-200">
@@ -168,8 +205,27 @@ export default function AdminPage() {
         {/* Results preview */}
         {result && result.students.length > 0 && (
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Estudiantes importados ({result.students.length})</CardTitle>
+            <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle className="text-base">Estudiantes importados ({result.students.length})</CardTitle>
+              </div>
+              <Button
+                onClick={() => {
+                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ students: result.students }, null, 2));
+                  const downloadAnchor = document.createElement('a');
+                  downloadAnchor.setAttribute("href", dataStr);
+                  downloadAnchor.setAttribute("download", "students.json");
+                  document.body.appendChild(downloadAnchor);
+                  downloadAnchor.click();
+                  downloadAnchor.remove();
+                }}
+                variant="outline"
+                size="sm"
+                className="h-8 border-[#005C39] text-[#005C39] hover:bg-[#005C39]/5 flex items-center gap-1.5 cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Descargar JSON
+              </Button>
             </CardHeader>
             <CardContent>
               <div className="max-h-96 overflow-y-auto">
