@@ -4,43 +4,23 @@ const SESSION_KEY = "portal_notas_user";
 
 /**
  * Authenticate a student by username.
- * 1. First tries fetching from the API (Vercel Blob — cloud-persisted data).
- * 2. Falls back to the static /data/students.json (bundled example data).
+ * Fetches from the /api/students endpoint which reads from:
+ * 1. Vercel Blob (cloud — production)
+ * 2. Local file system (fallback for dev)
  */
 export async function authenticate(
   username: string
 ): Promise<Student | null> {
   try {
-    // Primary: fetch from the API (Vercel Blob cloud storage)
-    try {
-      const res = await fetch("/api/students");
-      if (res.ok) {
-        const data: StudentsData = await res.json();
-        if (data.students && data.students.length > 0) {
-          const student = data.students.find(
-            (s) => s.username.toLowerCase() === username.toLowerCase()
-          );
-          if (student) return student;
-        }
-      }
-    } catch {
-      // API not available, continue to fallback
+    // Use the API endpoint that reads from Vercel Blob (cloud storage)
+    const res = await fetch("/api/students", { cache: "no-store" });
+    if (res.ok) {
+      const data: StudentsData = await res.json();
+      const student = data.students.find(
+        (s) => s.username.toLowerCase() === username.toLowerCase()
+      );
+      if (student) return student;
     }
-
-    // Fallback: try fetching from static public/data/students.json
-    try {
-      const res = await fetch("/data/students.json");
-      if (res.ok) {
-        const data: StudentsData = await res.json();
-        const student = data.students.find(
-          (s) => s.username.toLowerCase() === username.toLowerCase()
-        );
-        if (student) return student;
-      }
-    } catch {
-      // File not available, that's fine
-    }
-
     return null;
   } catch {
     return null;

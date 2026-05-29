@@ -97,10 +97,6 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-        <p className="text-center text-xs text-[#8888aa]">
-          ¿Eres administrador?{" "}
-          <a href="/admin" className="text-neon-magenta hover:glow-magenta font-medium underline-offset-4 hover:underline transition-all">Ir al panel de administración</a>
-        </p>
       </div>
     </main>
   );
