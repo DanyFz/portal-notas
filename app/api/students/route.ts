@@ -316,7 +316,13 @@ export async function GET() {
           debugInfo.excelBlobFound = excelBlob.pathname;
           console.log(`[students] Found Excel in Blob: ${excelBlob.pathname}`);
           const bustUrl = `${excelBlob.url}${excelBlob.url.includes("?") ? "&" : "?"}t=${Date.now()}`;
-          const response = await fetch(bustUrl, { cache: "no-store" });
+          // Since the Vercel Blob might be private, we must authorize the fetch call
+          const response = await fetch(bustUrl, { 
+            cache: "no-store",
+            headers: {
+              "Authorization": `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`
+            }
+          });
           if (response.ok) {
             const arrayBuffer = await response.arrayBuffer();
             const { students, warnings } = parseExcelBuffer(arrayBuffer);
@@ -340,7 +346,13 @@ export async function GET() {
           const latestBlob = jsonBlobs[0];
           debugInfo.jsonBlobFound = latestBlob.pathname;
           const bustUrl = `${latestBlob.url}${latestBlob.url.includes("?") ? "&" : "?"}t=${Date.now()}`;
-          const response = await fetch(bustUrl, { cache: "no-store" });
+          // Authorize private JSON blob fetch
+          const response = await fetch(bustUrl, { 
+            cache: "no-store",
+            headers: {
+              "Authorization": `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
             if (data.students && data.students.length > 0) {
