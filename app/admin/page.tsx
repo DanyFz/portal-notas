@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useRef, FormEvent } from "react";
-import { parseExcelFile } from "@/lib/parseExcel";
-import { saveStudentsData } from "@/lib/auth";
 import { Student } from "@/lib/types";
 
 const ADMIN_PASSWORD = "admin123";
@@ -34,22 +32,54 @@ export default function AdminPage() {
     setSaveStatus(null);
 
     try {
-      const buffer = await file.arrayBuffer();
-      const parsed = parseExcelFile(buffer);
-      setResult(parsed);
+      // Send the Excel file to the server API for processing & cloud storage
+      const formData = new FormData();
+      formData.append("file", file);
 
-      if (parsed.students.length > 0) {
-        // Save to localStorage instead of server filesystem
-        saveStudentsData(parsed.students);
+      const response = await fetch("/api/upload-excel", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
         setSaveStatus({
-          success: true,
-          message: `Se guardaron ${parsed.students.length} estudiantes exitosamente.`,
+          success: false,
+          message: data.error || "Error desconocido al procesar el archivo.",
+        });
+        if (data.warnings) {
+          setResult({ students: [], warnings: data.warnings });
+        }
+        return;
+      }
+
+      // Success — show results
+      setSaveStatus({
+        success: true,
+        message: data.message,
+      });
+
+      // Fetch the updated students list to show preview
+      try {
+        const studentsRes = await fetch("/api/students");
+        if (studentsRes.ok) {
+          const studentsData = await studentsRes.json();
+          setResult({
+            students: studentsData.students || [],
+            warnings: data.warnings || [],
+          });
+        }
+      } catch {
+        setResult({
+          students: [],
+          warnings: data.warnings || [],
         });
       }
     } catch (err) {
       setSaveStatus({
         success: false,
-        message: "Error al procesar el archivo: " + (err instanceof Error ? err.message : "Error desconocido"),
+        message: "Error al subir el archivo: " + (err instanceof Error ? err.message : "Error desconocido"),
       });
     } finally {
       setLoading(false);
@@ -128,7 +158,7 @@ export default function AdminPage() {
               <span className="glow-cyan">Subir archivo Excel</span>
             </h2>
             <p className="text-sm text-[#8888aa] mt-1">
-              Sube un archivo .xlsx con una hoja por grupo. Cada hoja debe tener columnas de Nombre, Correo, Programa, fechas de asistencia y evaluaciones.
+              Sube un archivo .xlsx con una hoja por grupo. Los datos se guardarán en la nube y estarán disponibles para <strong className="text-neon-green">todos los dispositivos</strong>.
             </p>
           </div>
           <div className="p-6 space-y-4">
@@ -153,7 +183,7 @@ export default function AdminPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                  Procesando...
+                  Subiendo y procesando en la nube...
                 </span>
               ) : "Subir y procesar"}
             </button>
@@ -167,8 +197,11 @@ export default function AdminPage() {
               ? "bg-[#39ff14]/5 border-[#39ff14]/30 text-neon-green" 
               : "bg-[#ff3366]/5 border-[#ff3366]/30 text-[#ff3366]"
           }`}>
-            <p className="font-bold">{saveStatus.success ? "✓ Éxito" : "✗ Error"}</p>
+            <p className="font-bold">{saveStatus.success ? "✓ Éxito — Datos guardados en la nube" : "✗ Error"}</p>
             <p className="mt-1 opacity-90">{saveStatus.message}</p>
+            {saveStatus.success && (
+              <p className="mt-2 text-xs opacity-70">Los estudiantes ahora pueden acceder desde cualquier dispositivo.</p>
+            )}
           </div>
         )}
 
