@@ -289,6 +289,16 @@ const NO_CACHE_HEADERS = {
  * 3. Local file system fallback (public/data/students.json)
  */
 export async function GET() {
+  const debugInfo: any = {
+    hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+    source: "none",
+    excelBlobFound: null,
+    jsonBlobFound: null,
+    blobsList: [],
+    error: null,
+    warnings: []
+  };
+
   try {
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       try {
@@ -296,24 +306,31 @@ export async function GET() {
 
         // 1. Look for any .xlsx file in the Blob store
         const { blobs: allBlobs } = await list();
+        debugInfo.blobsList = allBlobs.map(b => ({ pathname: b.pathname, url: b.url }));
+
         const excelBlob = allBlobs.find(
           (b) => b.pathname.endsWith(".xlsx") || b.pathname.endsWith(".xls")
         );
 
         if (excelBlob) {
+          debugInfo.excelBlobFound = excelBlob.pathname;
           console.log(`[students] Found Excel in Blob: ${excelBlob.pathname}`);
           const bustUrl = `${excelBlob.url}${excelBlob.url.includes("?") ? "&" : "?"}t=${Date.now()}`;
           const response = await fetch(bustUrl, { cache: "no-store" });
           if (response.ok) {
             const arrayBuffer = await response.arrayBuffer();
             const { students, warnings } = parseExcelBuffer(arrayBuffer);
+            debugInfo.warnings = warnings;
             if (students.length > 0) {
               console.log(`[students] Parsed ${students.length} students from Excel blob`);
-              if (warnings.length > 0) {
-                console.warn("[students] Warnings:", warnings);
-              }
-              return NextResponse.json({ students }, { headers: NO_CACHE_HEADERS });
+              debugInfo.source = `excel-blob: ${excelBlob.pathname}`;
+              return NextResponse.json(
+                { students, debug: debugInfo },
+                { headers: NO_CACHE_HEADERS }
+              );
             }
+          } else {
+            debugInfo.error = `Failed to fetch excel blob: ${response.status} ${response.statusText}`;
           }
         }
 
@@ -321,17 +338,25 @@ export async function GET() {
         const { blobs: jsonBlobs } = await list({ prefix: "students-data" });
         if (jsonBlobs.length > 0) {
           const latestBlob = jsonBlobs[0];
+          debugInfo.jsonBlobFound = latestBlob.pathname;
           const bustUrl = `${latestBlob.url}${latestBlob.url.includes("?") ? "&" : "?"}t=${Date.now()}`;
           const response = await fetch(bustUrl, { cache: "no-store" });
           if (response.ok) {
             const data = await response.json();
             if (data.students && data.students.length > 0) {
-              return NextResponse.json(data, { headers: NO_CACHE_HEADERS });
+              debugInfo.source = `json-blob: ${latestBlob.pathname}`;
+              return NextResponse.json(
+                { students: data.students, debug: debugInfo },
+                { headers: NO_CACHE_HEADERS }
+              );
             }
+          } else {
+            debugInfo.error = `Failed to fetch json blob: ${response.status}`;
           }
         }
       } catch (err) {
         console.error("Vercel Blob read failed:", err);
+        debugInfo.error = err instanceof Error ? err.message : String(err);
         // Fall through to file system
       }
     }
@@ -342,16 +367,24 @@ export async function GET() {
       const fileContent = await fs.readFile(filePath, "utf-8");
       const data = JSON.parse(fileContent);
       if (data.students && data.students.length > 0) {
-        return NextResponse.json(data, { headers: NO_CACHE_HEADERS });
+        debugInfo.source = "local-fs: public/data/students.json";
+        return NextResponse.json(
+          { students: data.students, debug: debugInfo },
+          { headers: NO_CACHE_HEADERS }
+        );
       }
-    } catch {
-      // File doesn't exist yet, that's fine
+    } catch (fsErr) {
+      debugInfo.error = (debugInfo.error || "") + " | FS error: " + (fsErr instanceof Error ? fsErr.message : String(fsErr));
     }
 
     // No data found anywhere
-    return NextResponse.json({ students: [] }, { headers: NO_CACHE_HEADERS });
+    return NextResponse.json(
+      { students: [], debug: debugInfo },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error) {
     console.error("Error fetching students:", error);
-    return NextResponse.json({ students: [] });
+    debugInfo.error = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ students: [], debug: debugInfo });
   }
 }
