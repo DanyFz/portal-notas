@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans bg-[#0a0a0f] text-[#e8e8f0] neon-grid-bg">
+      <body className="min-h-full flex flex-col font-sans bg-[#0b0b0e] text-[#f5f0eb] beige-grid-bg">
         {children}
       </body>
     </html>
