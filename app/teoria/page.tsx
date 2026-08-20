@@ -7,90 +7,89 @@ interface TheoryModule {
   num: number;
   title: string;
   page: number;
-  blockId: "algebra" | "ecuaciones" | "geometria" | "funciones" | "trigonometria";
+  blockId: "algebra" | "ecuaciones_geometria" | "funciones" | "trigonometria";
+  tag: "Álgebra" | "Geometría" | "Funciones" | "Trigonometría";
   summary: string;
 }
 
 interface TheoryBlock {
-  id: "algebra" | "ecuaciones" | "geometria" | "funciones" | "trigonometria";
+  id: "algebra" | "ecuaciones_geometria" | "funciones" | "trigonometria";
   title: string;
   subtitle: string;
   icon: string;
+  range: string;
 }
 
 const THEORY_BLOCKS: TheoryBlock[] = [
   {
     id: "algebra",
-    title: "1. Álgebra y Fundamentos",
-    subtitle: "Conjuntos, números reales, polinomios, factorización y expresiones algebraicas",
+    title: "Bloque 1: Álgebra y Fundamentos",
+    subtitle: "Conjuntos, números reales, polinomios, productos notables y racionalización",
     icon: "🧮",
+    range: "Módulos #1 al #10",
   },
   {
-    id: "ecuaciones",
-    title: "2. Ecuaciones, Sistemas y Desigualdades",
-    subtitle: "Ecuaciones lineales, cuadráticas, sistemas 2x2, inecuaciones y modelado",
-    icon: "⚖️",
-  },
-  {
-    id: "geometria",
-    title: "3. Geometría Plana, del Espacio y Analítica",
-    subtitle: "Triángulos, recta, circunferencia, áreas, perímetros, volúmenes y Pitágoras",
+    id: "ecuaciones_geometria",
+    title: "Bloque 2: Ecuaciones, Geometría y Modelado",
+    subtitle: "Ecuaciones, recta, circunferencia, sistemas 2x2, inecuaciones, geometría plana, sólidos y modelado",
     icon: "📐",
+    range: "Módulos #11 al #19",
   },
   {
     id: "funciones",
-    title: "4. Funciones y Análisis",
-    subtitle: "Dominio, gráficas, inversas, composición, exponenciales y logaritmos",
+    title: "Bloque 3: Funciones y sus Propiedades",
+    subtitle: "Dominio, tramos, paridad, composición, inversas, exponenciales y logaritmos",
     icon: "📈",
+    range: "Módulos #20 al #25",
   },
   {
     id: "trigonometria",
-    title: "5. Trigonometría y Aplicaciones",
-    subtitle: "Razones trigonométricas, Ley de Senos/Cosenos, identidades y ecuaciones",
+    title: "Bloque 4: Trigonometría y Aplicaciones",
+    subtitle: "Razones trigonométricas, ley de senos/cosenos, identidades y ecuaciones trigonométricas",
     icon: "🔄",
+    range: "Módulos #26 al #30",
   },
 ];
 
+// Strictly sequential list 1 to 30 as provided by the user
 const THEORY_MODULES: TheoryModule[] = [
-  // Bloque 1: Álgebra y Fundamentos (1-10)
-  { num: 1, title: "Teoría Intuitiva de Conjuntos", page: 1, blockId: "algebra", summary: "Noción de conjuntos, pertenencia, inclusión, operaciones entre conjuntos (unión, intersección, complemento) y diagramas de Venn." },
-  { num: 2, title: "Propiedades de los Números Reales y Fraccionarios", page: 4, blockId: "algebra", summary: "Axiomas de los números reales, operaciones con fraccionarios, simplificación, suma, resta, multiplicación y división." },
-  { num: 3, title: "Recta Numérica, Orden e Intervalos", page: 7, blockId: "algebra", summary: "Representación geométrica en la recta real, relación de orden (mayor/menor) e intervalos abiertos, cerrados y semiabiertos." },
-  { num: 4, title: "Valor Absoluto y Distancia", page: 10, blockId: "algebra", summary: "Definición rigurosa del valor absoluto, propiedades, interpretación geométrica como distancia entre dos puntos en la recta real." },
-  { num: 5, title: "Potenciación y Radicación", page: 11, blockId: "algebra", summary: "Leyes de los exponentes enteros y racionales, propiedades de los radicales, simplificación y operaciones con radicales." },
-  { num: 6, title: "Expresiones Algebraicas Polinomios", page: 15, blockId: "algebra", summary: "Clasificación de polinomios, grado, operaciones fundamentales (suma, resta, producto y división sintética/larga de polinomios)." },
-  { num: 7, title: "Ceros Reales de Polinomios", page: 21, blockId: "algebra", summary: "Teorema del residuo, teorema del factor, ceros racionales y factorización completa de polinomios de grado superior." },
-  { num: 8, title: "Productos Notables y Factorización", page: 25, blockId: "algebra", summary: "Fórmulas de productos notables (cuadrados, cubos), métodos de factorización: factor común, agrupación, trinomios y diferencias." },
-  { num: 9, title: "Factorial y Teorema del Binomio", page: 32, blockId: "algebra", summary: "Notación de factorial (!), coeficientes binomiales, triángulo de Pascal y desarrollo del binomio de Newton." },
-  { num: 10, title: "Expresiones Fraccionarias, Fracciones Compuestas y Racionalización", page: 37, blockId: "algebra", summary: "Dominio de expresiones racionales, simplificación de fracciones compuestas y técnicas de racionalización de numeradores y denominadores." },
+  // Bloque 1 (1 - 10)
+  { num: 1, title: "Teoría Intuitiva de Conjuntos", page: 1, blockId: "algebra", tag: "Álgebra", summary: "Noción de conjuntos, pertenencia, inclusión, operaciones entre conjuntos (unión, intersección, complemento) y diagramas de Venn." },
+  { num: 2, title: "Propiedades de los Números Reales y Fraccionarios", page: 4, blockId: "algebra", tag: "Álgebra", summary: "Axiomas de los números reales, operaciones con fraccionarios, simplificación, suma, resta, multiplicación y división." },
+  { num: 3, title: "Recta Numérica, Orden e Intervalos", page: 7, blockId: "algebra", tag: "Álgebra", summary: "Representación geométrica en la recta real, relación de orden (mayor/menor) e intervalos abiertos, cerrados y semiabiertos." },
+  { num: 4, title: "Valor Absoluto y Distancia", page: 10, blockId: "algebra", tag: "Álgebra", summary: "Definición rigurosa del valor absoluto, propiedades, interpretación geométrica como distancia entre dos puntos en la recta real." },
+  { num: 5, title: "Potenciación y Radicación", page: 11, blockId: "algebra", tag: "Álgebra", summary: "Leyes de los exponentes enteros y racionales, propiedades de los radicales, simplificación y operaciones con radicales." },
+  { num: 6, title: "Expresiones Algebraicas Polinomios", page: 15, blockId: "algebra", tag: "Álgebra", summary: "Clasificación de polinomios, grado, operaciones fundamentales (suma, resta, producto y división sintética/larga de polinomios)." },
+  { num: 7, title: "Ceros Reales de Polinomios", page: 21, blockId: "algebra", tag: "Álgebra", summary: "Teorema del residuo, teorema del factor, ceros racionales y factorización completa de polinomios de grado superior." },
+  { num: 8, title: "Productos Notables y Factorización", page: 25, blockId: "algebra", tag: "Álgebra", summary: "Fórmulas de productos notables (cuadrados, cubos), métodos de factorización: factor común, agrupación, trinomios y diferencias." },
+  { num: 9, title: "Factorial y Teorema del Binomio", page: 32, blockId: "algebra", tag: "Álgebra", summary: "Notación de factorial (!), coeficientes binomiales, triángulo de Pascal y desarrollo del binomio de Newton." },
+  { num: 10, title: "Expresiones Fraccionarias, Fracciones Compuestas y Racionalización", page: 37, blockId: "algebra", tag: "Álgebra", summary: "Dominio de expresiones racionales, simplificación de fracciones compuestas y técnicas de racionalización de numeradores y denominadores." },
 
-  // Bloque 2: Ecuaciones y Desigualdades (11, 13, 14, 19)
-  { num: 11, title: "Ecuaciones", page: 42, blockId: "ecuaciones", summary: "Ecuaciones lineales, cuadráticas, despejes de variables, ecuaciones con valor absoluto y ecuaciones cuadráticas con fórmula general." },
-  { num: 13, title: "Sistemas 2x2", page: 51, blockId: "ecuaciones", summary: "Sistemas de dos ecuaciones lineales con dos incógnitas: métodos de sustitución, igualación, reducción y regla de Cramer." },
-  { num: 14, title: "Desigualdades", page: 54, blockId: "ecuaciones", summary: "Desigualdades lineales, cuadráticas, racionales, desigualdades con valor absoluto y método de intervalos/signos (método del cementerio)." },
-  { num: 19, title: "Modelado Mediante Ecuaciones", page: 77, blockId: "ecuaciones", summary: "Planteamiento y resolución de problemas de la vida real aplicados a la física, economía y geometría utilizando ecuaciones." },
+  // Bloque 2 (11 - 19) STRICT SEQUENTIAL ORDER
+  { num: 11, title: "Ecuaciones", page: 42, blockId: "ecuaciones_geometria", tag: "Álgebra", summary: "Ecuaciones lineales, cuadráticas, despejes de variables, ecuaciones con valor absoluto y ecuaciones cuadráticas con fórmula general." },
+  { num: 12, title: "Línea Recta y Circunferencia", page: 47, blockId: "ecuaciones_geometria", tag: "Geometría", summary: "Pendiente, ecuación de la recta (punto-pendiente, explícita, general), rectas paralelas/perpendiculares y ecuación de la circunferencia." },
+  { num: 13, title: "Sistemas 2x2", page: 51, blockId: "ecuaciones_geometria", tag: "Álgebra", summary: "Sistemas de dos ecuaciones lineales con dos incógnitas: métodos de sustitución, igualación, reducción y regla de Cramer." },
+  { num: 14, title: "Desigualdades", page: 54, blockId: "ecuaciones_geometria", tag: "Álgebra", summary: "Desigualdades lineales, cuadráticas, racionales, desigualdades con valor absoluto y método de intervalos/signos (método del cementerio)." },
+  { num: 15, title: "Ángulos y Triángulos", page: 60, blockId: "ecuaciones_geometria", tag: "Geometría", summary: "Clasificación de ángulos, medidas en grados y radianes, propiedades de los triángulos y suma de ángulos internos." },
+  { num: 16, title: "Congruencia y Semejanza de Triángulos", page: 65, blockId: "ecuaciones_geometria", tag: "Geometría", summary: "Criterios de congruencia (LLL, LAL, ALA) y semejanza de triángulos, Teorema de Thales y proporciones geométricas." },
+  { num: 17, title: "Área y Perímetro de Figuras Planas y Teorema de Pitágoras", page: 70, blockId: "ecuaciones_geometria", tag: "Geometría", summary: "Cálculo de áreas y perímetros de polígonos regulares e irregulares, círculo y aplicación del Teorema de Pitágoras en triángulos rectángulos." },
+  { num: 18, title: "Volumen y Área Superficial de Sólidos", page: 74, blockId: "ecuaciones_geometria", tag: "Geometría", summary: "Geometría del espacio: volumen y área lateral/superficial de prismas, cilindros, pirámides, conos y esferas." },
+  { num: 19, title: "Modelado Mediante Ecuaciones", page: 77, blockId: "ecuaciones_geometria", tag: "Álgebra", summary: "Planteamiento y resolución de problemas de la vida real aplicados a la física, economía y geometría utilizando ecuaciones." },
 
-  // Bloque 3: Geometría y Geometría Analítica (12, 15, 16, 17, 18) - BLOQUE INDEPENDIENTE
-  { num: 12, title: "Línea Recta y Circunferencia", page: 47, blockId: "geometria", summary: "Pendiente, ecuación de la recta (punto-pendiente, explícita, general), rectas paralelas/perpendiculares y ecuación de la circunferencia." },
-  { num: 15, title: "Ángulos y Triángulos", page: 60, blockId: "geometria", summary: "Clasificación de ángulos, medidas en grados y radianes, propiedades de los triángulos y suma de ángulos internos." },
-  { num: 16, title: "Congruencia y Semejanza de Triángulos", page: 65, blockId: "geometria", summary: "Criterios de congruencia (LLL, LAL, ALA) y semejanza de triángulos, Teorema de Thales y proporciones geométricas." },
-  { num: 17, title: "Área y Perímetro de Figuras Planas y Teorema de Pitágoras", page: 70, blockId: "geometria", summary: "Cálculo de áreas y perímetros de polígonos regulares e irregulares, círculo y aplicación del Teorema de Pitágoras en triángulos rectángulos." },
-  { num: 18, title: "Volumen y Área Superficial de Sólidos", page: 74, blockId: "geometria", summary: "Geometría del espacio: volumen y área lateral/superficial de prismas, cilindros, pirámides, conos y esferas." },
+  // Bloque 3 (20 - 25)
+  { num: 20, title: "Funciones", page: 81, blockId: "funciones", tag: "Funciones", summary: "Definición formal de función, regla de correspondencia, prueba de la línea vertical, dominio y rango de una función." },
+  { num: 21, title: "Funciones por Tramos, Valor Absoluto y de la forma x^n y x^(1/n)", page: 85, blockId: "funciones", tag: "Funciones", summary: "Gráficas de funciones definidas a trozos, función valor absoluto, funciones potencia y funciones raíz n-ésima." },
+  { num: 22, title: "Funciones Pares e Impares, Combinación de Funciones", page: 87, blockId: "funciones", tag: "Funciones", summary: "Simetría respecto al eje Y y al origen, operaciones algebraicas entre funciones (suma, resta, producto, cociente) y composición (f o g)." },
+  { num: 23, title: "Funciones Inyectivas e Inversa de una Función", page: 91, blockId: "funciones", tag: "Funciones", summary: "Prueba de la línea horizontal, funciones uno a uno (inyectivas), definición de la función inversa f^-1 y simetría respecto a y = x." },
+  { num: 24, title: "Funciones Exponenciales", page: 95, blockId: "funciones", tag: "Funciones", summary: "Definición de f(x) = a^x, el número e, propiedades de los exponentes, gráficas y aplicaciones de crecimiento/decaimiento." },
+  { num: 25, title: "Funciones Logarítmicas y Propiedades de los Logaritmos", page: 99, blockId: "funciones", tag: "Funciones", summary: "Logaritmo como inversa de la exponencial, logaritmo natural ln(x), propiedades de expansión, compresión y cambio de base." },
 
-  // Bloque 4: Funciones (20 - 25)
-  { num: 20, title: "Funciones", page: 81, blockId: "funciones", summary: "Definición formal de función, regla de correspondencia, prueba de la línea vertical, dominio y rango de una función." },
-  { num: 21, title: "Funciones por Tramos, Valor Absoluto y de la forma x^n y x^(1/n)", page: 85, blockId: "funciones", summary: "Gráficas de funciones definidas a trozos, función valor absoluto, funciones potencia y funciones raíz n-ésima." },
-  { num: 22, title: "Funciones Pares e Impares, Combinación de Funciones", page: 87, blockId: "funciones", summary: "Simetría respecto al eje Y y al origen, operaciones algebraicas entre funciones (suma, resta, producto, cociente) y composición (f o g)." },
-  { num: 23, title: "Funciones Inyectivas e Inversa de una Función", page: 91, blockId: "funciones", summary: "Prueba de la línea horizontal, funciones uno a uno (inyectivas), definición de la función inversa f^-1 y simetría respecto a y = x." },
-  { num: 24, title: "Funciones Exponenciales", page: 95, blockId: "funciones", summary: "Definición de f(x) = a^x, el número e, propiedades de los exponentes, gráficas y aplicaciones de crecimiento/decaimiento." },
-  { num: 25, title: "Funciones Logarítmicas y Propiedades de los Logaritmos", page: 99, blockId: "funciones", summary: "Logaritmo como inversa de la exponencial, logaritmo natural ln(x), propiedades de expansión, compresión y cambio de base." },
-
-  // Bloque 5: Trigonometría (26 - 30)
-  { num: 26, title: "Funciones Trigonométricas de Ángulos", page: 103, blockId: "trigonometria", summary: "Definición de las 6 razones trigonométricas en triángulos rectángulos (seno, coseno, tangente, cotangente, secante, cosecante) y ángulos notables." },
-  { num: 27, title: "Aplicaciones de Trigonometría y Ley de Senos y Cosenos", page: 108, blockId: "trigonometria", summary: "Resolución de triángulos oblicuángulos mediante la Ley de Senos y la Ley de Cosenos, cálculo de distancias inaccesibles y vectores." },
-  { num: 28, title: "Funciones Trigonométricas de Números Reales", page: 113, blockId: "trigonometria", summary: "Círculo unitario, definición de funciones circulares, periodo, amplitud, desfase y gráficas de las funciones trigonométricas en R." },
-  { num: 29, title: "Identidades Trigonométricas", page: 117, blockId: "trigonometria", summary: "Identidades fundamentales (pitagóricas, recíprocas, cociente), identidades de suma/resta de ángulos y del ángulo doble." },
-  { num: 30, title: "Ecuaciones Trigonométricas", page: 122, blockId: "trigonometria", summary: "Resolución de ecuaciones que involucran funciones trigonométricas, cálculo de soluciones generales y restringidas en un intervalo." },
+  // Bloque 4 (26 - 30)
+  { num: 26, title: "Funciones Trigonométricas de Ángulos", page: 103, blockId: "trigonometria", tag: "Trigonometría", summary: "Definición de las 6 razones trigonométricas en triángulos rectángulos (seno, coseno, tangente, cotangente, secante, cosecante) y ángulos notables." },
+  { num: 27, title: "Aplicaciones de Trigonometría y Ley de Senos y Cosenos", page: 108, blockId: "trigonometria", tag: "Trigonometría", summary: "Resolución de triángulos oblicuángulos mediante la Ley de Senos y la Ley de Cosenos, cálculo de distancias inaccesibles y vectores." },
+  { num: 28, title: "Funciones Trigonométricas de Números Reales", page: 113, blockId: "trigonometria", tag: "Trigonometría", summary: "Círculo unitario, definición de funciones circulares, periodo, amplitud, desfase y gráficas de las funciones trigonométricas en R." },
+  { num: 29, title: "Identidades Trigonométricas", page: 117, blockId: "trigonometria", tag: "Trigonometría", summary: "Identidades fundamentales (pitagóricas, recíprocas, cociente), identidades de suma/resta de ángulos y del ángulo doble." },
+  { num: 30, title: "Ecuaciones Trigonométricas", page: 122, blockId: "trigonometria", tag: "Trigonometría", summary: "Resolución de ecuaciones que involucran funciones trigonométricas, cálculo de soluciones generales y restringidas en un intervalo." },
 ];
 
 export default function TheoryPage() {
@@ -110,6 +109,7 @@ export default function TheoryPage() {
         (m) =>
           m.title.toLowerCase().includes(term) ||
           m.num.toString() === term ||
+          m.tag.toLowerCase().includes(term) ||
           m.summary.toLowerCase().includes(term)
       )
     );
@@ -128,7 +128,7 @@ export default function TheoryPage() {
             </Link>
             <div>
               <span className="font-bold text-sm text-[#D9CBB6] glow-beige block">Portal Académico</span>
-              <span className="text-xs text-[#BFAE8F]">Módulo de Teoría por Secciones</span>
+              <span className="text-xs text-[#BFAE8F]">Módulo de Teoría (#1 a #30)</span>
             </div>
           </div>
           <Link href="/" className="text-xs text-[#BFAE8F] hover:text-[#D9CBB6] flex items-center gap-1.5 transition-colors">
@@ -150,14 +150,14 @@ export default function TheoryPage() {
                 📚 Contenido Oficial del Curso
               </span>
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#BFAE8F]/15 border border-[#BFAE8F]/30 text-[#BFAE8F]">
-                5 Bloques Temáticos Visibles
+                Secuencia Numérica Estricta 1 al 30
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#D9CBB6] glow-beige">
-              Módulo de Teoría por Bloques Temáticos
+              Programa de Teoría (Módulos 1 al 30)
             </h1>
             <p className="text-[#BFAE8F] text-sm max-w-3xl leading-relaxed">
-              Todos los 30 temas de la asignatura están organizados en 5 secciones de bloques independientes. Cada tema se muestra con su número de capítulo, contenido explicativo completo e indicación de página del libro guía.
+              Consulta los 30 temas en el orden consecutivo del texto guía. Cada tema incluye su resumen explicativo, etiqueta de área y su número de página exacta.
             </p>
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function TheoryPage() {
                   : "bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50"
               }`}
             >
-              Todos los Bloques (5)
+              Todos (1-30)
             </button>
             <button
               onClick={() => setSelectedBlock("algebra")}
@@ -184,27 +184,17 @@ export default function TheoryPage() {
                   : "bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50"
               }`}
             >
-              1. Álgebra
+              Bloque 1 (#1-10)
             </button>
             <button
-              onClick={() => setSelectedBlock("ecuaciones")}
+              onClick={() => setSelectedBlock("ecuaciones_geometria")}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                selectedBlock === "ecuaciones"
+                selectedBlock === "ecuaciones_geometria"
                   ? "bg-[#7A8F73] text-[#D9CBB6] border border-[#7A8F73] shadow-md font-semibold"
                   : "bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50"
               }`}
             >
-              2. Ecuaciones
-            </button>
-            <button
-              onClick={() => setSelectedBlock("geometria")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                selectedBlock === "geometria"
-                  ? "bg-[#7A8F73] text-[#D9CBB6] border border-[#7A8F73] shadow-md font-semibold"
-                  : "bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50"
-              }`}
-            >
-              3. Geometría
+              Bloque 2 (#11-19)
             </button>
             <button
               onClick={() => setSelectedBlock("funciones")}
@@ -214,7 +204,7 @@ export default function TheoryPage() {
                   : "bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50"
               }`}
             >
-              4. Funciones
+              Bloque 3 (#20-25)
             </button>
             <button
               onClick={() => setSelectedBlock("trigonometria")}
@@ -224,7 +214,7 @@ export default function TheoryPage() {
                   : "bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50"
               }`}
             >
-              5. Trigonometría
+              Bloque 4 (#26-30)
             </button>
           </div>
 
@@ -243,12 +233,12 @@ export default function TheoryPage() {
           </div>
         </div>
 
-        {/* Render Blocks Sections */}
+        {/* Render Sequential Blocks Sections */}
         <div className="space-y-10">
           {filteredBlocks.length === 0 ? (
             <div className="beige-card rounded-xl p-8 text-center space-y-2">
               <p className="text-base text-[#D9CBB6] font-semibold">No se encontraron temas coincidentes</p>
-              <p className="text-xs text-[#BFAE8F]">Intenta buscar con otra palabra clave o selecciona "Todos los Bloques".</p>
+              <p className="text-xs text-[#BFAE8F]">Intenta buscar con otra palabra clave o selecciona "Todos".</p>
             </div>
           ) : (
             filteredBlocks.map((block) => {
@@ -259,6 +249,7 @@ export default function TheoryPage() {
                 return (
                   m.title.toLowerCase().includes(term) ||
                   m.num.toString() === term ||
+                  m.tag.toLowerCase().includes(term) ||
                   m.summary.toLowerCase().includes(term)
                 );
               });
@@ -267,7 +258,7 @@ export default function TheoryPage() {
 
               return (
                 <section key={block.id} className="space-y-4 animate-fade-in">
-                  {/* Block Section Header Header */}
+                  {/* Block Section Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-[#4F6B57]/30 border border-[#7A8F73]/40 shadow-md">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{block.icon}</span>
@@ -277,11 +268,11 @@ export default function TheoryPage() {
                       </div>
                     </div>
                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#7A8F73]/30 text-[#D9CBB6] border border-[#7A8F73]/50 self-start sm:self-center">
-                      {modulesInBlock.length} temas en esta sección
+                      {block.range}
                     </span>
                   </div>
 
-                  {/* Modules Cards Grid - ALL ALWAYS VISIBLE */}
+                  {/* Modules Cards Grid - Strictly Sequential 1..30 and Fully Open */}
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {modulesInBlock.map((mod) => (
                       <div
@@ -294,9 +285,22 @@ export default function TheoryPage() {
                             <span className="px-2.5 py-0.5 rounded-full font-bold bg-[#7A8F73]/25 text-[#D9CBB6] border border-[#7A8F73]/40">
                               Módulo #{mod.num}
                             </span>
-                            <span className="px-2.5 py-0.5 rounded-full font-semibold bg-[#BFAE8F]/15 text-[#BFAE8F] border border-[#BFAE8F]/30 text-[11px]">
-                              Pág. {mod.page}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                                mod.tag === "Geometría"
+                                  ? "bg-[#BFAE8F]/20 text-[#BFAE8F] border-[#BFAE8F]/40"
+                                  : mod.tag === "Trigonometría"
+                                  ? "bg-[#7A8F73]/30 text-[#D9CBB6] border-[#7A8F73]/50"
+                                  : mod.tag === "Funciones"
+                                  ? "bg-[#4F6B57]/40 text-[#D9CBB6] border-[#7A8F73]/30"
+                                  : "bg-[#7A8F73]/20 text-[#D9CBB6] border-[#7A8F73]/30"
+                              }`}>
+                                {mod.tag}
+                              </span>
+                              <span className="px-2.5 py-0.5 rounded-full font-semibold bg-[#BFAE8F]/15 text-[#BFAE8F] border border-[#BFAE8F]/30 text-[11px]">
+                                Pág. {mod.page}
+                              </span>
+                            </div>
                           </div>
 
                           {/* Module Title */}
@@ -314,7 +318,7 @@ export default function TheoryPage() {
                         <div className="mt-4 pt-3 border-t border-[#D9CBB6]/10 flex items-center justify-between text-xs font-semibold text-[#7A8F73]">
                           <span className="flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#7A8F73]" />
-                            Tema activo
+                            Tema #{mod.num}
                           </span>
                           <span className="text-[11px] text-[#BFAE8F] font-normal">Página {mod.page}</span>
                         </div>
