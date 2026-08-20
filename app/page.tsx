@@ -121,13 +121,8 @@ export default function MainHubPage() {
           </Link>
         </div>
 
-        {/* Footer Admin Link */}
-        <div className="text-center pt-4">
-          <Link href="/admin" className="text-xs text-[#BFAE8F]/70 hover:text-[#D9CBB6] transition-colors underline decoration-[#7A8F73]/50 underline-offset-4">
-            Acceso Administrativo (Subir Excel)
-          </Link>
-        </div>
       </div>
     </main>
   );
 }
+

@@ -23,7 +23,7 @@ vercel deploy
 3. Vercel detectará Next.js automáticamente
 4. Click en "Deploy"
 
-> **Nota**: El sistema soporta almacenamiento persistente en **Vercel Blob**. Al subir el Excel desde la interfaz de `/admin`, los datos se guardan tanto en la nube (Vercel Blob) como en local. Si no hay token de Blob configurado, el sistema lee del archivo local `public/data/students.json`.
+> **Nota**: El sistema lee la lista de estudiantes directamente desde el archivo Excel (`.xlsx`) subido al almacenamiento de **Vercel Blob** en la nube. Si no hay token de Vercel Blob configurado, la aplicación utiliza el archivo local `public/data/students.json` como respaldo para desarrollo local.
 
 ## Uso Local
 
@@ -87,28 +87,25 @@ Se detectan automáticamente por palabras clave: Quiz, Nota, Parcial, Examen, Ta
 ### Estudiantes
 - **Usuario**: parte del correo antes de @ (ej: `analopez`)
 
-### Administrador
-- **Contraseña**: `admin123`
-
 ## Estructura del Proyecto
 
 ```
 portal-notas/
 ├── app/
-│   ├── page.tsx              # Login de estudiantes
+│   ├── page.tsx              # Hub Principal (Módulos Teoría y Notas)
 │   ├── layout.tsx            # Layout raíz
 │   ├── globals.css           # Estilos globales
+│   ├── teoria/
+│   │   └── page.tsx          # Módulo de Teoría y contenidos
+│   ├── notas/
+│   │   └── page.tsx          # Inicio de sesión de Notas
 │   ├── dashboard/
-│   │   └── page.tsx          # Dashboard del estudiante
-│   ├── admin/
-│   │   └── page.tsx          # Panel de administración (subida Excel)
+│   │   └── page.tsx          # Expediente y notas del estudiante
 │   └── api/
-│       ├── students/
-│       │   └── route.ts      # Consulta estudiantes (Vercel Blob / local)
-│       └── upload-excel/
-│           └── route.ts      # API para subida y procesamiento de Excel
+│       └── students/
+│           └── route.ts      # Lectura automática de estudiantes (Vercel Blob / local)
 ├── lib/
-│   ├── parseExcel.ts         # Lógica central de parseo del Excel
+│   ├── parseExcel.ts         # Lógica central de parseo de Excel
 │   ├── auth.ts               # Autenticación y utilidades
 │   ├── types.ts              # Tipos TypeScript
 │   └── utils.ts              # Utilidades de estilos (cn)
@@ -119,4 +116,5 @@ portal-notas/
 ├── package.json
 └── README.md
 ```
+
 
