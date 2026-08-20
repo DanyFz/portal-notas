@@ -23,7 +23,7 @@ vercel deploy
 3. Vercel detectará Next.js automáticamente
 4. Click en "Deploy"
 
-> **Nota**: La funcionalidad de subida de Excel (ruta `/admin`) solo persiste datos cuando se ejecuta localmente, ya que Vercel tiene un sistema de archivos de solo lectura. Para actualizar los datos en producción, sube el Excel localmente, haz commit del archivo `public/data/students.json` actualizado, y redespliega.
+> **Nota**: El sistema soporta almacenamiento persistente en **Vercel Blob**. Al subir el Excel desde la interfaz de `/admin`, los datos se guardan tanto en la nube (Vercel Blob) como en local. Si no hay token de Blob configurado, el sistema lee del archivo local `public/data/students.json`.
 
 ## Uso Local
 
@@ -86,7 +86,6 @@ Se detectan automáticamente por palabras clave: Quiz, Nota, Parcial, Examen, Ta
 
 ### Estudiantes
 - **Usuario**: parte del correo antes de @ (ej: `analopez`)
-- **Contraseña**: programa académico exacto (ej: `Ing. Sistemas`)
 
 ### Administrador
 - **Contraseña**: `admin123`
@@ -102,20 +101,22 @@ portal-notas/
 │   ├── dashboard/
 │   │   └── page.tsx          # Dashboard del estudiante
 │   ├── admin/
-│   │   └── page.tsx          # Panel de administración
+│   │   └── page.tsx          # Panel de administración (subida Excel)
 │   └── api/
-│       └── save-students/
-│           └── route.ts      # API para guardar datos
+│       ├── students/
+│       │   └── route.ts      # Consulta estudiantes (Vercel Blob / local)
+│       └── upload-excel/
+│           └── route.ts      # API para subida y procesamiento de Excel
 ├── lib/
-│   ├── parseExcel.ts         # Lógica de parseo del Excel
-│   ├── auth.ts               # Autenticación con sessionStorage
+│   ├── parseExcel.ts         # Lógica central de parseo del Excel
+│   ├── auth.ts               # Autenticación y utilidades
 │   ├── types.ts              # Tipos TypeScript
-│   └── utils.ts              # Utilidades (cn)
-├── components/ui/            # Componentes shadcn/ui
+│   └── utils.ts              # Utilidades de estilos (cn)
 ├── public/
 │   └── data/
-│       └── students.json     # Datos de estudiantes
+│       └── students.json     # Datos de estudiantes (fallback local)
 ├── next.config.ts
 ├── package.json
 └── README.md
 ```
+
