@@ -48,7 +48,7 @@ function buildModules(): Record<number, TheoryModule> {
         heading: "Ejemplos",
         level: 2,
         content: [
-          "• Sea A = {x / x es una vocal cerrada en la palabra espejo}. Como no hay ninguna vocal cerrada en la palabra "espejo", entonces tenemos que A = ∅.",
+          "• Sea A = {x / x es una vocal cerrada en la palabra espejo}. Como no hay ninguna vocal cerrada en la palabra \"espejo\", entonces tenemos que A = ∅.",
           "• Sea A = {1, 2, 3}. Luego, A es finito, ya que posee 3 elementos.",
           "• Sea A = { 1/2, 1/3, 1/4, 1/5, … }. A es infinito ya que no podemos asignar un número natural para su número de elementos.",
         ],
@@ -244,7 +244,7 @@ function buildModules(): Record<number, TheoryModule> {
           "• d es el Máximo Común Divisor de los enteros a y b, con a ≠ 0 ó b ≠ 0, si d es el mayor número entero positivo que los divide a ambos. El MCD de 24 y 30 es 6; el MCD de 7 y 18 es 1; el MCD de 0 y 12 es 12.",
           "• m es el Mínimo Común Múltiplo de los enteros a y b, con a ≠ 0 y b ≠ 0, si m es el menor número entero positivo que es múltiplo de ambos. El MCM de 6 y 10 es 30; el MCM de 15 y 14 es 210.",
           "• Dos números enteros a, b son primos relativos si el MCD de a y b es 1. 7 y 18 son primos relativos.",
-          "• Un número racional a/b está en forma reducida, o "simplificado" si a y b son primos relativos. 7/18 está en forma reducida; 16/12 no está en forma reducida → 4/3.",
+          "• Un número racional a/b está en forma reducida, o \"simplificado\" si a y b son primos relativos. 7/18 está en forma reducida; 16/12 no está en forma reducida → 4/3.",
           "• Un entero positivo p ≠ 1 es un número primo si sus únicos divisores positivos son 1 y p. Los números 2, 3, 5, 7, 11, 37, 523 son números primos.",
           "• Si a ∈ ℤ, a > 1, y a no es primo, decimos que a es número compuesto.",
           "• Teorema fundamental de la aritmética: Todo número entero mayor que 1 puede descomponerse en forma única como un producto de números ó factores primos. Ejemplo: 2924 = 2² × 17 × 43.",
@@ -298,7 +298,7 @@ function buildModules(): Record<number, TheoryModule> {
         level: 1,
         content: [
           "Todo número real se puede representar gráficamente como un punto sobre una línea recta, la cual llamaremos recta real y, recíprocamente, todo punto sobre la recta real representa un número real. Es decir, existe una correspondencia biunívoca entre los elementos de ℝ y los puntos de la recta real. El punto 0 sobre la recta real es el origen.",
-          "Los números positivos son los que están ubicados a la "derecha" de 0 en la recta real; los que están ubicados a la "izquierda" de 0 son los negativos.",
+          "Los números positivos son los que están ubicados a la \"derecha\" de 0 en la recta real; los que están ubicados a la \"izquierda\" de 0 son los negativos.",
         ],
       },
       {
@@ -308,9 +308,9 @@ function buildModules(): Record<number, TheoryModule> {
           "Sean a, b ∈ ℝ.",
           "• Decimos que a es mayor que b y escribimos a > b, si a − b es un número positivo.",
           "• Decimos que a es menor que b, y escribimos a < b, si a − b es un número negativo.",
-          "• La expresión a ≤ b es equivalente a tener a < b ó a = b, y se lee "a es menor que o igual a b".",
-          "• Similarmente, a ≥ b ⟺ a > b ó a = b, y se lee "a es mayor que o igual a b".",
-          "• Intuitivamente decimos que los números reales están "ordenados", ya que si a y b son números reales, siempre podemos determinar si a > b ó a < b ó a = b.",
+          "• La expresión a ≤ b es equivalente a tener a < b ó a = b, y se lee \"a es menor que o igual a b\".",
+          "• Similarmente, a ≥ b ⟺ a > b ó a = b, y se lee \"a es mayor que o igual a b\".",
+          "• Intuitivamente decimos que los números reales están \"ordenados\", ya que si a y b son números reales, siempre podemos determinar si a > b ó a < b ó a = b.",
         ],
       },
       {
@@ -320,7 +320,7 @@ function buildModules(): Record<number, TheoryModule> {
           "• Claramente si a > b, entonces b < a.",
           "• Se acostumbra escribir a < b < c como forma corta de la expresión a < b y b < c.",
           "• Decir que un número real a es positivo es equivalente a escribir a > 0. Decir que un número real b es negativo es equivalente a escribir b < 0.",
-          "• Geométricamente, si a y b son números reales, a > b si a está a la "derecha" de b en la recta real.",
+          "• Geométricamente, si a y b son números reales, a > b si a está a la \"derecha\" de b en la recta real.",
         ],
       },
       {
@@ -456,7 +456,7 @@ function buildModules(): Record<number, TheoryModule> {
         heading: "POTENCIACIÓN Y RADICACIÓN",
         level: 1,
         content: [
-          "(Tomado de: Stewart, James. "Precálculo". Quinta Edición. Sección 1.2.)",
+          "(Tomado de: Stewart, James. \"Precálculo\". Quinta Edición. Sección 1.2.)",
           "Si a, x ∈ ℝ, una expresión de la forma aˣ se llama expresión exponencial, el número a se llama base, y el número x se conoce como exponente.",
         ],
       },
@@ -571,7 +571,7 @@ function buildModules(): Record<number, TheoryModule> {
         heading: "EXPRESIONES ALGEBRAICAS",
         level: 1,
         content: [
-          "(Tomado de: Stewart, James. "Precálculo". Quinta Edición. Sección 1.3.)",
+          "(Tomado de: Stewart, James. \"Precálculo\". Quinta Edición. Sección 1.3.)",
           "Una expresión algebraica es una combinación de constantes (números) y variables (elementos genéricos de un conjunto numérico, representados por letras), mediante suma, resta, multiplicación, división y potenciación con exponentes enteros o racionales.",
           "Generalmente las variables se representan con las últimas letras del alfabeto: u, v, w, x, y, z. Por ejemplo, 3x² + 4x − 5, (x + z)/(y² + x), (√y − 4z)/(z + y) son expresiones algebraicas.",
         ],
@@ -875,7 +875,7 @@ function buildModules(): Record<number, TheoryModule> {
           "Definición de n factorial: 1! = 1, 2! = 2·1 = 2, y en general, n! = n·(n−1)···3·2·1.",
           "El número n! es útil para expresar algunas fórmulas. Por conveniencia, se define 0! = 1.",
           "Teorema: El número total de formas diferentes de ordenar n objetos distintos (permutaciones) es n!.",
-          "En efecto, hay n posibilidades para el "primer objeto", n−1 para el "segundo", etc. Total: n·(n−1)·(n−2)···2·1.",
+          "En efecto, hay n posibilidades para el \"primer objeto\", n−1 para el \"segundo\", etc. Total: n·(n−1)·(n−2)···2·1.",
         ],
       },
       {
@@ -939,7 +939,7 @@ function buildModules(): Record<number, TheoryModule> {
         heading: "El triángulo de Pascal",
         level: 1,
         content: [
-          "Una forma alternativa para expandir (x+y)ⁿ consiste en "leer" los coeficientes del triángulo de Pascal:",
+          "Una forma alternativa para expandir (x+y)ⁿ consiste en \"leer\" los coeficientes del triángulo de Pascal:",
           "n=0:    1",
           "n=1:   1  1",
           "n=2:  1  2  1",
