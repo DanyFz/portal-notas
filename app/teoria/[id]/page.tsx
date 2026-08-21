@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MathText } from "@/components/MathText";
 
 /* ──────────────────────────────────────────────────────────────
-   DATA: Full theory content for modules 1-10, extracted verbatim
-   from the official PDF of Matemáticas Básicas – UNAL Sede Medellín.
-   Modules 11-30 will be added in a future update.
+   DATA TYPES
    ────────────────────────────────────────────────────────────── */
 
-interface TheoryModule {
+export interface TheoryModule {
   num: number;
   title: string;
   pdfPages: string;
@@ -15,12 +14,111 @@ interface TheoryModule {
   sections: TheorySection[];
 }
 
-interface TheorySection {
+export interface TheorySection {
   heading: string;
   level: 1 | 2 | 3;
-  content: string[];          // paragraphs & formulas rendered as text
+  content: string[];
 }
 
+/* ──────────────────────────────────────────────────────────────
+   HELPER COMPONENT: Theory Paragraph Card
+   Renders paragraphs with smart callouts for definitions,
+   theorems, examples, formulas, lists, and warnings.
+   ────────────────────────────────────────────────────────────── */
+function TheoryParagraph({ text }: { text: string }) {
+  const trimmed = text.trim();
+
+  // Block formula: starts and ends with $$
+  if (trimmed.startsWith("$$") && trimmed.endsWith("$$")) {
+    return (
+      <div className="my-4 p-4 rounded-xl bg-[#2E3B33]/80 border border-[#7A8F73]/40 shadow-inner flex justify-center items-center overflow-x-auto">
+        <MathText content={trimmed} />
+      </div>
+    );
+  }
+
+  // Example Callout: starts with "Ejemplo" or "Ejemplos"
+  if (/^Ejemplo/i.test(trimmed)) {
+    return (
+      <div className="my-3 p-4 rounded-xl bg-[#7A8F73]/15 border-l-4 border-[#7A8F73] border-t border-r border-b border-[#7A8F73]/30 shadow-sm space-y-1.5">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-bold bg-[#7A8F73]/30 text-[#D9CBB6] border border-[#7A8F73]/50">
+            💡 EJEMPLO RESUELTO
+          </span>
+        </div>
+        <div className="text-sm leading-relaxed text-[#D9CBB6]/95">
+          <MathText content={trimmed} />
+        </div>
+      </div>
+    );
+  }
+
+  // Theorem Callout: starts with "Teorema"
+  if (/^Teorema/i.test(trimmed)) {
+    return (
+      <div className="my-3 p-4 rounded-xl bg-[#BFAE8F]/15 border-l-4 border-[#BFAE8F] border-t border-r border-b border-[#BFAE8F]/30 shadow-sm space-y-1.5">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-bold bg-[#BFAE8F]/30 text-[#D9CBB6] border border-[#BFAE8F]/50">
+            📜 TEOREMA / LEY
+          </span>
+        </div>
+        <div className="text-sm font-medium leading-relaxed text-[#D9CBB6]">
+          <MathText content={trimmed} />
+        </div>
+      </div>
+    );
+  }
+
+  // Definition Callout: starts with "Definición"
+  if (/^Definición/i.test(trimmed)) {
+    return (
+      <div className="my-3 p-4 rounded-xl bg-[#4F6B57]/30 border-l-4 border-[#4F6B57] border-t border-r border-b border-[#4F6B57]/40 shadow-sm space-y-1.5">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-bold bg-[#4F6B57]/50 text-[#D9CBB6] border border-[#7A8F73]/40">
+            📖 DEFINICIÓN FORMAL
+          </span>
+        </div>
+        <div className="text-sm leading-relaxed text-[#D9CBB6]">
+          <MathText content={trimmed} />
+        </div>
+      </div>
+    );
+  }
+
+  // Warning / Important note
+  if (/^(Nota|NOTA|Cuidado|Precaución|Importante)/i.test(trimmed) || trimmed.includes("≠")) {
+    if (trimmed.startsWith("• (a + b)² ≠") || trimmed.startsWith("• √(a") || trimmed.startsWith("• 1/a +") || trimmed.startsWith("Es muy importante")) {
+      return (
+        <div className="my-2 p-3 rounded-lg bg-amber-950/25 border-l-4 border-amber-500/70 border-t border-r border-b border-amber-500/20 text-amber-200/90 text-sm">
+          <MathText content={trimmed} />
+        </div>
+      );
+    }
+  }
+
+  // List items with bullet or letters
+  if (trimmed.startsWith("•") || trimmed.startsWith("-") || /^[a-z]\)/i.test(trimmed) || /^\d+\./.test(trimmed)) {
+    return (
+      <div className="flex items-start gap-2.5 my-1.5 pl-2">
+        <span className="text-[#7A8F73] font-bold select-none text-base leading-snug">•</span>
+        <div className="text-sm leading-relaxed text-[#D9CBB6]/90 flex-1">
+          <MathText content={trimmed.replace(/^[•\-]\s*/, "")} />
+        </div>
+      </div>
+    );
+  }
+
+  // Default standard paragraph
+  return (
+    <p className="text-sm leading-relaxed text-[#D9CBB6]/90">
+      <MathText content={trimmed} />
+    </p>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────
+   DATA: Modules 1-10 with Complete LaTeX Math Notation
+   ────────────────────────────────────────────────────────────── */
 function buildModules(): Record<number, TheoryModule> {
   const modules: Record<number, TheoryModule> = {};
 
@@ -32,141 +130,81 @@ function buildModules(): Record<number, TheoryModule> {
     tag: "Álgebra",
     sections: [
       {
-        heading: "NOCIONES SOBRE CONJUNTOS",
+        heading: "Nociones sobre Conjuntos",
         level: 1,
         content: [
-          "Un conjunto es una colección de objetos, llamados elementos del conjunto.",
-          "Un conjunto puede describirse:",
-          "• Por extensión: haciendo una lista explícita de sus elementos, separados por comas y encerrados entre llaves.",
-          "• Por comprensión: dando la condición o condiciones que cumplen los elementos del conjunto.",
-          "Ejemplo: A = {x / x es una vocal de la palabra eucalipto} es un conjunto descrito por comprensión, y su respectiva descripción por extensión es A = {a, e, i, o, u}.",
-          "Si un conjunto no tiene elementos se llama conjunto vacío y se denota por ∅ ó { }.",
-          "Si un conjunto es vacío o su número de elementos es un número natural, se dice que el conjunto es finito. Si un conjunto no es finito, se dice que es infinito.",
+          "Un conjunto es una colección bien definida de objetos, llamados **elementos** del conjunto.",
+          "Un conjunto puede describirse de dos formas fundamentales:",
+          "• **Por extensión:** haciendo una lista explícita de sus elementos, separados por comas y encerrados entre llaves.",
+          "• **Por comprensión:** dando la propiedad o condición matemática que cumplen exclusivamente sus elementos.",
+          "Ejemplo: El conjunto $A = \\{x \\mid x \\text{ es una vocal de la palabra eucalipto}\\}$ está descrito por comprensión. Su descripción por extensión es $A = \\{a, e, i, o, u\\}$.",
+          "• Si un conjunto carece de elementos se denomina **conjunto vacío** y se denota por $\\emptyset$ ó $\\{\\}$.",
+          "• Si un conjunto es vacío o su número de elementos es un número natural $n \\in \\mathbb{N}$, se dice que el conjunto es **finito**. En caso contrario, se dice que es **infinito**.",
+          "Ejemplo: Sea $A = \\{x \\mid x \\text{ es una vocal cerrada en la palabra \"espejo\"}\\}$. Como en \"espejo\" sólo están las vocales abiertas $e, o$, tenemos que $A = \\emptyset$.",
+          "Ejemplo: El conjunto $A = \\{1, 2, 3\\}$ es finito con $3$ elementos. Mientras que $B = \\left\\{ \\frac{1}{2}, \\frac{1}{3}, \\frac{1}{4}, \\dots \\right\\}$ es un conjunto infinito.",
         ],
       },
       {
-        heading: "Ejemplos",
+        heading: "Pertenencia e Inclusión de Subconjuntos",
         level: 2,
         content: [
-          "• Sea A = {x / x es una vocal cerrada en la palabra espejo}. Como no hay ninguna vocal cerrada en la palabra \"espejo\", entonces tenemos que A = ∅.",
-          "• Sea A = {1, 2, 3}. Luego, A es finito, ya que posee 3 elementos.",
-          "• Sea A = { 1/2, 1/3, 1/4, 1/5, … }. A es infinito ya que no podemos asignar un número natural para su número de elementos.",
+          "• **Pertenencia:** Si $A$ es un conjunto y $a$ es un objeto, escribimos $a \\in A$ si $a$ pertenece a $A$. En caso contrario, escribimos $a \\notin A$.",
+          "Ejemplo: Si $A = \\left\\{\\frac{1}{2}, \\frac{1}{3}, \\frac{1}{4}\\right\\}$, entonces $\\frac{1}{2} \\in A$ y $5 \\notin A$.",
+          "• **Subconjuntos (Inclusión):** Decimos que $A$ es subconjunto de $B$, denotado $A \\subseteq B$, si todo elemento de $A$ es también elemento de $B$:",
+          "$$A \\subseteq B \\iff (\\forall x \\in A \\implies x \\in B)$$",
+          "Si existe al menos un elemento en $A$ que no pertenece a $B$, entonces $A \\nsubseteq B$.",
+          "Ejemplo: Sean $A = \\{a, e, i, o, u\\}$ y $B = \\{x \\mid x \\text{ es una letra del abecedario}\\}$. Entonces $A \\subseteq B$, pero $B \\nsubseteq A$.",
         ],
       },
       {
-        heading: "Pertenencia y Subconjuntos",
+        heading: "Propiedades de la Inclusión e Igualdad de Conjuntos",
         level: 2,
         content: [
-          "Si A es un conjunto, decimos que a pertenece a A y escribimos a ∈ A si a es un elemento de A. En caso contrario decimos que a no pertenece a A y escribimos a ∉ A. En el último ejemplo, 1/2 ∈ A y 5 ∉ A.",
-          "Si A y B son conjuntos, decimos que A es subconjunto de B y escribimos A ⊆ B, si todo elemento de A es también elemento de B. En caso de que haya al menos un elemento en el conjunto A que no pertenece al conjunto B, decimos que A no es subconjunto de B, y escribimos A ⊈ B.",
-          "Ejemplo: Sean A = {a, e, i, o, u} y B = {x / x es una letra del abecedario}. Entonces A ⊆ B, pero B ⊈ A.",
+          "Teorema: Para cualesquiera conjuntos $A, B, C$ se satisfacen las siguientes propiedades:",
+          "• $\\emptyset \\subseteq A$ (el conjunto vacío es subconjunto de todo conjunto).",
+          "• $A \\subseteq A$ (reflexividad).",
+          "• Si $A \\subseteq B$ y $B \\subseteq C$, entonces $A \\subseteq C$ (transitividad).",
+          "Definición: Dos conjuntos $A$ y $B$ son **iguales** ($A = B$) si y sólo si tienen exactamente los mismos elementos:",
+          "$$A = B \\iff (A \\subseteq B \\land B \\subseteq A)$$",
+          "Ejemplo: Sean $A = \\{x \\mid x \\text{ es vocal de \"mundo\"}\\}$ y $B = \\{u, o\\}$, entonces $A = B$. Además, en un conjunto no importa el orden ni la repetición: $\\{1, 3, 7\\} = \\{1, 3, 7, 1\\}$.",
         ],
       },
       {
-        heading: "Propiedades de los Subconjuntos",
-        level: 2,
-        content: [
-          "Si A, B y C son conjuntos:",
-          "a) ∅ ⊆ A.",
-          "b) A ⊆ A.",
-          "c) Si A ⊆ B y B ⊆ C entonces A ⊆ C.",
-          "Dos conjuntos A y B son iguales si y sólo si A ⊆ B y B ⊆ A. Es decir, A = B si y sólo si todo elemento de A está en B y todo elemento de B está en A.",
-          "Ejemplo: Sean A = {vocales de la palabra mundo} y B = {u, o}, entonces A = B.",
-          "Sean A = {1, 3, 7} y B = {1, 3, 7, 1}, entonces A = B.",
-        ],
-      },
-      {
-        heading: "OPERACIONES ENTRE CONJUNTOS",
-        level: 1,
-        content: [],
-      },
-      {
-        heading: "1. Unión",
-        level: 2,
-        content: [
-          "Sean A y B dos conjuntos. Definimos la unión de A y B, denotada A ∪ B, como el conjunto:",
-          "A ∪ B = {x / x ∈ A ó x ∈ B}.",
-          "Ejemplo: Sean A = {1, 3, 5, 7, 9} y B = {0, 3, 6, 9, 12}. Entonces, A ∪ B = {0, 1, 3, 5, 6, 7, 9, 12}.",
-        ],
-      },
-      {
-        heading: "2. Intersección",
-        level: 2,
-        content: [
-          "Sean A y B dos conjuntos. Definimos la intersección de A y B, denotada A ∩ B, como el conjunto:",
-          "A ∩ B = {x / x ∈ A y x ∈ B}.",
-          "Ejemplo: Sean A = {1, 3, 5, 7, 9} y B = {0, 3, 6, 9, 12}. Entonces, A ∩ B = {3, 9}.",
-        ],
-      },
-      {
-        heading: "Propiedades de la Unión y de la Intersección",
-        level: 2,
-        content: [
-          "Sean A, B y C conjuntos. Entonces:",
-          "A ∪ A = A                    A ∩ A = A",
-          "A ∪ ∅ = A                    A ∩ ∅ = ∅",
-          "A ⊆ (A ∪ B)                  (A ∩ B) ⊆ A",
-          "B ⊆ (A ∪ B)                  (A ∩ B) ⊆ B",
-          "A ∪ B = B ∪ A                A ∩ B = B ∩ A",
-          "A ∪ (B ∪ C) = (A ∪ B) ∪ C    A ∩ (B ∩ C) = (A ∩ B) ∩ C",
-          "A ∪ (B ∩ C) = (A ∪ B) ∩ (A ∪ C)   (Distributiva)",
-          "A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)   (Distributiva)",
-        ],
-      },
-      {
-        heading: "3. Complemento",
-        level: 2,
-        content: [
-          "Si U es un conjunto universal y A es un subconjunto de U, definimos el complemento de A, denotado A′, como el conjunto A′ = {x ∈ U / x ∉ A}.",
-          "Ejemplo: Si U = {a, b, c, d, e, f, g, h} y A = {c, f, h}, entonces A′ = {a, b, d, e, g}.",
-          "Propiedades del Complemento: Sean A y B conjuntos. Entonces:",
-          "a) (A′)′ = A",
-          "b) A ∪ A′ = U",
-          "c) A ∩ A′ = ∅",
-          "d) (A ∪ B)′ = A′ ∩ B′   (Ley de De Morgan)",
-          "e) (A ∩ B)′ = A′ ∪ B′   (Ley de De Morgan)",
-        ],
-      },
-      {
-        heading: "4. Diferencia",
-        level: 2,
-        content: [
-          "Sean A y B dos conjuntos. Definimos la diferencia de A y B, denotada A − B, como:",
-          "A − B = {x / x ∈ A y x ∉ B}.",
-          "Ejemplo: Sean A = {0,1,2,3,4,5,6,7} y B = {1,4,6,7,8,9}. Entonces A − B = {0,2,3,5}.",
-          "Propiedades de la Diferencia: Sean A y B conjuntos. Entonces:",
-          "a) A − B = A ∩ B′",
-          "b) A − B ≠ B − A",
-          "c) A − A = ∅",
-          "d) A − ∅ = A",
-          "e) U − A = A′",
-        ],
-      },
-      {
-        heading: "5. Diferencia Simétrica",
-        level: 2,
-        content: [
-          "Sean A y B dos conjuntos. Definimos la diferencia simétrica de A y B, denotada A △ B, como:",
-          "A △ B = (A ∪ B) − (A ∩ B),",
-          "o equivalentemente A △ B = (A − B) ∪ (B − A).",
-          "Ejemplo: Consideremos los conjuntos A = {0,1,2,3,4,5,6,7} y B = {1,4,6,7,8,9}. Por lo tanto A △ B = {0,2,3,5,8,9}.",
-        ],
-      },
-      {
-        heading: "SISTEMAS NUMÉRICOS",
+        heading: "Operaciones entre Conjuntos",
         level: 1,
         content: [
-          "• Los números naturales son: 1, 2, 3, 4, … Representamos por ℕ al conjunto de todos los números naturales, es decir, ℕ = {1, 2, 3, 4, …}.",
-          "• Los números enteros están formados por los números naturales junto con los números negativos y el 0. Denotamos por ℤ al conjunto de los números enteros: ℤ = {…, −3, −2, −1, 0, 1, 2, 3, …}. Algunas veces, se acostumbra escribir ℤ⁺ = ℕ.",
-          "• El conjunto de los números racionales se obtiene al formar cocientes de números enteros. Este conjunto lo denotamos por ℚ. Luego, r ∈ ℚ si y sólo si r = p/q, con p, q ∈ ℤ, q ≠ 0.",
-          "Números como 3/5, −7/4, 0 = 0/1, 2 = 2/1, 0.1 = 1/10 son ejemplos de números racionales. ¡Recordar que no es posible dividir por cero, por tanto, expresiones como 3/0 ó 0/0 no están definidas!",
-          "• Existen números que no pueden expresarse en la forma p/q con p, q ∈ ℤ, q ≠ 0. Estos números se denominan irracionales, denotados por 𝕀. Es posible probar que números como √2, √3, √5, e, π pertenecen a 𝕀.",
-          "• El conjunto de los números reales se representa por ℝ y consta de la unión de los racionales y los irracionales, es decir, ℝ = ℚ ∪ 𝕀.",
-          "Todos los números reales tienen una representación decimal. Si el número es racional, entonces, su parte decimal correspondiente es periódica. Por ejemplo: 1/2 = 0.5̄0, 1/3 = 0.3̄, 157/495 = 0.31̄7̄, 9/7 = 1.2̄8̄5̄7̄1̄4̄.",
-          "Si el número es irracional, la representación decimal no es periódica, por ejemplo √2 = 1.414213562373095…, e = 2.7182818284590452354…",
-          "En la práctica, se acostumbra aproximar un número irracional por medio de uno racional, por ejemplo √2 ≈ 1.4142, e ≈ 2.71828, π ≈ 3.1416.",
-          "• Dada la representación decimal periódica de un número x, podemos hallar una fracción equivalente multiplicando éste por potencias adecuadas de 10, y luego restando para eliminar la parte que se repite.",
-          "Ejemplo: Sea x = 5.4383838… Para convertirlo en un cociente de dos enteros: 1000x = 5438.3838…, −10x = −54.3838…, 990x = 5384. Por consiguiente, x = 5384/990.",
+          "Sean $A$ y $B$ subconjuntos de un conjunto universal $U$. Se definen las siguientes operaciones:",
+          "• **1. Unión ($A \\cup B$):** Conjunto formado por los elementos que están en $A$, en $B$ o en ambos:",
+          "$$A \\cup B = \\{x \\in U \\mid x \\in A \\lor x \\in B\\}$$",
+          "Ejemplo: Sean $A = \\{1, 3, 5, 7, 9\\}$ y $B = \\{0, 3, 6, 9, 12\\}$. Entonces $A \\cup B = \\{0, 1, 3, 5, 6, 7, 9, 12\\}$.",
+          "• **2. Intersección ($A \\cap B$):** Conjunto de elementos comunes a ambos conjuntos:",
+          "$$A \\cap B = \\{x \\in U \\mid x \\in A \\land x \\in B\\}$$",
+          "Ejemplo: Con los mismos conjuntos, $A \\cap B = \\{3, 9\\}$. Si $A \\cap B = \\emptyset$, se dice que $A$ y $B$ son **disjuntos**.",
+          "• **3. Complemento ($A^c$ ó $A'$):** Elementos del universal $U$ que no pertenecen a $A$:",
+          "$$A^c = \\{x \\in U \\mid x \\notin A\\}$$",
+          "• **4. Diferencia ($A \\setminus B$ ó $A - B$):** Elementos que pertenecen a $A$ pero no a $B$:",
+          "$$A \\setminus B = \\{x \\in U \\mid x \\in A \\land x \\notin B\\} = A \\cap B^c$$",
+          "Ejemplo: Si $U = \\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9\\}$, $A = \\{1, 3, 5, 7, 9\\}$ y $B = \\{0, 3, 6, 9\\}$:",
+          "• $A^c = \\{0, 2, 4, 6, 8\\}$",
+          "• $A \\setminus B = \\{1, 5, 7\\}$",
+          "• $B \\setminus A = \\{0, 6\\}$",
+        ],
+      },
+      {
+        heading: "Leyes del Álgebra de Conjuntos y De Morgan",
+        level: 2,
+        content: [
+          "Teorema: Para cualesquiera subconjuntos $A, B, C \\subseteq U$ se cumplen las siguientes leyes:",
+          "• **Idempotencia:** $A \\cup A = A$, $\\quad A \\cap A = A$.",
+          "• **Conmutatividad:** $A \\cup B = B \\cup A$, $\\quad A \\cap B = B \\cap A$.",
+          "• **Asociatividad:** $(A \\cup B) \\cup C = A \\cup (B \\cup C)$, $\\quad (A \\cap B) \\cap C = A \\cap (B \\cap C)$.",
+          "• **Distributividad:**",
+          "$$A \\cup (B \\cap C) = (A \\cup B) \\cap (A \\cup C)$$",
+          "$$A \\cap (B \\cup C) = (A \\cap B) \\cup (A \\cap C)$$",
+          "• **Leyes de De Morgan:**",
+          "$$(A \\cup B)^c = A^c \\cap B^c$$",
+          "$$(A \\cap B)^c = A^c \\cup B^c$$",
+          "• **Complemento doble:** $(A^c)^c = A$, $\\quad U^c = \\emptyset$, $\\quad \\emptyset^c = U$.",
         ],
       },
     ],
@@ -180,107 +218,75 @@ function buildModules(): Record<number, TheoryModule> {
     tag: "Álgebra",
     sections: [
       {
-        heading: "OPERACIONES CON LOS NÚMEROS REALES",
+        heading: "Los Sistemas Numéricos",
         level: 1,
         content: [
-          "En ℝ se definen dos operaciones: suma o adición y producto o multiplicación. Si a ∈ ℝ y b ∈ ℝ, la suma de a y b, denotada a + b, y el producto de a y b, denotado a · b, ó a × b ó simplemente ab, son también elementos de ℝ, que cumplen las siguientes propiedades:",
-          "Conmutativa: a + b = b + a ;  ab = ba",
-          "Asociativa: (a + b) + c = a + (b + c) ;  (ab)c = a(bc)",
-          "Distributiva del producto con respecto a la suma: a(b + c) = ab + ac",
+          "El conjunto de los números reales $\\mathbb{R}$ está constituido por varios subconjuntos estructurales:",
+          "• **Números Naturales ($\\mathbb{N}$):** $\\mathbb{N} = \\{1, 2, 3, 4, 5, \\dots\\}$, utilizados para contar.",
+          "• **Números Enteros ($\\mathbb{Z}$):** $\\mathbb{Z} = \\{\\dots, -3, -2, -1, 0, 1, 2, 3, \\dots\\}$.",
+          "• **Números Racionales ($\\mathbb{Q}$):** Números que pueden expresarse como cociente de dos enteros con denominador no nulo:",
+          "$$\\mathbb{Q} = \\left\\{ \\frac{a}{b} \\;\\middle|\\; a, b \\in \\mathbb{Z}, \\; b \\neq 0 \\right\\}$$",
+          "Todo número racional tiene una representación decimal finita (ej. $\\frac{1}{4} = 0.25$) o decimal periódica (ej. $\\frac{1}{3} = 0.333\\dots = 0.\\overline{3}$).",
+          "• **Números Irracionales ($\\mathbb{I}$):** Números con representación decimal infinita no periódica. Ejemplos: $\\sqrt{2} \\approx 1.4142\\dots$, $\\pi \\approx 3.14159\\dots$, $e \\approx 2.71828\\dots$.",
+          "• **Conjunto de los Reales ($\\mathbb{R}$):** $\\mathbb{R} = \\mathbb{Q} \\cup \\mathbb{I}$, donde $\\mathbb{Q} \\cap \\mathbb{I} = \\emptyset$. Cadena de inclusiones:",
+          "$$\\mathbb{N} \\subset \\mathbb{Z} \\subset \\mathbb{Q} \\subset \\mathbb{R}$$",
         ],
       },
       {
-        heading: "Ejemplo de demostración",
+        heading: "Axiomas de Campo de los Números Reales",
         level: 2,
         content: [
-          "Probar que (a + b)(a + b) = a² + 2ab + b².",
-          "Solución: Usando la propiedad distributiva: (a + b)(a + b) = (a + b)a + (a + b)b = a² + ab + ab + b² = a² + 2ab + b².",
-          "Usando el hecho de que ∀a ∈ ℝ, a · a = a², escribimos: (a + b)² = a² + 2ab + b².",
+          "Para cualesquiera $a, b, c \\in \\mathbb{R}$ se verifican las siguientes propiedades fundamentales:",
+          "• **Clausura:** $a + b \\in \\mathbb{R}$ y $a \\cdot b \\in \\mathbb{R}$.",
+          "• **Conmutatividad:** $a + b = b + a$ y $a \\cdot b = b \\cdot a$.",
+          "• **Asociatividad:** $(a + b) + c = a + (b + c)$ y $(a \\cdot b) \\cdot c = a \\cdot (b \\cdot c)$.",
+          "• **Elementos neutros:** $a + 0 = a$ (neutro aditivo $0$) y $a \\cdot 1 = a$ (neutro multiplicativo $1$).",
+          "• **Inversos:** Para cada $a \\in \\mathbb{R}$ existe $-a$ tal que $a + (-a) = 0$. Para cada $a \\neq 0$ existe $a^{-1} = \\frac{1}{a}$ tal que $a \\cdot \\frac{1}{a} = 1$.",
+          "• **Distributividad del producto respecto a la suma:**",
+          "$$a(b + c) = ab + ac \\quad \\text{y} \\quad (a + b)c = ac + bc$$",
         ],
       },
       {
-        heading: "Otras propiedades de los números reales",
+        heading: "Leyes de Signos y Propiedades Aritméticas",
         level: 2,
         content: [
-          "• 0 ∈ ℝ, es tal que ∀a ∈ ℝ, a + 0 = a. Al número 0 se le llama el elemento neutro para la suma.",
-          "• Si a ∈ ℝ, ∃(−a) ∈ ℝ, tal que a + (−a) = 0. Al número −a se le llama el inverso aditivo de a.",
-          "• 1 ∈ ℝ es tal que ∀a ∈ ℝ, a · 1 = a. A 1 se le llama el elemento neutro para el producto.",
-          "• Si a ∈ ℝ, a ≠ 0, ∃(1/a) ∈ ℝ, tal que a · (1/a) = 1. Al número 1/a se le llama el inverso multiplicativo ó recíproco de a, y también se denota por a⁻¹.",
-          "• Si a y b son números reales, el número a + (−b) se escribe también a − b y se llama la resta o diferencia de a y b.",
-          "• Si a y b son números reales, con b ≠ 0, el número a · (1/b) se escribe también a/b y se llama el cociente de a y b. A la expresión a/b se le llama fracción, a se llama numerador y b denominador de la fracción.",
+          "• $a \\cdot 0 = 0$ para todo $a \\in \\mathbb{R}$.",
+          "• Si $ab = 0$, entonces $a = 0$ ó $b = 0$ (Propiedad del producto nulo).",
+          "• $-(-a) = a$.",
+          "• $(-a)b = a(-b) = -(ab)$.",
+          "• $(-a)(-b) = ab$.",
+          "• $-(a + b) = -a - b$.",
+          "• $-(a - b) = b - a$.",
         ],
       },
       {
-        heading: "Leyes de signos",
+        heading: "Divisibilidad, Números Primos, MCD y MCM",
         level: 2,
         content: [
-          "Si a, b ∈ ℝ:",
-          "1. (−1)a = −a",
-          "2. −(−a) = a",
-          "3. (−a)b = a(−b) = −ab",
-          "4. (−a)(−b) = ab",
-          "5. −(a + b) = −a − b",
-          "6. −(a − b) = b − a",
-          "La propiedad 6 nos dice que a − b es el inverso aditivo de b − a.",
-          "La propiedad 5 puede usarse con más de 2 términos, así: −(a + b + c) = −a − b − c.",
+          "• **Paridad:** $a \\in \\mathbb{Z}$ es par si $a = 2k$ ($k \\in \\mathbb{Z}$). Es impar si $a = 2k + 1$ ($k \\in \\mathbb{Z}$).",
+          "• **Divisor y Múltiplo:** Dados $d, b \\in \\mathbb{Z}$ con $d \\neq 0$, decimos que $d$ divide a $b$ ($d \\mid b$) si existe $a \\in \\mathbb{Z}$ tal que $b = ad$.",
+          "• **Máximo Común Divisor (MCD):** Mayor entero positivo que divide simultáneamente a $a$ y $b$. Ejemplo: $\\operatorname{MCD}(24, 30) = 6$.",
+          "• **Mínimo Común Múltiplo (MCM):** Menor entero positivo que es múltiplo de ambos. Ejemplo: $\\operatorname{MCM}(6, 10) = 30$.",
+          "• **Primos relativos:** $a$ y $b$ son coprimos si $\\operatorname{MCD}(a, b) = 1$.",
+          "• **Fracción irreductible:** $\\frac{a}{b}$ está simplificada si $a$ y $b$ son primos relativos.",
+          "Teorema: **Teorema Fundamental de la Aritmética:** Todo entero $n > 1$ se descompone de forma única (salvo el orden) como producto de factores primos. Ejemplo: $2924 = 2^2 \\times 17 \\times 43$.",
         ],
       },
       {
-        heading: "Ejemplo",
-        level: 3,
-        content: [
-          "Utilizando propiedades escriba las siguientes expresiones sin usar paréntesis:",
-          "a) −(−x + y) = −(−x) − y = x − y  (por propiedades 5 y 2)",
-          "b) −(x − y + z) = −x − (−y) − z = −x + y − z  (por propiedades 5 y 2)",
-        ],
-      },
-      {
-        heading: "Caracterización de algunos números reales",
-        level: 2,
-        content: [
-          "• Un número a es un número par si puede escribirse en la forma a = 2k, con k ∈ ℤ. 6 es par (k=3), 0 es par (k=0), −8 es par (k=−4).",
-          "• Un número a es un número impar si puede escribirse en la forma a = 2k + 1, con k ∈ ℤ. 3 es impar (k=1), −7 es impar (k=−4).",
-          "• Dados d ∈ ℤ y b ∈ ℤ, con d ≠ 0, decimos que d divide a b ó que d es un divisor de b, si existe a ∈ ℤ tal que b = ad. También se acostumbra decir que d es un factor de b y que b es un múltiplo de d.",
-          "• d es el Máximo Común Divisor de los enteros a y b, con a ≠ 0 ó b ≠ 0, si d es el mayor número entero positivo que los divide a ambos. El MCD de 24 y 30 es 6; el MCD de 7 y 18 es 1; el MCD de 0 y 12 es 12.",
-          "• m es el Mínimo Común Múltiplo de los enteros a y b, con a ≠ 0 y b ≠ 0, si m es el menor número entero positivo que es múltiplo de ambos. El MCM de 6 y 10 es 30; el MCM de 15 y 14 es 210.",
-          "• Dos números enteros a, b son primos relativos si el MCD de a y b es 1. 7 y 18 son primos relativos.",
-          "• Un número racional a/b está en forma reducida, o \"simplificado\" si a y b son primos relativos. 7/18 está en forma reducida; 16/12 no está en forma reducida → 4/3.",
-          "• Un entero positivo p ≠ 1 es un número primo si sus únicos divisores positivos son 1 y p. Los números 2, 3, 5, 7, 11, 37, 523 son números primos.",
-          "• Si a ∈ ℤ, a > 1, y a no es primo, decimos que a es número compuesto.",
-          "• Teorema fundamental de la aritmética: Todo número entero mayor que 1 puede descomponerse en forma única como un producto de números ó factores primos. Ejemplo: 2924 = 2² × 17 × 43.",
-        ],
-      },
-      {
-        heading: "OPERACIONES CON FRACCIONES",
+        heading: "Operaciones Fundamentales con Fracciones",
         level: 1,
         content: [
-          "Sean a, b, c, d números enteros.",
-        ],
-      },
-      {
-        heading: "1. Suma de fracciones",
-        level: 2,
-        content: [
-          "Con el mismo denominador: a/c + b/c = (a + b)/c, con c ≠ 0. Ejemplo: 15/7 + 23/7 = 38/7.",
-          "Con distinto denominador: Para sumar fracciones que tienen distinto denominador, hallamos el Mínimo Común Denominador (MCD) de los denominadores (Mínimo Común Múltiplo), ampliamos cada fracción multiplicando el numerador y el denominador por un número tal que cada fracción resultante tenga como denominador el MCD, y sumamos.",
-          "Ejemplo: Calcule 3/64 + 7/48. Como 64 = 2⁶ y 48 = 2⁴ · 3, el MCD de 64 y 48 es 2⁶ · 3 = 192. Entonces: 3/64 + 7/48 = (3·3)/(64·3) + (7·4)/(48·4) = 9/192 + 28/192 = 37/192.",
-        ],
-      },
-      {
-        heading: "2. Producto de fracciones",
-        level: 2,
-        content: [
-          "(a/b) · (c/d) = ac/(bd), con b ≠ 0 y d ≠ 0. Ejemplo: (2/5) · (4/3) = 8/15.",
-        ],
-      },
-      {
-        heading: "Ejercicios",
-        level: 2,
-        content: [
-          "(i) ¿Cómo se calcula el cociente de dos fracciones?",
-          "Solución: (a/b) ÷ (c/d) = (a/b) · (d/c) = ad/(bc), con b ≠ 0, c ≠ 0, y d ≠ 0. Ejemplo: (2/5) ÷ (3/7) = (2/5) · (7/3) = 14/15.",
-          "(ii) Pruebe que a/b = c/d ⟹ ad = bc, con b ≠ 0, y d ≠ 0.",
-          "Solución: Si a/b = c/d, entonces a/b − c/d = 0, luego (ad − bc)/(bd) = 0, y así ad − bc = 0, entonces ad = bc.",
+          "Sean $a, b, c, d \\in \\mathbb{Z}$ con denominadores no nulos:",
+          "• **Suma con igual denominador:**",
+          "$$\\frac{a}{c} + \\frac{b}{c} = \\frac{a + b}{c}, \\quad (c \\neq 0)$$",
+          "• **Suma con distinto denominador:**",
+          "$$\\frac{a}{b} + \\frac{c}{d} = \\frac{ad + bc}{bd}, \\quad (b, d \\neq 0)$$",
+          "Ejemplo: $\\frac{3}{64} + \\frac{7}{48}$. Descomponiendo: $64 = 2^6$ y $48 = 2^4 \\cdot 3$. El $\\operatorname{MCM}(64, 48) = 2^6 \\cdot 3 = 192$.",
+          "$$\\frac{3}{64} + \\frac{7}{48} = \\frac{3 \\cdot 3}{192} + \\frac{7 \\cdot 4}{192} = \\frac{9 + 28}{192} = \\frac{37}{192}$$",
+          "• **Multiplicación de fracciones:**",
+          "$$\\frac{a}{b} \\cdot \\frac{c}{d} = \\frac{ac}{bd}, \\quad (b, d \\neq 0)$$",
+          "• **División de fracciones (Ley de la Oreja / Cociente):**",
+          "$$\\frac{\\frac{a}{b}}{\\frac{c}{d}} = \\frac{a}{b} \\div \\frac{c}{d} = \\frac{a \\cdot d}{b \\cdot c}, \\quad (b, c, d \\neq 0)$$",
         ],
       },
     ],
@@ -294,86 +300,62 @@ function buildModules(): Record<number, TheoryModule> {
     tag: "Álgebra",
     sections: [
       {
-        heading: "ORDEN EN LOS NÚMEROS REALES",
+        heading: "La Recta Real y Relación de Orden",
         level: 1,
         content: [
-          "Todo número real se puede representar gráficamente como un punto sobre una línea recta, la cual llamaremos recta real y, recíprocamente, todo punto sobre la recta real representa un número real. Es decir, existe una correspondencia biunívoca entre los elementos de ℝ y los puntos de la recta real. El punto 0 sobre la recta real es el origen.",
-          "Los números positivos son los que están ubicados a la \"derecha\" de 0 en la recta real; los que están ubicados a la \"izquierda\" de 0 son los negativos.",
+          "Existe una correspondencia biunívoca entre los elementos del conjunto $\\mathbb{R}$ y los puntos de una línea recta geométrica (la recta real). El número $0$ se asocia con el punto origen.",
+          "• Los números a la derecha del $0$ son **positivos** ($x > 0$).",
+          "• Los números a la izquierda del $0$ son **negativos** ($x < 0$).",
+          "Definición: Sean $a, b \\in \\mathbb{R}$:",
+          "• $a > b \\iff a - b > 0$ ($a$ es mayor que $b$).",
+          "• $a < b \\iff a - b < 0$ ($a$ es menor que $b$).",
+          "• $a \\le b \\iff a < b \\lor a = b$ ($a$ es menor o igual que $b$).",
+          "• $a \\ge b \\iff a > b \\lor a = b$ ($a$ es mayor o igual que $b$).",
+          "Ejemplo: $3 < 5$ ya que $5 - 3 = 2 > 0$. Geométricamente, $a < b$ indica que $a$ está situado a la izquierda de $b$ en la recta real.",
         ],
       },
       {
-        heading: "Definición",
+        heading: "Propiedades del Orden en los Reales",
         level: 2,
         content: [
-          "Sean a, b ∈ ℝ.",
-          "• Decimos que a es mayor que b y escribimos a > b, si a − b es un número positivo.",
-          "• Decimos que a es menor que b, y escribimos a < b, si a − b es un número negativo.",
-          "• La expresión a ≤ b es equivalente a tener a < b ó a = b, y se lee \"a es menor que o igual a b\".",
-          "• Similarmente, a ≥ b ⟺ a > b ó a = b, y se lee \"a es mayor que o igual a b\".",
-          "• Intuitivamente decimos que los números reales están \"ordenados\", ya que si a y b son números reales, siempre podemos determinar si a > b ó a < b ó a = b.",
+          "Teorema: Para cualesquiera números reales $a, b, c$ se verifican:",
+          "• **Tricotomía:** Se cumple exactamente una de las tres: $a < b$, $a = b$ ó $a > b$.",
+          "• **Transitividad:** Si $a \\le b$ y $b \\le c$, entonces $a \\le c$.",
+          "• **Suma de una constante:** Si $a \\le b$, entonces $a + c \\le b + c$.",
+          "• **Multiplicación por constante positiva ($c > 0$):**",
+          "$$a \\le b \\land c > 0 \\implies ac \\le bc$$",
+          "• **Multiplicación por constante negativa ($c < 0$):** ¡El sentido de la desigualdad se invierte!",
+          "$$a \\le b \\land c < 0 \\implies ac \\ge bc$$",
+          "• **Inversos multiplicativos:** Si $0 < a < b$, entonces $\\frac{1}{a} > \\frac{1}{b} > 0$.",
+          "• Para todo $a \\in \\mathbb{R}$, $a^2 \\ge 0$. Como $1 \\neq 0$, se deduce que $1 = 1^2 > 0$.",
         ],
       },
       {
-        heading: "Observaciones",
-        level: 2,
-        content: [
-          "• Claramente si a > b, entonces b < a.",
-          "• Se acostumbra escribir a < b < c como forma corta de la expresión a < b y b < c.",
-          "• Decir que un número real a es positivo es equivalente a escribir a > 0. Decir que un número real b es negativo es equivalente a escribir b < 0.",
-          "• Geométricamente, si a y b son números reales, a > b si a está a la \"derecha\" de b en la recta real.",
-        ],
-      },
-      {
-        heading: "Ejemplo",
-        level: 3,
-        content: [
-          "3 < 5 pues 5 − 3 = 2 > 0. 4 ≤ 4 ya que 4 = 4.",
-        ],
-      },
-      {
-        heading: "Algunas propiedades de orden",
-        level: 2,
-        content: [
-          "1. Si a ∈ ℝ, entonces a² = a · a ⩾ 0 y a² = 0 sólo si a = 0. Con base en esto podemos afirmar que 1 > 0, ya que como 1 ≠ 0, entonces 1 = 1² > 0.",
-          "2. Sean a, b, c ∈ ℝ.",
-          "  • Si a ≤ b y b ≤ c, entonces a ≤ c.",
-          "  • a = b ó a < b ó b < a.",
-          "  • a ≤ b si y sólo si a + c ≤ b + c.",
-          "  • Si a ≤ b y c > 0, entonces ac ≤ bc.",
-          "  • Si a ≤ b y c < 0, entonces ac ≥ bc.",
-          "  • Si a > 0, b > 0 y a ≥ b, entonces 1/a ≤ 1/b.",
-          "Ejemplos: 3 < 8 y 3(−3) > 8(−3) ya que −3 < 0. De acuerdo a la última propiedad, 0 < 2 < 3 implica que 1/3 < 1/2.",
-          "Observaciones: a > 0 ⟹ −a < 0 (si a es positivo entonces −a es negativo). a < 0 ⟹ −a > 0 (si a es negativo, entonces −a es positivo).",
-        ],
-      },
-      {
-        heading: "INTERVALOS",
+        heading: "Tipos de Intervalos",
         level: 1,
         content: [
-          "Un intervalo es un subconjunto de ℝ de ciertas características. Sean a y b ∈ ℝ, con a < b.",
-          "El intervalo abierto entre a y b, denotado por (a, b), es el conjunto de los números reales mayores que a y menores que b. Así, c ∈ (a, b) si a < c y c < b. Claramente a ∉ (a, b) y b ∉ (a, b).",
-          "Se denomina intervalo cerrado desde a hasta b, y se denota por [a, b], al conjunto de los números reales mayores o iguales que a y menores o iguales que b.",
-          "Usando la notación de conjuntos: (a, b) = {x ∈ ℝ / a < x < b}. [a, b] = {x ∈ ℝ / a ≤ x ≤ b}.",
-          "Los intervalos pueden incluir un solo punto extremo o se pueden prolongar hasta el infinito en una dirección o en ambas direcciones.",
+          "Un intervalo es un subconjunto continuo de $\\mathbb{R}$ delimitado por sus extremos $a$ y $b$ ($a < b$):",
+          "• **Intervalo Abierto:** $(a, b) = \\{x \\in \\mathbb{R} \\mid a < x < b\\}$.",
+          "• **Intervalo Cerrado:** $[a, b] = \\{x \\in \\mathbb{R} \\mid a \\le x \\le b\\}$.",
+          "• **Intervalo Semiabierto a derecha:** $[a, b) = \\{x \\in \\mathbb{R} \\mid a \\le x < b\\}$.",
+          "• **Intervalo Semiabierto a izquierda:** $(a, b] = \\{x \\in \\mathbb{R} \\mid a < x \\le b\\}$.",
+          "• **Intervalos Infinitos:**",
+          "  • $(a, \\infty) = \\{x \\in \\mathbb{R} \\mid x > a\\}$",
+          "  • $[a, \\infty) = \\{x \\in \\mathbb{R} \\mid x \\ge a\\}$",
+          "  • $(-\\infty, b) = \\{x \\in \\mathbb{R} \\mid x < b\\}$",
+          "  • $(-\\infty, b] = \\{x \\in \\mathbb{R} \\mid x \\le b\\}$",
+          "  • $(-\\infty, \\infty) = \\mathbb{R}$",
         ],
       },
       {
-        heading: "Ejemplo",
-        level: 3,
-        content: [
-          "Expresar en términos de desigualdades los siguientes intervalos y representarlos gráficamente:",
-          "a) [−3, 8] = {x ∈ ℝ / −3 ≤ x ≤ 8}",
-          "b) (5, 12] = {x ∈ ℝ / 5 < x ≤ 12}",
-          "c) (−∞, 2) = {x ∈ ℝ / x < 2}",
-        ],
-      },
-      {
-        heading: "Operaciones entre intervalos",
+        heading: "Operaciones con Intervalos",
         level: 2,
         content: [
-          "Como los intervalos son conjuntos, podemos realizar entre ellos las operaciones ya definidas para conjuntos.",
-          "Ejemplo: [5, 9] ∪ (3, 6) = (3, 9], ya que {x ∈ ℝ / 5 ≤ x ≤ 9} ∪ {x ∈ ℝ / 3 < x < 6} = {x ∈ ℝ / 3 < x ≤ 9}.",
-          "[5, 9] ∩ (3, 6) = [5, 6), ya que {x ∈ ℝ / 5 ≤ x ≤ 9} ∩ {x ∈ ℝ / 3 < x < 6} = {x ∈ ℝ / 5 ≤ x < 6}.",
+          "Ejemplo: Sean $A = [-3, 5)$ y $B = (1, 8]$. Halle $A \\cup B$, $A \\cap B$, $A \\setminus B$ y $A^c$:",
+          "• **Unión:** $A \\cup B = [-3, 8]$.",
+          "• **Intersección:** $A \\cap B = (1, 5)$.",
+          "• **Diferencia:** $A \\setminus B = [-3, 1]$.",
+          "• **Complemento:** $A^c = (-\\infty, -3) \\cup [5, \\infty)$.",
         ],
       },
     ],
@@ -387,59 +369,45 @@ function buildModules(): Record<number, TheoryModule> {
     tag: "Álgebra",
     sections: [
       {
-        heading: "VALOR ABSOLUTO Y DISTANCIA",
+        heading: "Definición de Valor Absoluto",
         level: 1,
         content: [
-          "Si a y b son dos números reales, la distancia entre a y b, denotada por d(a, b), es la medida del segmento que los une en la recta real.",
-          "• d(a, b) ≥ 0, d(a, b) = 0 cuando a = b.",
-          "• d(a, b) = d(b, a).",
-          "El valor absoluto de un número a, denotado por |a|, es la distancia desde a hasta 0, es decir |a| = d(a, 0).",
+          "Definición: Sea $a \\in \\mathbb{R}$. El **valor absoluto** de $a$, denotado $|a|$, es la distancia no negativa desde $a$ hasta el origen $0$ en la recta real:",
+          "$$|a| = \\begin{cases} a & \\text{si } a \\ge 0 \\\\ -a & \\text{si } a < 0 \\end{cases}$$",
+          "Ejemplos:",
+          "• $|5| = 5$",
+          "• $|-5| = -(-5) = 5$",
+          "• $|0| = 0$",
+          "• $|3 - \\pi| = -(3 - \\pi) = \\pi - 3 \\approx 0.14159$, ya que $3 < \\pi$.",
         ],
       },
       {
-        heading: "Ejemplo",
+        heading: "Propiedades del Valor Absoluto",
         level: 2,
         content: [
-          "a) |8| = 8",
-          "b) |−7| = −(−7) = 7",
-          "c) |0| = 0",
+          "Teorema: Para cualesquiera $a, b \\in \\mathbb{R}$:",
+          "• **No negatividad:** $|a| \\ge 0$, y $|a| = 0 \\iff a = 0$.",
+          "• **Simetría:** $|-a| = |a|$.",
+          "• **Multiplicatividad:** $|ab| = |a| \\cdot |b|$.",
+          "• **División:** $\\left| \\frac{a}{b} \\right| = \\frac{|a|}{|b|}, \\quad (b \\neq 0)$.",
+          "• **Potencia par:** $|a|^2 = a^2 = |-a|^2$.",
+          "• **Raíz cuadrada principal:** $\\sqrt{a^2} = |a|$.",
+          "• **Desigualdad Triangular:**",
+          "$$|a + b| \\le |a| + |b|$$",
         ],
       },
       {
-        heading: "Definición formal",
+        heading: "Distancia en la Recta Real",
         level: 2,
         content: [
-          "Para cualquier número real a, |a| ⩾ 0, ya que la distancia es siempre positiva o cero, entonces:",
-          "|a| = a    si a ⩾ 0",
-          "|a| = −a   si a < 0",
-          "Ejemplo: |3 − e| = 3 − e (ya que e < 3 ⟹ 3 − e > 0).",
-          "|2 − π| = −(2 − π) = π − 2 (ya que 2 < π ⟹ 2 − π < 0).",
-        ],
-      },
-      {
-        heading: "Propiedades del valor absoluto",
-        level: 2,
-        content: [
-          "Si a y b son números reales:",
-          "1. |a| ≥ 0",
-          "2. |a| = |−a|",
-          "3. −|a| ≤ a ≤ |a|",
-          "4. |ab| = |a| |b|",
-          "5. |a/b| = |a|/|b|, con b ≠ 0",
-          "6. |a + b| ≤ |a| + |b|. La igualdad se cumple cuando a y b tienen el mismo signo (Desigualdad triangular).",
-        ],
-      },
-      {
-        heading: "Distancia usando valor absoluto",
-        level: 2,
-        content: [
-          "Podemos calcular la distancia entre a y b utilizando el valor absoluto:",
-          "En la gráfica observamos que la distancia entre −2 y 3 es 5. Como |3 − (−2)| = 5, y |−2 − 3| = 5, tenemos que d(−2, 3) = |−2 − 3| = |3 − (−2)| = d(3, −2).",
-          "En general, si a y b son números reales:",
-          "a) |a − b| = |b − a|, ya que |a − b| = |−(b − a)| = |b − a|, por propiedad 2.",
-          "b) d(a, b) = |a − b|.",
-          "En efecto: Si a ≥ b, la distancia entre a y b es a − b y como a − b ≥ 0 entonces |a − b| = a − b = d(a, b). Si a ≤ b, la distancia entre a y b es b − a, y como b − a ≥ 0, entonces a − b ≤ 0 y |a − b| = −(a − b) = b − a = d(a, b).",
-          "Con base en lo anterior tenemos que d(0, a) = |a|, ya que d(0, a) = |0 − a| = |−a| = |a|.",
+          "Definición: La distancia entre dos puntos $a$ y $b$ sobre la recta real, denotada $d(a, b)$, es el valor absoluto de su diferencia:",
+          "$$d(a, b) = |b - a| = |a - b|$$",
+          "Ejemplo: La distancia entre $-3$ y $4$ es $d(-3, 4) = |4 - (-3)| = |7| = 7$.",
+          "• **Ecuaciones e Inecuaciones con valor absoluto ($c > 0$):**",
+          "  • $|x| = c \\iff x = c \\lor x = -c$",
+          "  • $|x| < c \\iff -c < x < c \\iff x \\in (-c, c)$",
+          "  • $|x| \\le c \\iff -c \\le x \\le c \\iff x \\in [-c, c]$",
+          "  • $|x| > c \\iff x > c \\lor x < -c \\iff x \\in (-\\infty, -c) \\cup (c, \\infty)$",
         ],
       },
     ],
@@ -453,108 +421,51 @@ function buildModules(): Record<number, TheoryModule> {
     tag: "Álgebra",
     sections: [
       {
-        heading: "POTENCIACIÓN Y RADICACIÓN",
+        heading: "Potenciación con Exponentes Enteros",
         level: 1,
         content: [
-          "(Tomado de: Stewart, James. \"Precálculo\". Quinta Edición. Sección 1.2.)",
-          "Si a, x ∈ ℝ, una expresión de la forma aˣ se llama expresión exponencial, el número a se llama base, y el número x se conoce como exponente.",
+          "Si $a, x \\in \\mathbb{R}$, una expresión $a^x$ es una expresión exponencial donde $a$ es la **base** y $x$ es el **exponente**.",
+          "• **Exponente natural ($n \\in \\mathbb{N}$):**",
+          "$$a^n = \\underbrace{a \\cdot a \\cdot a \\cdots a}_{n \\text{ factores}}$$ ",
+          "• **Exponente cero:** Si $a \\neq 0$, definimos $a^0 = 1$. (Nota: $0^0$ es una indeterminación).",
+          "• **Exponente entero negativo:** Si $a \\neq 0$ y $n \\in \\mathbb{N}$:",
+          "$$a^{-n} = \\frac{1}{a^n}$$",
+          "Ejemplos:",
+          "• $(-\\frac{1}{2})^4 = \\frac{1}{16}$",
+          "• $(-5)^3 = -125$",
+          "• $2^{-3} = \\frac{1}{2^3} = \\frac{1}{8}$",
         ],
       },
       {
-        heading: "Exponentes enteros",
+        heading: "Leyes de los Exponentes",
         level: 2,
         content: [
-          "a) Exponentes enteros positivos ó naturales: Si a ∈ ℝ, el producto a·a···a, se denota por aⁿ, donde n ∈ ℕ indica el número de veces que se repite el factor a. aⁿ = a · a · · · a (n factores).",
-          "Ejemplos: (1/2)⁴ = 1/16 ;  (−5)⁶ = 15625 ;  −5⁶ = −15625 ;  0⁵ = 0.",
-          "b) Exponente 0: Si a ≠ 0 es un número real, definimos a⁰ = 1. Nota: La expresión 0⁰ no tiene sentido.",
-          "Ejemplos: (3/2)⁰ = 1 ;  (−5)⁰ = 1.",
-          "c) Exponentes enteros negativos: Si a ∈ ℝ, a ≠ 0 y n es un entero positivo, definimos a⁻ⁿ = 1/aⁿ.",
-          "Ejemplos: 3⁻² = 1/9 ;  (−5)⁻¹ = −1/5 ;  x⁻¹ = 1/x.",
+          "Teorema: Para bases $a, b \\in \\mathbb{R}$ y exponentes enteros $m, n$ (evitando divisiones por cero):",
+          "• **Producto de igual base:** $a^m \\cdot a^n = a^{m+n}$",
+          "• **Cociente de igual base:** $\\frac{a^m}{a^n} = a^{m-n}$",
+          "• **Potencia de una potencia:** $(a^m)^n = a^{m \\cdot n}$",
+          "• **Potencia de un producto:** $(ab)^n = a^n b^n$",
+          "• **Potencia de un cociente:** $\\left(\\frac{a}{b}\\right)^n = \\frac{a^n}{b^n}$",
+          "• **Fracción con exponente negativo:** $\\left(\\frac{a}{b}\\right)^{-n} = \\left(\\frac{b}{a}\\right)^n = \\frac{b^n}{a^n}$",
+          "• $\\frac{a^{-m}}{b^{-n}} = \\frac{b^n}{a^m}$",
         ],
       },
       {
-        heading: "Propiedades de los exponentes enteros (Leyes de los exponentes)",
-        level: 2,
+        heading: "Radicación y Exponentes Racionales",
+        level: 1,
         content: [
-          "Si a, b ∈ ℝ y m, n ∈ ℤ, entonces:",
-          "1. aᵐaⁿ = aᵐ⁺ⁿ. Ejemplo: 5³ · 5⁶ = 5⁹.",
-          "2. aᵐ/aⁿ = aᵐ⁻ⁿ, a ≠ 0. Ejemplo: 4⁷/4² = 4⁵.",
-          "3. (aᵐ)ⁿ = aᵐⁿ. Ejemplo: (7⁶)³ = 7¹⁸.",
-          "4. (ab)ⁿ = aⁿbⁿ. Ejemplo: (5·8)⁴ = 5⁴8⁴.",
-          "5. (a/b)ⁿ = aⁿ/bⁿ, con b ≠ 0. Ejemplo: (9/4)² = 9²/4².",
-          "6. (a/b)⁻ⁿ = (b/a)ⁿ, con a y b no nulos. Ejemplo: (5/3)⁻² = (3/5)².",
-          "7. a⁻ⁿ/b⁻ᵐ = bᵐ/aⁿ, con a y b no nulos. Ejemplo: 4⁻³/7⁻⁵ = 7⁵/4³.",
-        ],
-      },
-      {
-        heading: "Ejercicios resueltos",
-        level: 2,
-        content: [
-          "1. Escriba con exponentes enteros positivos:",
-          "  (a) x³x⁶ = x⁹    (b) z⁻³z⁵ = z²    (c) 5⁴/5⁸ = 5⁻⁴ = 1/5⁴",
-          "  (d) (t³)² = t⁶    (e) (5y)³ = 125y³  (f) (2/x)⁴ = 16/x⁴",
-          "2. Simplifique:",
-          "  (a) (4a⁴b³)²(5a²b⁵) = 16a⁸b⁶ · 5a²b⁵ = 80a¹⁰b¹¹",
-          "  (b) (3xy²/(2x⁻¹z²))² · (x²z²/(3y²)) = 3x⁶y²/(4z²)",
-          "3. Simplifique (xy⁻²z⁻³/(x²y³z⁻⁴))⁻³ = x³y¹⁵/z³.",
-        ],
-      },
-      {
-        heading: "Notación científica",
-        level: 2,
-        content: [
-          "Un número x está escrito en notación científica si está expresado en la forma x = a × 10ⁿ, donde 1 ≤ |a| < 10.",
-          "Ejemplos: 325.32 = 3.2532 × 10² ;  0.000354 = 3.54 × 10⁻⁴ ;  −2/25 = −8 × 10⁻².",
-        ],
-      },
-      {
-        heading: "Exponentes racionales",
-        level: 2,
-        content: [
-          "I. Expresiones exponenciales de la forma a^(1/n), n ∈ ℕ:",
-          "Cuando el número racional es de la forma 1/n, con n ∈ ℕ, la expresión a^(1/n) se escribe ⁿ√a y se llama raíz n-ésima principal de a. En particular, si n = 2, la expresión ²√a se escribe √a y se llama la raíz cuadrada principal de a.",
-          "Definición: ²√a = b significa que b² = a y b ≥ 0. Como a = b² entonces a ≥ 0, es decir, la expresión √a tiene sentido sólo cuando a ≥ 0.",
-          "Definición: Para n ∈ ℕ, ⁿ√a = b significa que bⁿ = a.",
-          "Si n es par: bⁿ ≥ 0 implica que a ≥ 0 y b ≥ 0. Si n es impar: bⁿ ≥ 0 si b ≥ 0 y bⁿ ≤ 0 si b ≤ 0.",
-          "En resumen: ⁿ√a está definida para todo a ∈ ℝ, si n es impar; y sólo está definida para a ≥ 0 si n es par.",
-          "Ejemplos: ⁴√625 = 5 (ya que 5⁴ = 625); ³√(−27) = −3 (ya que (−3)³ = −27); ⁴√(−81) no está definida (4 es par, −81 < 0).",
-          "Importante: Si a ∈ ℝ, √(a²) = |a|. Ejemplo: √(3²) = 3, pero √((−3)²) ≠ −3, de hecho √((−3)²) = 3 = |−3|.",
-        ],
-      },
-      {
-        heading: "Propiedades de los radicales",
-        level: 2,
-        content: [
-          "Sean a, b y c números reales y n ∈ ℕ, con a y b positivos si n es par.",
-          "1. ⁿ√(ab) = ⁿ√a · ⁿ√b. Ejemplo: ³√(−27 · 64) = ³√(−27) · ³√64 = (−3)(4) = −12.",
-          "2. ⁿ√(a/b) = ⁿ√a / ⁿ√b, b ≠ 0. Ejemplo: √(4/9) = √4/√9 = 2/3.",
-          "3. ᵐ√(ⁿ√a) = ᵐⁿ√a. Ejemplo: ³√(√729) = ⁶√729 = 3.",
-          "4. ⁿ√(cⁿ) = |c| si n es par. Ejemplo: ⁴√(3⁴) = 3 y ⁴√((−5)⁴) = |−5| = 5.",
-          "5. ⁿ√(cⁿ) = c si n es impar. Ejemplo: ⁷√((−2)⁷) = −2.",
-          "6. c·ⁿ√b + d·ⁿ√b = (c + d)·ⁿ√b. Ejemplo: 3·⁴√5 + 6·⁴√5 = 9·⁴√5.",
-        ],
-      },
-      {
-        heading: "Ejercicio resuelto: Simplificar",
-        level: 3,
-        content: [
-          "a) √(a²b⁶) = √(a²) · √(b⁶) = |a| · |b³|",
-          "b) ³√(x³y⁹) = ³√(x³) · ³√((y³)³) = xy³",
-          "c) ⁴√48 − ⁴√3 = ⁴√(16·3) − ⁴√3 = ⁴√16 · ⁴√3 − ⁴√3 = 2·⁴√3 − ⁴√3 = ⁴√3.",
-        ],
-      },
-      {
-        heading: "II. Expresiones exponenciales de la forma a^(m/n)",
-        level: 2,
-        content: [
-          "Recordemos que ⁿ√a = a^(1/n). Aplicando leyes de exponentes: (ⁿ√a)ⁿ = (a^(1/n))ⁿ = a^(n/n) = a.",
-          "En general, si m/n ∈ ℚ, y n > 0:",
-          "a^(m/n) = (a^(1/n))ᵐ = (ⁿ√a)ᵐ ó, equivalentemente, a^(m/n) = (aᵐ)^(1/n) = ⁿ√(aᵐ).",
-          "Si n es par, entonces es necesario que a ≥ 0.",
-          "Ejemplo: (4/9)^(−1/2) = (9/4)^(1/2) = √9/√4 = 3/2.",
-          "Ejemplo: (−27/8)^(2/3) = (−27)^(2/3)/(8)^(2/3) = (³√(−27))²/(³√8)² = (−3)²/2² = 9/4.",
-          "Ejercicio resuelto: (2x⁴y^(−4/5))³ · (8y²)^(2/3) = 32x¹²/y^(16/15).",
-          "(y¹⁰z⁻⁵)^(1/5) / (y⁻²z³)^(1/3) = y^(8/3)/z².",
+          "Definición: Si $n \\in \\mathbb{N}$ ($n \\ge 2$) y $a \\in \\mathbb{R}$, la raíz $n$-ésima principal de $a$, denotada $\\sqrt[n]{a}$, se define como:",
+          "$$\\sqrt[n]{a} = b \\iff b^n = a$$",
+          "*(Si $n$ es par, se exige $a \\ge 0$ y $b \\ge 0$)*.",
+          "• **Propiedad de simplificación:**",
+          "$$\\sqrt[n]{a^n} = \\begin{cases} |a| & \\text{si } n \\text{ es par} \\\\ a & \\text{si } n \\text{ es impar} \\end{cases}$$",
+          "• **Definición de exponente racional:** Para $m, n \\in \\mathbb{Z}$ con $n > 0$:",
+          "$$a^{m/n} = \\sqrt[n]{a^m} = (\\sqrt[n]{a})^m$$",
+          "Ejemplo: $8^{2/3} = (\\sqrt[3]{8})^2 = 2^2 = 4$.",
+          "• **Leyes de los Radicales:**",
+          "  • $\\sqrt[n]{ab} = \\sqrt[n]{a} \\cdot \\sqrt[n]{b}$",
+          "  • $\\sqrt[n]{\\frac{a}{b}} = \\frac{\\sqrt[n]{a}}{\\sqrt[n]{b}}$",
+          "  • $\\sqrt[m]{\\sqrt[n]{a}} = \\sqrt[mn]{a}$",
         ],
       },
     ],
@@ -568,87 +479,38 @@ function buildModules(): Record<number, TheoryModule> {
     tag: "Álgebra",
     sections: [
       {
-        heading: "EXPRESIONES ALGEBRAICAS",
+        heading: "Polinomios y su Estructura",
         level: 1,
         content: [
-          "(Tomado de: Stewart, James. \"Precálculo\". Quinta Edición. Sección 1.3.)",
-          "Una expresión algebraica es una combinación de constantes (números) y variables (elementos genéricos de un conjunto numérico, representados por letras), mediante suma, resta, multiplicación, división y potenciación con exponentes enteros o racionales.",
-          "Generalmente las variables se representan con las últimas letras del alfabeto: u, v, w, x, y, z. Por ejemplo, 3x² + 4x − 5, (x + z)/(y² + x), (√y − 4z)/(z + y) son expresiones algebraicas.",
+          "Una expresión algebraica combina constantes y variables mediante operaciones aritméticas elementales.",
+          "Definición: Un **polinomio** en la variable $x$ es una expresión algebraica de la forma:",
+          "$$P(x) = a_n x^n + a_{n-1} x^{n-1} + \\dots + a_1 x + a_0$$",
+          "donde los coeficientes $a_0, a_1, \\dots, a_n \\in \\mathbb{R}$, $n \\in \\mathbb{N} \\cup \\{0\\}$ y $a_n \\neq 0$.",
+          "• El entero $n$ es el **grado** del polinomio (denotado $\\deg(P) = n$).",
+          "• $a_n$ es el **coeficiente principal** y $a_0$ es el **término independiente**.",
+          "Ejemplo: $P(x) = 7x^5 - 3x^4 + 2x^2 + x + 1$ es un polinomio de grado $5$, con coeficiente principal $7$ y término independiente $1$.",
         ],
       },
       {
-        heading: "POLINOMIOS",
+        heading: "Operaciones con Polinomios",
+        level: 2,
+        content: [
+          "• **Suma y Resta:** Se reducen términos semejantes (términos con idéntica variable y exponente).",
+          "• **Multiplicación:** Se aplica la ley distributiva reiterada: $a^m \\cdot a^n = a^{m+n}$.",
+          "Ejemplo: Multiplicar $(2x - 3)(x^2 + 4x - 5)$:",
+          "$$(2x - 3)(x^2 + 4x - 5) = 2x(x^2 + 4x - 5) - 3(x^2 + 4x - 5)$$",
+          "$$= (2x^3 + 8x^2 - 10x) - (3x^2 + 12x - 15) = 2x^3 + 5x^2 - 22x + 15$$",
+        ],
+      },
+      {
+        heading: "Algoritmo de la División de Polinomios",
         level: 1,
         content: [
-          "Un polinomio en la variable x es una expresión algebraica de la forma: aₙxⁿ + aₙ₋₁xⁿ⁻¹ + ··· + a₁x + a₀, donde a₀, a₁, ···, aₙ son números reales, llamados coeficientes del polinomio y n es un entero no negativo. Si aₙ ≠ 0, se dice que el polinomio es de grado n.",
-          "Ejemplo: 7x⁵ − 3x⁴ + 2x² + x + 1 es un polinomio en la variable x de grado 5. El término en x³ no se escribe porque su coeficiente es 0.",
-        ],
-      },
-      {
-        heading: "Suma de polinomios",
-        level: 2,
-        content: [
-          "Para sumar (o restar) polinomios, utilizamos las propiedades de la suma y el producto de números reales.",
-          "Ejemplo: Sumar 3x² + 7x − 9 con −5x³ − (1/5)x² + x − 5.",
-          "= −5x³ + (3 − 1/5)x² + (7+1)x + (−9−5) = −5x³ + (14/5)x² + 8x − 14.",
-          "Ejemplo: a) (3x² + x + 1) + (2x² − 3x − 5) = 5x² − 2x − 4.",
-          "b) (3x² + x + 1) − (2x² − 3x − 5) = x² + 4x + 6.",
-        ],
-      },
-      {
-        heading: "Producto o multiplicación de polinomios",
-        level: 2,
-        content: [
-          "Para multiplicar polinomios usamos las propiedades de la suma y el producto de números reales, y las leyes de los exponentes.",
-          "Ejemplo 1: (3x − 4)(x² + x) = 3x(x² + x) + (−4)(x² + x) = 3x³ + 3x² − 4x² − 4x = 3x³ − x² − 4x.",
-          "Ejemplo 2: (√t + 2)(5 − 2√t) = 5√t − 2t + 10 − 4√t = √t − 2t + 10.",
-        ],
-      },
-      {
-        heading: "Productos notables",
-        level: 2,
-        content: [
-          "Sean a y b números reales o expresiones algebraicas. Entonces:",
-          "1. (a + b)(a − b) = a² − b²",
-          "2. (a + b)² = a² + 2ab + b²",
-          "3. (a − b)² = a² − 2ab + b²",
-          "4. (a + b)³ = a³ + 3a²b + 3ab² + b³",
-          "5. (a − b)³ = a³ − 3a²b + 3ab² − b³",
-          "Verificación de (a − b)²: (a − b)(a − b) = a² − ab − ba + b² = a² − 2ab + b².",
-          "Verificación de (a − b)³: (a − b)(a − b)² = (a − b)(a² − 2ab + b²) = a³ − 3a²b + 3ab² − b³.",
-        ],
-      },
-      {
-        heading: "Ejemplo: Aplicación de productos notables",
-        level: 3,
-        content: [
-          "a) (c + 1/c)² = c² + 2(c)(1/c) + (1/c)² = c² + 2 + 1/c² (aplicando identidad 2)",
-          "b) (√a − 1/b)(√a + 1/b) = (√a)² − (1/b)² = a − 1/b² (aplicando identidad 1)",
-          "c) (1 − 2y)³ = 1³ − 3(1)²(2y) + 3(1)(2y)² − (2y)³ = 1 − 6y + 12y² − 8y³ (aplicando identidad 5)",
-        ],
-      },
-      {
-        heading: "División de Polinomios",
-        level: 2,
-        content: [
-          "Si P(x) y D(x) son polinomios tales que el grado de P(x) es mayor o igual que el grado de D(x) y si D(x) ≠ 0, entonces existen polinomios Q(x) y R(x) tales que: P(x)/D(x) = Q(x) + R(x)/D(x), con grado de R(x) menor que grado de D(x).",
-          "P(x) y D(x) se llaman dividendo y divisor, respectivamente; Q(x) es el cociente y R(x) es el residuo.",
-          "Equivalentemente: P(x) = D(x) · Q(x) + R(x).",
-          "Ejemplo: Dividir 5x³ − 2x + 1 entre x + 1.",
-          "Se ordenan ambos polinomios en forma descendente. Si falta alguna potencia se agrega con coeficiente 0: 5x³ + 0x² − 2x + 1.",
-          "Resultado: 5x³ − 2x + 1 = (x + 1)(5x² − 5x + 3) − 2. Q(x) = 5x² − 5x + 3, R(x) = −2.",
-          "Ejemplo: x⁶ + x⁴ + 2x² + 2 = (x² + 1)(x⁴ + 2). Residuo = 0.",
-        ],
-      },
-      {
-        heading: "División Sintética",
-        level: 2,
-        content: [
-          "La división sintética es un método rápido para dividir polinomios cuando el divisor es de la forma x − c, con c un número real.",
-          "Ejemplo: Dividir x⁴ − 3x² + 2x − 5 entre x + 2 (c = −2).",
-          "Sólo se escriben los coeficientes del dividendo y el valor de c. Se procede multiplicando y sumando iterativamente.",
-          "Resultado: x⁴ − 3x² + 2x − 5 = (x + 2)(x³ − 2x² + x) − 5. Q(x) = x³ − 2x² + x, R(x) = −5.",
-          "Observación: Si el divisor es x − c, el residuo P(c) = d. Si evaluamos P(x) en c, tenemos P(c) = (c − c)Q(c) + d = d.",
+          "Teorema: **Algoritmo de la División:** Dados dos polinomios $P(x)$ (dividendo) y $D(x)$ (divisor con $D(x) \\neq 0$), existen polinomios únicos $Q(x)$ (cociente) y $R(x)$ (residuo) tales que:",
+          "$$P(x) = D(x) \\cdot Q(x) + R(x)$$",
+          "donde $\\deg(R) < \\deg(D)$ ó $R(x) = 0$.",
+          "• Si $R(x) = 0$, decimos que $D(x)$ **divide exactamente** a $P(x)$ y que $D(x)$ es un **factor** de $P(x)$.",
+          "• **División Sintética (Regla de Ruffini):** Método abreviado para dividir un polinomio $P(x)$ entre un binomio lineal de la forma $x - c$.",
         ],
       },
     ],
@@ -662,79 +524,31 @@ function buildModules(): Record<number, TheoryModule> {
     tag: "Álgebra",
     sections: [
       {
-        heading: "Teorema del Residuo",
+        heading: "Teoremas del Residuo y del Factor",
         level: 1,
         content: [
-          "Si un polinomio P(x) se divide entre x − c, entonces, el residuo de la división es P(c).",
-          "Demostración: Como x − c es un polinomio de grado 1, el residuo es una constante d. Así P(x) = (x − c)Q(x) + d. Si evaluamos en c: P(c) = (c − c)Q(c) + d = d.",
-          "Ejemplo: Sin realizar la división, halle el residuo al dividir −3x² + 2x − 1 entre x − 4. Sea P(x) = −3x² + 2x − 1. El residuo es P(4) = −3(4)² + 2(4) − 1 = −48 + 8 − 1 = −41.",
+          "Teorema: **Teorema del Residuo:** Si un polinomio $P(x)$ se divide entre el binomio $x - c$, entonces el residuo es igual al valor numérico evaluado en $c$:",
+          "$$R = P(c)$$",
+          "Ejemplo: El residuo de dividir $P(x) = 3x^3 - 5x^2 + 2x - 7$ entre $x - 2$ es simplemente $P(2) = 3(8) - 5(4) + 2(2) - 7 = 24 - 20 + 4 - 7 = 1$.",
+          "Teorema: **Teorema del Factor:** Un número $c$ es un cero o raíz de $P(x)$ (es decir, $P(c) = 0$) si y sólo si $(x - c)$ es un factor de $P(x)$:",
+          "$$P(c) = 0 \\iff P(x) = (x - c) \\cdot Q(x)$$",
         ],
       },
       {
-        heading: "Teorema del Factor",
+        heading: "Teorema de los Ceros Racionales",
         level: 1,
         content: [
-          "Si c ∈ ℝ y P(x) es un polinomio, x − c es un factor de P(x) si y sólo si P(c) = 0.",
-          "Ejemplo: Pruebe que x + 3 es un factor del polinomio x³ + x² − 2x + 12. Sea P(x) = x³ + x² − 2x + 12. P(−3) = (−3)³ + (−3)² − 2(−3) + 12 = −27 + 9 + 6 + 12 = 0. Por el teorema del factor, x + 3 es factor de P(x).",
-        ],
-      },
-      {
-        heading: "Ceros reales de Polinomios",
-        level: 1,
-        content: [
-          "Los ceros reales de un polinomio P(x) = aₙxⁿ + aₙ₋₁xⁿ⁻¹ + ··· + a₁x + a₀ ó las raíces de la ecuación polinómica P(x) = 0 son los valores c ∈ ℝ tales que P(c) = 0.",
-          "Ejemplo: Los ceros de P(x) = x² − 5x + 6 son 2 y 3, pues P(2) = 0 y P(3) = 0. Luego, P(x) = (x − 2)(x − 3).",
-          "Observaciones: Si P(x) es un polinomio en x y c es un número real, los siguientes enunciados son equivalentes:",
-          "• c es un cero de P(x).",
-          "• x = c es una raíz o solución de P(x) = 0.",
-          "• x − c es un factor de P(x).",
-          "• El punto (c, 0) es un punto de intersección de la gráfica de y = P(x) con el eje x.",
-          "Si P(x) = (x − c)ᵐQ(x), donde c no es cero de Q(x) y m ≥ 1, decimos que c es un cero de P(x) de multiplicidad m.",
-          "Ejemplo: Si P(x) = (x − 4)(x + 2)²(x + 1)⁴, decimos que 4 es un cero de multiplicidad 1, −2 es un cero de multiplicidad 2 y −1 es un cero de multiplicidad 4.",
-        ],
-      },
-      {
-        heading: "Ejemplo: Factorizar P(x) = 3x³ − 2x − 20",
-        level: 2,
-        content: [
-          "P(2) = 3(2)³ − 2(2) − 20 = 24 − 4 − 20 = 0, luego 2 es un cero de P(x).",
-          "Por el teorema del factor, x − 2 es un factor. Dividimos por división sintética:",
-          "3x³ − 2x − 20 = (x − 2)(3x² + 6x + 10).",
-        ],
-      },
-      {
-        heading: "Teorema de Ceros Racionales",
-        level: 1,
-        content: [
-          "Si el polinomio P(x) = aₙxⁿ + aₙ₋₁xⁿ⁻¹ + ··· + a₁x + a₀ tiene coeficientes enteros, entonces, todo cero racional de P tiene la forma p/q, donde: p es un factor (divisor) del coeficiente a₀, y q es un factor del coeficiente aₙ.",
-          "Nota: Un polinomio con coeficientes enteros no necesariamente tiene todas sus raíces racionales.",
-        ],
-      },
-      {
-        heading: "Ejemplo completo: Factorizar P(x) = x⁴ − 5x³ − 5x² + 23x + 10",
-        level: 2,
-        content: [
-          "Factores de 10: ±1, ±2, ±5, ±10. Factores de 1: ±1. Posibles ceros: ±1, ±2, ±5, ±10.",
-          "P(1) = 24, P(−1) = −12, P(2) = 12, P(−2) = 0 ✓. Luego −2 es cero de P.",
-          "Por división sintética: P(x) = (x + 2)(x³ − 7x² + 9x + 5).",
-          "Para x³ − 7x² + 9x + 5: posibles ceros ±1, ±5. Como ±1 no son ceros de P, probamos ±5.",
-          "(5)³ − 7(5)² + 9(5) + 5 = 125 − 175 + 45 + 5 = 0 ✓. Luego 5 es cero.",
-          "x³ − 7x² + 9x + 5 = (x − 5)(x² − 2x − 1).",
-          "Para x² − 2x − 1 = 0: x = (2 ± √8)/2 = 1 ± √2.",
-          "P(x) = (x + 2)(x − 5)[x − (1 + √2)][x − (1 − √2)].",
-        ],
-      },
-      {
-        heading: "Ejemplo: P(x) = 3x⁵ − 10x⁴ − 6x³ + 24x² + 11x − 6",
-        level: 2,
-        content: [
-          "a₀ = −6, a₅ = 3. Factores de −6: ±1,±2,±3,±6. Factores de 3: ±1,±3.",
-          "Posibles ceros: ±1, ±1/3, ±2, ±2/3, ±3, ±6.",
-          "P(1) = 16 ✗, P(−1) = 0 ✓. Por división sintética: P(x) = (3x⁴ − 13x³ + 7x² + 17x − 6)(x + 1).",
-          "El nuevo polinomio evaluado en −1 da 0 ✓. Entonces: (3x³ − 16x² + 23x − 6)(x + 1)².",
-          "Evaluado en 1/3 da 0 ✓. Entonces: (3x² − 15x + 18)(x − 1/3)(x + 1)².",
-          "3x² − 15x + 18 = 3(x − 3)(x − 2).",
-          "P(x) = 3(x − 3)(x − 2)(x − 1/3)(x + 1)². Ceros: 3, 2 y 1/3 (multiplicidad 1), −1 (multiplicidad 2).",
+          "Teorema: **Teorema de las Raíces Racionales:** Si el polinomio con coeficientes enteros:",
+          "$$P(x) = a_n x^n + a_{n-1}x^{n-1} + \\dots + a_1 x + a_0$$",
+          "tiene una raíz racional de la forma $\\frac{p}{q}$ (en forma irreducible), entonces:",
+          "• $p$ es un divisor entero del término independiente $a_0$.",
+          "• $q$ es un divisor entero del coeficiente principal $a_n$.",
+          "Ejemplo: Para $P(x) = 2x^3 + x^2 - 13x + 6$:",
+          "• Divisores de $a_0 = 6$: $p \\in \\{\\pm 1, \\pm 2, \\pm 3, \\pm 6\\}$.",
+          "• Divisores de $a_n = 2$: $q \\in \\{\\pm 1, \\pm 2\\}$.",
+          "• Posibles raíces racionales $\\frac{p}{q}$: $\\left\\{\\pm 1, \\pm 2, \\pm 3, \\pm 6, \\pm \\frac{1}{2}, \\pm \\frac{3}{2}\\right\\}$.",
+          "Evaluando por división sintética se comprueba que las raíces son $x = 2$, $x = -3$ y $x = \\frac{1}{2}$. Por tanto, la factorización completa es:",
+          "$$P(x) = (x - 2)(x + 3)(2x - 1)$$",
         ],
       },
     ],
@@ -744,113 +558,42 @@ function buildModules(): Record<number, TheoryModule> {
   modules[8] = {
     num: 8,
     title: "Productos Notables y Factorización",
-    pdfPages: "Págs. 25 – 32",
+    pdfPages: "Págs. 26 – 32",
     tag: "Álgebra",
     sections: [
       {
-        heading: "Productos notables",
+        heading: "Fórmulas de Productos Notables",
         level: 1,
         content: [
-          "Sean a y b números reales o expresiones algebraicas. Tenemos las siguientes identidades:",
-          "1. (a + b)(a − b) = a² − b²",
-          "2. (a + b)² = a² + 2ab + b²",
-          "3. (a − b)² = a² − 2ab + b²",
-          "4. (a + b)³ = a³ + 3a²b + 3ab² + b³",
-          "5. (a − b)³ = a³ − 3a²b + 3ab² − b³",
-          "6. (a + b)(a² − ab + b²) = a³ + b³",
-          "7. (a − b)(a² + ab + b²) = a³ − b³",
-          "Verificación de 1: (a+b)(a−b) = a² − ab + ab − b² = a² − b².",
-          "Verificación de 3: (a−b)² = (a−b)(a−b) = a² − 2ab + b².",
-          "Verificación de 5: (a−b)³ = (a−b)(a−b)² = (a−b)(a²−2ab+b²) = a³ − 3a²b + 3ab² − b³.",
-          "Interpretación geométrica: (a+b)² = área de un cuadrado de lado a+b = a² + 2ab + b². (a+b)³ = volumen de un cubo de lado a+b.",
+          "Los productos notables son multiplicaciones polinómicas que siguen reglas fijas cuyo resultado puede escribirse por simple inspección:",
+          "• **Cuadrado de un binomio (Trinomio Cuadrado Perfecto):**",
+          "$$(a + b)^2 = a^2 + 2ab + b^2$$",
+          "$$(a - b)^2 = a^2 - 2ab + b^2$$",
+          "• **Suma por diferencia (Diferencia de Cuadrados):**",
+          "$$(a + b)(a - b) = a^2 - b^2$$",
+          "• **Cubo de un binomio:**",
+          "$$(a + b)^3 = a^3 + 3a^2 b + 3ab^2 + b^3$$",
+          "$$(a - b)^3 = a^3 - 3a^2 b + 3ab^2 - b^3$$",
+          "• **Cuadrado de un trinomio:**",
+          "$$(a + b + c)^2 = a^2 + b^2 + c^2 + 2ab + 2ac + 2bc$$",
+          "• **Producto con término común:**",
+          "$$(x + a)(x + b) = x^2 + (a + b)x + ab$$",
         ],
       },
       {
-        heading: "Ejemplo 1: Aplicación de productos notables",
-        level: 2,
-        content: [
-          "a) (b + 1/b)² = b² + 2 + 1/b², con b ≠ 0 (aplicando identidad 2).",
-          "b) (√a − 1/c)(√a + 1/c) = a − 1/c², a ≥ 0 y c ≠ 0 (aplicando identidad 1).",
-          "c) (1 − 2w)³ = 1 − 6w + 12w² − 8w³ (aplicando identidad 5).",
-        ],
-      },
-      {
-        heading: "Factorización",
+        heading: "Métodos Fundamentales de Factorización",
         level: 1,
         content: [
-          "Factorizar una expresión algebraica con respecto a F (ℤ, ℚ ó ℝ), es expresarla como un producto de expresiones más simples. Diremos que la expresión está completamente factorizada, si no es posible factorizar ninguna de las expresiones que componen la factorización.",
-          "Fórmulas de factorización derivadas de los productos notables:",
-          "a² − b² = (a + b)(a − b)   (Diferencia de cuadrados)",
-          "a³ + b³ = (a + b)(a² − ab + b²)   (Suma de cubos)",
-          "a³ − b³ = (a − b)(a² + ab + b²)   (Diferencia de cubos)",
-          "a² ± 2ab + b² = (a ± b)²   (Trinomio cuadrado perfecto)",
-          "a³ + 3a²b + 3ab² + b³ = (a + b)³",
-          "a³ − 3a²b + 3ab² − b³ = (a − b)³",
-        ],
-      },
-      {
-        heading: "Ejemplos de factorización directa",
-        level: 2,
-        content: [
-          "1. 16w² − 9z⁴ = (4w)² − (3z²)² = (4w + 3z²)(4w − 3z²).",
-          "2. 27b³ + y³ = (3b + y)(9b² − 3by + y²).",
-          "3. 64 − 125p⁶ = (4 − 5p²)(16 + 20p² + 25p⁴).",
-          "4. x⁴ + 10x² + 25 = (x² + 5)².",
-          "5. 81c⁴ − d⁴ = (9c² − d²)(9c² + d²) = (3c − d)(3c + d)(9c² + d²).",
-        ],
-      },
-      {
-        heading: "Caso 1. Factor común",
-        level: 2,
-        content: [
-          "a) −2t³ + 16t = −2t(t² − 8) = −2t(t + 2√2)(t − 2√2).",
-          "b) −7a⁴k² + 14ak³ + 21ak⁴ = −7ak²(a³ − 2k − 3k²).",
-          "c) (w + 2)² − 5(w + 2) = (w + 2)[(w + 2) − 5] = (w + 2)(w − 3).",
-          "d) m⁴(m+2)³ + m⁵(m+2)⁴ = m⁴(m+2)³(1 + m(m+2)) = m⁴(m+2)³(m+1)².",
-        ],
-      },
-      {
-        heading: "Caso 2. Trinomio de la forma x² + bx + c",
-        level: 2,
-        content: [
-          "Dado que (x+h)(x+k) = x² + (h+k)x + hk, debemos hallar h y k tales que b = h+k y c = hk.",
-          "Ejemplo: x² − 6x + 5 = (x − 5)(x − 1), ya que −5 + (−1) = −6 y (−5)(−1) = 5.",
-          "Ejemplo: (3x+2)² + 4(3x+2) − 12 = (3x+8)(3x).",
-          "Ejemplo: b³ − b² − 56b = b(b² − b − 56) = b(b − 8)(b + 7).",
-        ],
-      },
-      {
-        heading: "Caso 3. Trinomio de la forma ax² + bx + c",
-        level: 2,
-        content: [
-          "ax² + bx + c = (1/a)((ax)² + b(ax) + ac). La expresión entre paréntesis es de la forma z² + Bz + C, donde z = ax.",
-          "Ejemplo: −6t² − 11t + 21 = (−1/6)((6t)² + 11(6t) − 126) = (−1/6)(6t + 18)(6t − 7) = (t + 3)(7 − 6t).",
-          "Ejemplo: 2c² + c − 1 = (1/2)((2c)² + (2c) − 2) = (1/2)(2c + 2)(2c − 1) = (c + 1)(2c − 1).",
-        ],
-      },
-      {
-        heading: "Caso 4. Exponentes racionales",
-        level: 2,
-        content: [
-          "Ejemplo: x^(−5/2) + 2x^(−3/2) + x^(−1/2) = x^(−5/2)(1 + 2x + x²) = x^(−5/2)(x + 1)².",
-        ],
-      },
-      {
-        heading: "Caso 5. Factorización por agrupación",
-        level: 2,
-        content: [
-          "Ejemplo: 3x³ − x² − 6x + 2 = (3x³ − x²) − (6x − 2) = x²(3x − 1) − 2(3x − 1) = (3x − 1)(x² − 2) = (3x − 1)(x − √2)(x + √2).",
-          "Ejemplo: a³ + 27b³ + a + 3b = (a + 3b)(a² − 3ab + 9b²) + (a + 3b) = (a + 3b)(a² − 3ab + 9b² + 1).",
-          "Ejemplo: (1/2)x^(−1/2)(x+5)^(1/2) − (1/2)x^(1/2)(x+5)^(−1/2) = 5/(2x^(1/2)(x+5)^(1/2)).",
-        ],
-      },
-      {
-        heading: "Caso 6. Diferencia de potencias n-ésimas",
-        level: 2,
-        content: [
-          "aⁿ − bⁿ = (a − b)(aⁿ⁻¹ + aⁿ⁻²b + aⁿ⁻³b² + ··· + abⁿ⁻² + bⁿ⁻¹).",
-          "Ejemplo: x⁵ − 1 = (x − 1)(x⁴ + x³ + x² + x + 1).",
-          "Ejemplo (suma de potencias impares): u⁵ + 1 = u⁵ − (−1)⁵ = (u + 1)(u⁴ − u³ + u² − u + 1).",
+          "Factorizar consiste en transformar una suma algebraica en un producto de factores primos irreducibles:",
+          "• **1. Factor Común:** $ab + ac = a(b + c)$.",
+          "• **2. Factor Común por Agrupación:** $ax + ay + bx + by = a(x + y) + b(x + y) = (a + b)(x + y)$.",
+          "• **3. Diferencia de Cuadrados:** $a^2 - b^2 = (a - b)(a + b)$.",
+          "• **4. Suma y Diferencia de Cubos:**",
+          "$$a^3 + b^3 = (a + b)(a^2 - ab + b^2)$$",
+          "$$a^3 - b^3 = (a - b)(a^2 + ab + b^2)$$",
+          "• **5. Trinomio de la forma $x^2 + bx + c$:** Se buscan dos números $p$ y $q$ tales que $p + q = b$ y $p \\cdot q = c$:",
+          "$$x^2 + bx + c = (x + p)(x + q)$$",
+          "• **6. Trinomio general $ax^2 + bx + c$:** Se factoriza transformando el término central o aplicando la fórmula cuadrática.",
         ],
       },
     ],
@@ -860,96 +603,49 @@ function buildModules(): Record<number, TheoryModule> {
   modules[9] = {
     num: 9,
     title: "Factorial y Teorema del Binomio",
-    pdfPages: "Págs. 32 – 37",
+    pdfPages: "Págs. 33 – 37",
     tag: "Álgebra",
     sections: [
       {
-        heading: "DEFINICIÓN DEL n-FACTORIAL, COEFICIENTE BINOMIAL Y TEOREMA DEL BINOMIO",
-        level: 1,
-        content: [],
-      },
-      {
-        heading: "Factorial y Combinaciones",
-        level: 2,
-        content: [
-          "Definición de n factorial: 1! = 1, 2! = 2·1 = 2, y en general, n! = n·(n−1)···3·2·1.",
-          "El número n! es útil para expresar algunas fórmulas. Por conveniencia, se define 0! = 1.",
-          "Teorema: El número total de formas diferentes de ordenar n objetos distintos (permutaciones) es n!.",
-          "En efecto, hay n posibilidades para el \"primer objeto\", n−1 para el \"segundo\", etc. Total: n·(n−1)·(n−2)···2·1.",
-        ],
-      },
-      {
-        heading: "Combinaciones",
-        level: 2,
-        content: [
-          "Si queremos formar todos los posibles subconjuntos de tamaño r de un conjunto de n elementos, r ≤ n, sin importar el orden, estamos haciendo combinaciones.",
-          "El número de combinaciones de n objetos tomados en grupos de r se denota C(n,r) = n!/(r!(n−r)!).",
-          "La expresión C(n,r) se lee \"n tomados en grupos de r\" y se denomina coeficiente binomial.",
-          "¿Cuándo aplicar combinaciones? (1) no se permiten las repeticiones, y (2) el orden es irrelevante.",
-        ],
-      },
-      {
-        heading: "Ejemplos de combinaciones",
-        level: 2,
-        content: [
-          "Ejemplo 1: De un club {A,B,C,D,E} se quieren formar comités de 3 miembros. Hay C(5,3) = 10 posibles comités.",
-          "Ejemplo 2: Juan Esteban quiere comprar 10 videojuegos pero sólo tiene dinero para 4. C(10,4) = 10!/(4!·6!) = 210 maneras.",
-          "Ejemplo 3: De 24 estudiantes, seleccionar 12 para un evento: C(24,12) = 2,704,156 maneras.",
-        ],
-      },
-      {
-        heading: "El Teorema del Binomio",
+        heading: "Factorial y Coeficientes Binomiales",
         level: 1,
         content: [
-          "Desarrollos conocidos:",
-          "(x+y)¹ = x + y",
-          "(x+y)² = x² + 2xy + y²",
-          "(x+y)³ = x³ + 3x²y + 3xy² + y³",
-          "(x+y)⁴ = x⁴ + 4x³y + 6x²y² + 4xy³ + y⁴",
-          "(x+y)⁵ = x⁵ + 5x⁴y + 10x³y² + 10x²y³ + 5xy⁴ + y⁵",
-          "Teorema: Si n ∈ ℤ⁺, entonces (x+y)ⁿ = Σ C(n,k) · xⁿ⁻ᵏ · yᵏ, para k = 0, 1, …, n.",
-          "Equivalentemente: (x+y)ⁿ = xⁿ + nxⁿ⁻¹y + n(n−1)/2! · xⁿ⁻²y² + n(n−1)(n−2)/3! · xⁿ⁻³y³ + ··· + nxyⁿ⁻¹ + yⁿ.",
+          "Definición: Para $n \\in \\mathbb{N}$, el **factorial** de $n$, denotado $n!$, es el producto de todos los enteros positivos desde $1$ hasta $n$:",
+          "$$n! = n \\cdot (n - 1) \\cdot (n - 2) \\cdots 3 \\cdot 2 \\cdot 1$$",
+          "Por convenio y conveniencia matemática, se define $0! = 1$.",
+          "Definición: El **coeficiente binomial** $\\binom{n}{r}$ (combinaciones de $n$ tomados de $r$ en $r$) se define como:",
+          "$$\\binom{n}{r} = C(n, r) = \\frac{n!}{r!(n - r)!}, \\quad (0 \\le r \\le n)$$",
+          "Ejemplo: $\\binom{6}{2} = \\frac{6!}{2! \\cdot 4!} = \\frac{6 \\times 5 \\times 4!}{2 \\times 1 \\times 4!} = \\frac{30}{2} = 15$.",
         ],
       },
       {
-        heading: "Ejemplo 4: Desarrollar (2a + b)⁶",
-        level: 2,
-        content: [
-          "(2a+b)⁶ = C(6,0)(2a)⁶ + C(6,1)(2a)⁵b + C(6,2)(2a)⁴b² + C(6,3)(2a)³b³ + C(6,4)(2a)²b⁴ + C(6,5)(2a)b⁵ + C(6,6)b⁶",
-          "= 64a⁶ + 192a⁵b + 240a⁴b² + 160a³b³ + 60a²b⁴ + 12ab⁵ + b⁶.",
-        ],
-      },
-      {
-        heading: "Ejemplo 5: Desarrollar (2x − 5h)⁴",
-        level: 2,
-        content: [
-          "(2x − 5h)⁴ = (2x)⁴ + 4(2x)³(−5h) + 6(2x)²(−5h)² + 4(2x)(−5h)³ + (−5h)⁴",
-          "= 16x⁴ − 160x³h + 600x²h² − 1000xh³ + 625h⁴.",
-        ],
-      },
-      {
-        heading: "Término general del desarrollo binomial",
-        level: 2,
-        content: [
-          "El término que contiene xʳ en la expansión de (x+y)ⁿ es C(n, n−r) · xʳ · yⁿ⁻ʳ.",
-          "Ejemplo 6: Encuentre el coeficiente del término x¹⁵y⁴ en el desarrollo de (√x + y²/2)³². Tomando r = 30: C(32,2)(√x)³⁰(y²/2)² = 496 · x¹⁵ · y⁴/4 = 124x¹⁵y⁴. El coeficiente es 124.",
-        ],
-      },
-      {
-        heading: "El triángulo de Pascal",
+        heading: "El Teorema del Binomio de Newton",
         level: 1,
         content: [
-          "Una forma alternativa para expandir (x+y)ⁿ consiste en \"leer\" los coeficientes del triángulo de Pascal:",
-          "n=0:    1",
-          "n=1:   1  1",
-          "n=2:  1  2  1",
-          "n=3: 1  3  3  1",
-          "n=4: 1  4  6  4  1",
-          "Cada número es la suma de los dos números \"vecinos\" de la fila anterior. El primero y el último de cada fila es 1.",
-          "Los coeficientes de (x+y)ⁿ son los números de la \"n-ésima\" fila del triángulo de Pascal.",
-          "Ejemplo 7: (x+y)⁶. Fila 5: 1 5 10 10 5 1. Fila 6: 1 6 15 20 15 6 1.",
-          "(x+y)⁶ = x⁶ + 6x⁵y + 15x⁴y² + 20x³y³ + 15x²y⁴ + 6xy⁵ + y⁶.",
-          "Observación: El triángulo de Pascal es más sencillo cuando n es relativamente pequeña. El teorema del binomio se aplica más fácilmente cuando n es un número relativamente grande.",
+          "Teorema: Para todo $n \\in \\mathbb{N}$ y para cualesquiera $x, y \\in \\mathbb{R}$:",
+          "$$(x + y)^n = \\sum_{k=0}^n \\binom{n}{k} x^{n-k} y^k$$",
+          "Desarrollo explícito:",
+          "$$(x + y)^n = \\binom{n}{0}x^n + \\binom{n}{1}x^{n-1}y + \\binom{n}{2}x^{n-2}y^2 + \\dots + \\binom{n}{n-1}xy^{n-1} + \\binom{n}{n}y^n$$",
+          "• **Término general:** El término que ocupa la posición $(k+1)$-ésima en el desarrollo de $(x + y)^n$ viene dado por:",
+          "$$T_{k+1} = \\binom{n}{k} x^{n-k} y^k$$",
+          "Ejemplo: Desarrollar $(2a + b)^4$:",
+          "$$(2a + b)^4 = \\binom{4}{0}(2a)^4 + \\binom{4}{1}(2a)^3 b + \\binom{4}{2}(2a)^2 b^2 + \\binom{4}{3}(2a)b^3 + \\binom{4}{4}b^4$$",
+          "$$= 1(16a^4) + 4(8a^3)b + 6(4a^2)b^2 + 4(2a)b^3 + 1(b^4)$$",
+          "$$= 16a^4 + 32a^3 b + 24a^2 b^2 + 8ab^3 + b^4$$",
+        ],
+      },
+      {
+        heading: "El Triángulo de Pascal",
+        level: 2,
+        content: [
+          "Los coeficientes binomiales $\\binom{n}{k}$ forman el célebre Triángulo de Pascal, donde cada número interior es la suma de los dos números superiores inmediatos:",
+          "• $n=0$: $\\quad 1$",
+          "• $n=1$: $\\quad 1 \\quad 1$",
+          "• $n=2$: $\\quad 1 \\quad 2 \\quad 1$",
+          "• $n=3$: $\\quad 1 \\quad 3 \\quad 3 \\quad 1$",
+          "• $n=4$: $\\quad 1 \\quad 4 \\quad 6 \\quad 4 \\quad 1$",
+          "• $n=5$: $\\quad 1 \\quad 5 \\quad 10 \\quad 10 \\quad 5 \\quad 1$",
+          "• $n=6$: $\\quad 1 \\quad 6 \\quad 15 \\quad 20 \\quad 15 \\quad 6 \\quad 1$",
         ],
       },
     ],
@@ -959,102 +655,56 @@ function buildModules(): Record<number, TheoryModule> {
   modules[10] = {
     num: 10,
     title: "Expresiones Fraccionarias, Fracciones Compuestas y Racionalización",
-    pdfPages: "Págs. 37 – 42",
+    pdfPages: "Págs. 38 – 42",
     tag: "Álgebra",
     sections: [
       {
-        heading: "EXPRESIONES FRACCIONARIAS",
+        heading: "Expresiones Fraccionarias y su Dominio",
         level: 1,
         content: [
-          "Se llama expresión fraccionaria o fracción al cociente de dos expresiones algebraicas. Por ejemplo, 4z²/(z−1), (√y−2)/(y³+5), (3x+1)/(2x^(3/4)) son expresiones fraccionarias.",
-          "Si en una expresión fraccionaria el numerador y el denominador son polinomios, la expresión se llama expresión racional. Por ejemplo, 5x²/(x+2) y (7x³+2x²−x+1)/(4x⁴+2x²+1) son expresiones racionales.",
+          "Una **expresión fraccionaria** es el cociente de dos expresiones algebraicas. Cuando el numerador y el denominador son polinomios, se llama **expresión racional**:",
+          "$$R(x) = \\frac{P(x)}{Q(x)}$$",
+          "• **Dominio:** Está constituido por todos los números reales excepto aquellos que anulan el denominador:",
+          "$$\\text{Dom}(R) = \\{x \\in \\mathbb{R} \\mid Q(x) \\neq 0\\}$$",
+          "Ejemplo: Para $R(x) = \\frac{x + 3}{x^2 - 4}$, como $x^2 - 4 = (x-2)(x+2) = 0 \\implies x = \\pm 2$, el dominio es $\\mathbb{R} \\setminus \\{-2, 2\\}$.",
         ],
       },
       {
-        heading: "Operaciones con fracciones",
-        level: 2,
-        content: [],
-      },
-      {
-        heading: "1. Simplificación",
-        level: 2,
-        content: [
-          "Factorizamos el numerador y el denominador, y luego aplicamos la propiedad AC/BC = A/B.",
-          "Ejemplo a) (x²−x−2)/(x²−1) = (x−2)(x+1)/((x−1)(x+1)) = (x−2)/(x−1).",
-          "Ejemplo b) (1−x²)/(x³−1) = (1−x)(1+x)/((x−1)(x²+x+1)) = −(x−1)(1+x)/((x−1)(x²+x+1)) = −(1+x)/(x²+x+1).",
-        ],
-      },
-      {
-        heading: "2. Suma, resta, multiplicación y división de fracciones",
-        level: 2,
-        content: [
-          "Nota: Para obtener el mínimo común denominador (MCD), factorizamos los denominadores y el MCD es el producto de los factores comunes y no comunes con el mayor exponente.",
-          "Ejemplo a) 1/x² + 1/(x²+x) = 1/x² + 1/(x(x+1)) = (x+1+x)/(x²(x+1)) = (2x+1)/(x²(x+1)).",
-          "Ejemplo b) 2/(x+3) − 1/(x²+7x+12) = 2/(x+3) − 1/((x+3)(x+4)) = (2(x+4)−1)/((x+3)(x+4)) = (2x+7)/((x+3)(x+4)).",
-          "Ejemplo c) (x²−x−12)/(x²−9) · (3+x)/(4−x) = (x−4)(x+3)/((x−3)(x+3)) · (x+3)/(−(x−4)) = −(x+3)/(x−3).",
-          "Ejemplo d) (4y²−9)/(2y²+9y−18) ÷ (2y²+y−3)/(y²+5y−6) = 1.",
-          "Ejemplo e) [(2x²−3x−2)/(x²−1)] / [(2x²+5x+2)/(x²+x−2)] = (x−2)/(x+1).",
-        ],
-      },
-      {
-        heading: "Fracciones compuestas",
+        heading: "Fracciones Compuestas",
         level: 1,
         content: [
-          "Si en una fracción, el numerador o el denominador son también fracciones, la expresión se llama fracción compuesta.",
-          "Ejemplo a): [(a−b)/a − (a+b)/b] / [(a−b)/b + (a+b)/a] = [b(a−b)−a(a+b)]/(ab) / [a(a−b)+b(a+b)]/(ab) = (−a²−b²)/(a²+b²) = −1.",
-          "Ejemplo b): (x⁻¹ + y⁻¹)/((x+y)⁻¹) = [(1/x + 1/y)] / [1/(x+y)] = [(x+y)/(xy)] · (x+y) = (x+y)²/(xy).",
-          "Ejemplo c): [(1−x²)^(1/2) + x²(1−x²)^(−1/2)] / (1−x²) = (1−x²)^(−1/2)[(1−x²)+x²] / (1−x²) = 1/(1−x²)^(3/2).",
+          "Una fracción compuesta es aquella donde el numerador, el denominador o ambos contienen expresiones fraccionarias.",
+          "Ejemplo: Simplificar $\\frac{\\frac{1}{x} + \\frac{1}{y}}{\\frac{1}{x} - \\frac{1}{y}}$:",
+          "$$\\frac{\\frac{1}{x} + \\frac{1}{y}}{\\frac{1}{x} - \\frac{1}{y}} = \\frac{\\frac{y + x}{xy}}{\\frac{y - x}{xy}} = \\frac{(y + x) \\cdot xy}{(y - x) \\cdot xy} = \\frac{x + y}{y - x}$$",
         ],
       },
       {
-        heading: "Racionalización",
+        heading: "Técnicas de Racionalización",
         level: 1,
         content: [
-          "Dada una expresión fraccionaria con radicales en el denominador, racionalizar el denominador consiste en multiplicarla y dividirla por un factor adecuado, de manera que se eliminen los radicales en el denominador.",
-          "• Si el denominador es √a: 1/√a = √a/a.",
-          "• Si el denominador es ⁿ√(aᵐ), m < n y a > 0: 1/ⁿ√(aᵐ) = ⁿ√(aⁿ⁻ᵐ)/a.",
-          "• Si el denominador es a + b√c: multiplicamos por el conjugado a − b√c. 1/(a+b√c) = (a−b√c)/(a²−b²c).",
-          "• Si el denominador es ³√a − ³√b: multiplicamos por ³√a² + ³√(ab) + ³√b². 1/(³√a − ³√b) = (³√a² + ³√(ab) + ³√b²)/(a−b).",
+          "Racionalizar consiste en eliminar los radicales del denominador (o del numerador) multiplicando por un factor adecuado unitario:",
+          "• **1. Denominador con monomio radical $\\sqrt{a}$:**",
+          "$$\\frac{1}{\\sqrt{a}} = \\frac{1}{\\sqrt{a}} \\cdot \\frac{\\sqrt{a}}{\\sqrt{a}} = \\frac{\\sqrt{a}}{a}$$",
+          "• **2. Denominador con monomio de orden superior $\\sqrt[n]{a^m}$ ($m < n$):**",
+          "$$\\frac{1}{\\sqrt[n]{a^m}} = \\frac{1}{\\sqrt[n]{a^m}} \\cdot \\frac{\\sqrt[n]{a^{n-m}}}{\\sqrt[n]{a^{n-m}}} = \\frac{\\sqrt[n]{a^{n-m}}}{a}$$",
+          "• **3. Denominador con binomio con raíces cuadradas (Uso del Conjugado):**",
+          "El conjugado de $a + b\\sqrt{c}$ es $a - b\\sqrt{c}$:",
+          "$$\\frac{1}{a + b\\sqrt{c}} = \\frac{1}{a + b\\sqrt{c}} \\cdot \\frac{a - b\\sqrt{c}}{a - b\\sqrt{c}} = \\frac{a - b\\sqrt{c}}{a^2 - b^2 c}$$",
+          "Ejemplo: Racionalizar $\\frac{2}{3 - \\sqrt{5}}$:",
+          "$$\\frac{2}{3 - \\sqrt{5}} = \\frac{2(3 + \\sqrt{5})}{(3 - \\sqrt{5})(3 + \\sqrt{5})} = \\frac{2(3 + \\sqrt{5})}{9 - 5} = \\frac{2(3 + \\sqrt{5})}{4} = \\frac{3 + \\sqrt{5}}{2}$$",
+          "• **4. Binomios con raíces cúbicas:** Se multiplica por el trinomio asociado a la suma o diferencia de cubos $(a \\pm b)(a^2 \\mp ab + b^2) = a^3 \\pm b^3$.",
         ],
       },
       {
-        heading: "Ejemplo a): Racionalice el denominador",
-        level: 2,
-        content: [
-          "(i) 1/√10 = √10/10.",
-          "(ii) 2/³√x = 2³√x²/x.",
-          "(iii) 2/(3−√5) = 2(3+√5)/(9−5) = (3+√5)/2.",
-          "(iv) 2(x−y)/(√x − √y) = 2(x−y)(√x + √y)/((√x)² − (√y)²) = 2(√x + √y).",
-        ],
-      },
-      {
-        heading: "Ejemplo b): Racionalice el numerador",
-        level: 2,
-        content: [
-          "(i) (√x − √(x+h))/(h√x · √(x+h)) · (√x + √(x+h))/(√x + √(x+h)) = (x − (x+h))/(h√x√(x+h)(√x+√(x+h))) = −1/(√x√(x+h)(√x+√(x+h))).",
-          "(ii) (³√x + ³√2)/(x+2) · (³√x² − ³√(2x) + ³√4)/(³√x² − ³√(2x) + ³√4) = (x+2)/((x+2)(³√x² − ³√(2x) + ³√4)) = 1/(³√x² − ³√(2x) + ³√4).",
-        ],
-      },
-      {
-        heading: "Ejemplo: Más racionalizaciones",
-        level: 2,
-        content: [
-          "1. b/(√5 + √b) = b(√5 − √b)/(5 − b).",
-          "2. 1/(√m − ⁴√n) = (√m + ⁴√n)/(m − √n) = (√m + ⁴√n)(m + √n)/(m² − n).",
-          "3. 1/(³√a − ³√b) = (³√a² + ³√(ab) + ³√b²)/(a − b).",
-        ],
-      },
-      {
-        heading: "NOTA IMPORTANTE",
+        heading: "Errores Algebraicos Comunes que Deben Evitarse",
         level: 1,
         content: [
-          "Es muy importante tener en cuenta que:",
-          "• (a + b)² ≠ a² + b²",
-          "• √(a + b) ≠ √a + √b",
-          "• √(a² + b²) ≠ a + b",
-          "• 1/a + 1/b ≠ 1/(a+b)",
-          "• (a + b)/a ≠ b",
-          "• (a + b)⁻¹ ≠ a⁻¹ + b⁻¹",
+          "• $(a + b)^2 \\neq a^2 + b^2 \\quad \\text{(Falta el doble producto } 2ab\\text{)}$",
+          "• $\\sqrt{a + b} \\neq \\sqrt{a} + \\sqrt{b}$",
+          "• $\\sqrt{a^2 + b^2} \\neq a + b$",
+          "• $\\frac{1}{a} + \\frac{1}{b} \\neq \\frac{1}{a + b}$",
+          "• $\\frac{a + b}{a} \\neq 1 + b \\quad \\left(\\text{lo correcto es } 1 + \\frac{b}{a}\\right)$",
+          "• $(a + b)^{-1} \\neq a^{-1} + b^{-1}$",
         ],
       },
     ],
@@ -1088,7 +738,11 @@ export default async function TheoryModulePage({ params }: { params: Promise<{ i
       <div className="border-b border-[#D9CBB6]/20 bg-[#2E3B33]/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/teoria" className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#7A8F73] to-[#4F6B57] border border-[#D9CBB6]/30 flex items-center justify-center text-[#D9CBB6] hover:scale-105 transition-transform">
+            <Link
+              href="/teoria"
+              className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#7A8F73] to-[#4F6B57] border border-[#D9CBB6]/30 flex items-center justify-center text-[#D9CBB6] hover:scale-105 transition-transform"
+              title="Volver al Catálogo"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
@@ -1101,12 +755,18 @@ export default async function TheoryModulePage({ params }: { params: Promise<{ i
           {/* Prev / Next navigation */}
           <div className="flex items-center gap-2">
             {moduleId > 1 && ALL_MODULES[moduleId - 1] && (
-              <Link href={`/teoria/${moduleId - 1}`} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50 transition-all">
+              <Link
+                href={`/teoria/${moduleId - 1}`}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50 transition-all flex items-center gap-1"
+              >
                 ← Anterior
               </Link>
             )}
             {ALL_MODULES[moduleId + 1] && (
-              <Link href={`/teoria/${moduleId + 1}`} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#4F6B57]/30 text-[#BFAE8F] border border-[#D9CBB6]/15 hover:border-[#7A8F73]/50 transition-all">
+              <Link
+                href={`/teoria/${moduleId + 1}`}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#7A8F73]/30 text-[#D9CBB6] border border-[#7A8F73]/50 hover:bg-[#7A8F73]/50 transition-all flex items-center gap-1 font-semibold"
+              >
                 Siguiente →
               </Link>
             )}
@@ -1117,7 +777,7 @@ export default async function TheoryModulePage({ params }: { params: Promise<{ i
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8 w-full">
         {/* Title Banner */}
-        <div className="beige-card rounded-2xl p-6 sm:p-8 border border-[#D9CBB6]/20 mb-8 relative overflow-hidden">
+        <div className="beige-card rounded-2xl p-6 sm:p-8 border border-[#D9CBB6]/20 mb-8 relative overflow-hidden shadow-xl">
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#7A8F73]/15 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -1129,6 +789,9 @@ export default async function TheoryModulePage({ params }: { params: Promise<{ i
               </span>
               <span className="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-[#7A8F73]/20 text-[#D9CBB6] border border-[#7A8F73]/30">
                 {mod.tag}
+              </span>
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-semibold bg-[#BFAE8F]/20 text-[#BFAE8F] border border-[#BFAE8F]/30">
+                ✨ Renderizado KaTeX LaTeX
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#D9CBB6] glow-beige leading-tight">
@@ -1145,35 +808,27 @@ export default async function TheoryModulePage({ params }: { params: Promise<{ i
           {mod.sections.map((section, idx) => (
             <section key={idx} className="animate-fade-in" style={{ animationDelay: `${idx * 40}ms` }}>
               {section.level === 1 ? (
-                <h2 className="text-xl font-bold text-[#D9CBB6] glow-beige border-b border-[#7A8F73]/40 pb-2 mb-4 mt-6">
-                  {section.heading}
-                </h2>
+                <div className="border-b border-[#7A8F73]/40 pb-2 mb-4 mt-8 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#7A8F73] shadow-sm" />
+                  <h2 className="text-xl font-bold text-[#D9CBB6] glow-beige">
+                    {section.heading}
+                  </h2>
+                </div>
               ) : section.level === 2 ? (
-                <h3 className="text-base font-semibold text-[#BFAE8F] mb-3 mt-4">
+                <h3 className="text-base font-semibold text-[#BFAE8F] mb-3 mt-6 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#BFAE8F]" />
                   {section.heading}
                 </h3>
               ) : (
-                <h4 className="text-sm font-semibold text-[#7A8F73] mb-2 mt-3">
+                <h4 className="text-sm font-semibold text-[#7A8F73] mb-2 mt-4">
                   {section.heading}
                 </h4>
               )}
+
               {section.content.length > 0 && (
-                <div className="beige-card rounded-xl p-5 border border-[#D9CBB6]/10 space-y-3">
+                <div className="beige-card rounded-xl p-5 border border-[#D9CBB6]/15 space-y-3 shadow-md">
                   {section.content.map((paragraph, pIdx) => (
-                    <p
-                      key={pIdx}
-                      className={`text-sm leading-relaxed whitespace-pre-wrap ${
-                        paragraph.startsWith("•") || paragraph.startsWith("  •")
-                          ? "text-[#BFAE8F] pl-2"
-                          : paragraph.match(/^\d+\./)
-                          ? "text-[#D9CBB6] font-medium"
-                          : paragraph.startsWith("Ejemplo") || paragraph.startsWith("Solución") || paragraph.startsWith("Verificación")
-                          ? "text-[#7A8F73] italic"
-                          : "text-[#D9CBB6]/90"
-                      }`}
-                    >
-                      {paragraph}
-                    </p>
+                    <TheoryParagraph key={pIdx} text={paragraph} />
                   ))}
                 </div>
               )}
