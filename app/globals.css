@@ -190,14 +190,29 @@
   color: #FAF6EE !important;
 }
 
-/* KaTeX custom contrast enhancements */
+/* KaTeX custom contrast enhancements & mobile overflow protection */
 .katex {
   font-size: 1.05em !important;
   color: #F3ECE1 !important;
+  max-width: 100%;
 }
 
 .katex-display {
   margin: 0.75em 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: 0.25rem 0 !important;
+}
+
+/* Hide scrollbar for clean horizontal tab navigation */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom Scrollbar */

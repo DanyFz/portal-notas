@@ -763,31 +763,32 @@ export default function AdminDashboardPage() {
       />
 
       {/* Top Navbar */}
-      <header className="h-14 border-b border-[rgba(217,203,182,0.12)] bg-[#17201a] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#223028] border border-[rgba(217,203,182,0.15)] flex items-center justify-center text-[#8FA698] shadow-inner">
+      <header className="min-h-14 py-2.5 sm:py-0 border-b border-[rgba(217,203,182,0.12)] bg-[#17201a] px-3 sm:px-6 flex flex-wrap items-center justify-between gap-2.5 sticky top-0 z-40">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#223028] border border-[rgba(217,203,182,0.15)] flex items-center justify-center text-[#8FA698] shadow-inner shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
             </svg>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm font-serif font-bold text-[#FAF6EE] tracking-wide">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h1 className="text-xs sm:text-sm font-serif font-bold text-[#FAF6EE] tracking-wide">
                 Panel de Control Docente
               </h1>
-              <span className="px-2 py-0.5 rounded bg-[#1e2a22] border border-[#3b4e42] text-[10px] font-mono text-[#8FA698]">
+              <span className="px-1.5 sm:px-2 py-0.5 rounded bg-[#1e2a22] border border-[#3b4e42] text-[9px] sm:text-[10px] font-mono text-[#8FA698]">
                 PRO
               </span>
             </div>
-            <p className="text-[10px] text-[#A89F8D]">Administración Integral de Notas, Asistencia y Grupos</p>
+            <p className="text-[9px] sm:text-[10px] text-[#A89F8D] hidden xs:block">Administración de Notas, Asistencia y Grupos</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {hasUnsavedChanges && (
-            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-950/60 border border-amber-600/40 text-[11px] text-amber-300 font-mono">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-950/60 border border-amber-600/40 text-[10px] sm:text-[11px] text-amber-300 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-              Cambios sin guardar
+              <span className="hidden sm:inline">Cambios sin guardar</span>
+              <span className="sm:hidden">Sin guardar</span>
             </span>
           )}
 
@@ -818,7 +819,7 @@ export default function AdminDashboardPage() {
           <button
             onClick={handleSaveChanges}
             disabled={saving}
-            className="academic-btn-primary h-8 px-3.5 rounded-md text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md"
+            className="academic-btn-primary h-8 px-2.5 sm:px-3.5 rounded-md text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-md"
           >
             {saving ? (
               <>
@@ -831,14 +832,14 @@ export default function AdminDashboardPage() {
                   <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l6-6a1 1 0 00-1.414-1.414L11 12.586l-3.293-3.293z" />
                   <path d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7.414A2 2 0 0016.414 6L14 3.586A2 2 0 0012.586 3H5z" />
                 </svg>
-                <span>Guardar Cambios</span>
+                <span>Guardar</span>
               </>
             )}
           </button>
 
           <button
             onClick={handleLogout}
-            className="h-8 px-2.5 rounded-md bg-[#223028] border border-[rgba(217,203,182,0.15)] text-[#A89F8D] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
+            className="h-8 px-2 sm:px-2.5 rounded-md bg-[#223028] border border-[rgba(217,203,182,0.15)] text-[#A89F8D] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
             title="Cerrar sesión de administrador"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -852,7 +853,7 @@ export default function AdminDashboardPage() {
       {/* Save Toast Notification */}
       {saveMessage && (
         <div
-          className={`mx-4 sm:mx-6 mt-3 p-3 rounded-lg border text-xs flex items-center justify-between animate-fadeIn ${
+          className={`mx-3 sm:mx-6 mt-3 p-3 rounded-lg border text-xs flex items-center justify-between animate-fadeIn ${
             saveMessage.type === "success"
               ? "bg-[#182a20] border-[#2f553f] text-[#a5e0b8]"
               : "bg-red-950/60 border-red-800 text-red-300"
@@ -869,16 +870,16 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Control Bar & Group Management */}
-      <div className="p-4 sm:p-6 pb-2 space-y-4 max-w-full">
-        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-[#17211b] border border-[rgba(217,203,182,0.1)] rounded-xl p-4 shadow-sm">
+      <div className="p-3 sm:p-6 pb-2 space-y-3 sm:space-y-4 max-w-full">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4 bg-[#17211b] border border-[rgba(217,203,182,0.1)] rounded-xl p-3 sm:p-4 shadow-sm">
           {/* Group Selector & Group Management Actions */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-mono text-[#A89F8D] uppercase">Grupo:</label>
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full xl:w-auto">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <label className="text-[11px] sm:text-xs font-mono text-[#A89F8D] uppercase">Grupo:</label>
               <select
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
-                className="academic-input h-9 rounded-md px-3 text-xs font-mono bg-[#1f2c24] text-[#FAF6EE] border border-[#3b4e42] focus:outline-none cursor-pointer font-semibold"
+                className="academic-input h-9 rounded-md px-2.5 sm:px-3 text-xs font-mono bg-[#1f2c24] text-[#FAF6EE] border border-[#3b4e42] focus:outline-none cursor-pointer font-semibold flex-1 sm:flex-initial"
               >
                 <option value="ALL">Todos los Grupos ({students.length})</option>
                 {groups.map((grp) => (
@@ -892,7 +893,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setShowNewGroupModal(true)}
-                  className="h-8 px-2.5 rounded-md bg-[#223028] hover:bg-[#2c3d33] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                  className="h-8 px-2 sm:px-2.5 rounded-md bg-[#223028] hover:bg-[#2c3d33] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
                   title="Crear un nuevo grupo"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -907,20 +908,21 @@ export default function AdminDashboardPage() {
                       setGroupsToDelete(selectedGroup !== "ALL" ? [selectedGroup] : []);
                       setShowDeleteGroupModal(true);
                     }}
-                    className="h-8 px-2.5 rounded-md bg-[#223028] hover:bg-red-950/50 border border-[#3b4e42] text-red-300 text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                    className="h-8 px-2 sm:px-2.5 rounded-md bg-[#223028] hover:bg-red-950/50 border border-[#3b4e42] text-red-300 text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
                     title="Eliminar uno o múltiples grupos"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    <span>Eliminar Grupos</span>
+                    <span className="hidden sm:inline">Eliminar Grupos</span>
+                    <span className="sm:hidden">Eliminar</span>
                   </button>
                 )}
               </div>
             </div>
 
             {/* Search */}
-            <div className="relative min-w-[200px]">
+            <div className="relative flex-1 min-w-[160px] sm:min-w-[200px]">
               <input
                 type="text"
                 placeholder="Buscar estudiante, correo..."
@@ -934,12 +936,12 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-1.5">
-              <label className="text-[11px] font-mono text-[#A89F8D]">Ordenar:</label>
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <label className="text-[11px] font-mono text-[#A89F8D] shrink-0">Ordenar:</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="academic-input h-9 rounded-md px-2.5 text-xs font-mono bg-[#1f2c24] border border-[#3b4e42] cursor-pointer text-[#C8B99D]"
+                className="academic-input h-9 rounded-md px-2.5 text-xs font-mono bg-[#1f2c24] border border-[#3b4e42] cursor-pointer text-[#C8B99D] flex-1 sm:flex-initial"
               >
                 <option value="name-asc">Nombre (A-Z)</option>
                 <option value="name-desc">Nombre (Z-A)</option>
@@ -952,20 +954,20 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* Quick Stats Pill */}
-          <div className="flex items-center gap-3 text-xs font-mono text-[#C8B99D] flex-wrap">
-            <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 text-xs font-mono text-[#C8B99D]">
+            <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-[#121914] px-2.5 sm:px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
               <span className="text-[#8FA698]">Estudiantes:</span>
               <span className="font-bold text-[#FAF6EE]">{filteredStudents.length}</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
+            <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-[#121914] px-2.5 sm:px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
               <span className="text-[#8FA698]">Promedio:</span>
               <span className="font-bold text-[#D4AF37]">{groupStats.avg}</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
+            <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-[#121914] px-2.5 sm:px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
               <span className="text-[#8FA698]">Aprobación:</span>
               <span className="font-bold text-[#8FA698]">{groupStats.passingPct}%</span>
             </div>
-            <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
+            <div className="flex items-center justify-between sm:justify-start gap-1.5 bg-[#121914] px-2.5 sm:px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
               <span className="text-[#8FA698]">Asistencia:</span>
               <span className="font-bold text-[#8FA698]">{groupStats.avgAttendance}%</span>
             </div>
@@ -973,57 +975,57 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Action Toolbar & Bulk Operations */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 pt-1">
           {/* Tabs */}
-          <div className="flex items-center bg-[#17211b] p-1 rounded-lg border border-[rgba(217,203,182,0.12)]">
+          <div className="flex items-center bg-[#17211b] p-1 rounded-lg border border-[rgba(217,203,182,0.12)] overflow-x-auto max-w-full no-scrollbar shrink-0">
             <button
               onClick={() => setActiveTab("grades")}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === "grades"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
               }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
               </svg>
               <span>Notas ({evaluationColumns.length})</span>
             </button>
             <button
               onClick={() => setActiveTab("attendance")}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === "attendance"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
               }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span>Asistencia ({attendanceColumns.length})</span>
             </button>
             <button
               onClick={() => setActiveTab("students")}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === "students"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
               }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
               </svg>
               <span>Estudiantes ({filteredStudents.length})</span>
             </button>
             <button
               onClick={() => setActiveTab("stats")}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === "stats"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
               }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
                 <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
               </svg>
@@ -1138,7 +1140,12 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Main Interactive Excel Spreadsheet View */}
-      <main className="flex-1 p-4 sm:p-6 pt-2 overflow-hidden flex flex-col">
+      <main className="flex-1 p-3 sm:p-6 pt-2 overflow-hidden flex flex-col">
+        {/* Mobile Horizontal Scroll Helper */}
+        <div className="md:hidden pb-1.5 px-1 flex items-center justify-between text-[11px] text-[#A89F8D]">
+          <span>💡 Desliza hacia los lados para ver más columnas</span>
+          <span className="font-mono text-[#7A8F73] text-xs">↔</span>
+        </div>
         <div className="flex-1 rounded-xl border border-[rgba(217,203,182,0.15)] bg-[#17211b] overflow-hidden flex flex-col shadow-xl">
           <div className="flex-1 overflow-auto">
             {/* TAB: NOTAS (Excel Live) */}
@@ -1716,8 +1723,8 @@ export default function AdminDashboardPage() {
       {/* MODAL: CAMBIAR ESTUDIANTE DE GRUPO (Dedicado y Claro) */}
       {/* ======================================================== */}
       {studentToChangeGroup && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-[#223028] border border-[#3b4e42] flex items-center justify-center text-[#8FA698]">
@@ -1820,8 +1827,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Nuevo Estudiante */}
       {showAddStudentModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Agregar Nuevo Estudiante</h2>
               <button onClick={() => setShowAddStudentModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
@@ -1916,8 +1923,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Crear Nuevo Grupo */}
       {showNewGroupModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Crear Nuevo Grupo</h2>
               <button onClick={() => setShowNewGroupModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
@@ -1960,8 +1967,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Eliminar Uno o Múltiples Grupos */}
       {showDeleteGroupModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <div>
                 <h2 className="text-sm font-serif font-bold text-red-300">Eliminar Grupos</h2>
@@ -2086,8 +2093,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Mover Grupo Masivo (Selección Múltiple) */}
       {showMoveGroupModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Mover Estudiantes de Grupo</h2>
               <button onClick={() => setShowMoveGroupModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
@@ -2135,8 +2142,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Nota Masiva */}
       {showBulkGradeModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Asignar Nota Masiva</h2>
               <button onClick={() => setShowBulkGradeModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
@@ -2200,8 +2207,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Nueva Evaluación (Columna) */}
       {showAddColModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Nueva Columna de Evaluación</h2>
               <button onClick={() => setShowAddColModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
@@ -2260,8 +2267,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Gestionar Claves de Asistencia de Quices */}
       {showQuizPassModal && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-lg w-full p-5 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <div>
                 <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Claves de Asistencia por Evaluación</h2>
@@ -2411,8 +2418,8 @@ export default function AdminDashboardPage() {
 
       {/* MODAL: Eliminar Evaluación */}
       {showDeleteColModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
               <h2 className="text-sm font-serif font-bold text-red-300">Eliminar Columna de Evaluación</h2>
               <button onClick={() => setShowDeleteColModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>

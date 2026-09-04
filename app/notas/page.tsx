@@ -106,11 +106,11 @@ function StudentLoginContent() {
   }
 
   return (
-    <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 bg-[#151d18] text-[#EDE5D8] academic-paper-bg min-h-screen">
-      <div className="w-full max-w-md space-y-6 relative z-10 py-6">
+    <main className="flex-1 flex flex-col items-center justify-center p-3.5 sm:p-6 bg-[#151d18] text-[#EDE5D8] academic-paper-bg min-h-screen">
+      <div className="w-full max-w-md space-y-4 sm:space-y-6 relative z-10 py-4 sm:py-6">
         {/* Navigation header */}
         <div className="flex items-center justify-between text-xs text-[#A89F8D]">
-          <Link href="/" className="flex items-center gap-1.5 hover:text-[#FAF6EE] transition-colors">
+          <Link href="/" className="flex items-center gap-1.5 hover:text-[#FAF6EE] transition-colors py-1">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
@@ -126,7 +126,7 @@ function StudentLoginContent() {
         </div>
 
         {/* Academic Institutional Login Card */}
-        <div className="academic-card-elevated rounded-2xl p-7 sm:p-8 border border-[rgba(217,203,182,0.18)] space-y-6">
+        <div className="academic-card-elevated rounded-2xl p-5 sm:p-8 border border-[rgba(217,203,182,0.18)] space-y-5 sm:space-y-6">
           <div className="space-y-2 text-center">
             <div
               onClick={handleSecretBadgeClick}
@@ -137,15 +137,15 @@ function StudentLoginContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <h1 className="text-2xl font-serif font-bold text-[#FAF6EE]">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#FAF6EE]">
               Consulta de Calificaciones
             </h1>
-            <p className="text-xs text-[#A89F8D] leading-relaxed">
+            <p className="text-xs text-[#A89F8D] leading-relaxed max-w-xs mx-auto">
               Ingresa el usuario de tu correo institucional UNAL (sin incluir <i>@unal.edu.co</i>).
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div className="space-y-1.5">
               <label htmlFor="username" className="text-xs font-medium text-[#EDE5D8] block">
                 Usuario Institucional
@@ -196,7 +196,7 @@ function StudentLoginContent() {
               className="opacity-20 hover:opacity-80 p-1 text-[#C8B99D] transition-opacity cursor-pointer"
               title="Acceso Docente"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </button>
@@ -206,8 +206,8 @@ function StudentLoginContent() {
 
       {/* Hidden Admin Login Modal */}
       {showAdminModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-sm w-full p-6 sm:p-7 space-y-5 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-sm w-full p-5 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowAdminModal(false)}
               className="absolute top-4 right-4 text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer p-1"
@@ -229,7 +229,7 @@ function StudentLoginContent() {
               </p>
             </div>
 
-            <form onSubmit={handleAdminSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleAdminSubmit} className="space-y-3.5 sm:space-y-4 text-xs">
               <div className="space-y-1">
                 <label className="text-[#EDE5D8] block font-medium">Usuario</label>
                 <input
@@ -239,7 +239,7 @@ function StudentLoginContent() {
                   onChange={(e) => setAdminUser(e.target.value)}
                   required
                   autoFocus
-                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15]"
+                  className="academic-input w-full h-10 rounded-md px-3 font-mono bg-[#131a15]"
                 />
               </div>
 
@@ -251,7 +251,7 @@ function StudentLoginContent() {
                   value={adminPass}
                   onChange={(e) => setAdminPass(e.target.value)}
                   required
-                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15]"
+                  className="academic-input w-full h-10 rounded-md px-3 font-mono bg-[#131a15]"
                 />
               </div>
 

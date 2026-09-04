@@ -149,9 +149,9 @@ export default function TheoryCatalogPage() {
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8 flex-1 w-full">
+      <div className="max-w-6xl mx-auto px-3.5 sm:px-6 py-5 sm:py-10 space-y-5 sm:space-y-8 flex-1 w-full">
         {/* Editorial Hero Banner */}
-        <div className="academic-card-elevated rounded-2xl p-6 sm:p-10 border border-[rgba(217,203,182,0.18)] space-y-4 relative overflow-hidden">
+        <div className="academic-card-elevated rounded-2xl p-4 sm:p-10 border border-[rgba(217,203,182,0.18)] space-y-3 sm:space-y-4 relative overflow-hidden">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-1 rounded-md text-[11px] font-bold tracking-wider uppercase bg-[#7A8F73]/20 text-[#FAF6EE] border border-[#7A8F73]/30">
               Programa Oficial
@@ -161,7 +161,7 @@ export default function TheoryCatalogPage() {
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#FAF6EE] tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-[#FAF6EE] tracking-tight leading-tight">
             Catálogo de Módulos y Notas de Clase
           </h1>
 
@@ -171,12 +171,12 @@ export default function TheoryCatalogPage() {
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between pb-2 border-b border-[rgba(217,203,182,0.12)]">
+        <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 items-stretch lg:items-center justify-between pb-2 border-b border-[rgba(217,203,182,0.12)]">
           {/* Block Filters */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
             <button
               onClick={() => setSelectedBlock("all")}
-              className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 selectedBlock === "all"
                   ? "academic-btn-primary"
                   : "academic-btn-secondary"
@@ -186,7 +186,7 @@ export default function TheoryCatalogPage() {
             </button>
             <button
               onClick={() => setSelectedBlock("algebra")}
-              className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 selectedBlock === "algebra"
                   ? "academic-btn-primary"
                   : "academic-btn-secondary"
@@ -196,7 +196,7 @@ export default function TheoryCatalogPage() {
             </button>
             <button
               onClick={() => setSelectedBlock("ecuaciones_geometria")}
-              className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 selectedBlock === "ecuaciones_geometria"
                   ? "academic-btn-primary"
                   : "academic-btn-secondary"
@@ -206,7 +206,7 @@ export default function TheoryCatalogPage() {
             </button>
             <button
               onClick={() => setSelectedBlock("funciones")}
-              className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 selectedBlock === "funciones"
                   ? "academic-btn-primary"
                   : "academic-btn-secondary"
@@ -216,7 +216,7 @@ export default function TheoryCatalogPage() {
             </button>
             <button
               onClick={() => setSelectedBlock("trigonometria")}
-              className={`px-3.5 py-2 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+              className={`px-3 sm:px-3.5 py-2 rounded-lg text-[11px] sm:text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 selectedBlock === "trigonometria"
                   ? "academic-btn-primary"
                   : "academic-btn-secondary"
@@ -242,7 +242,7 @@ export default function TheoryCatalogPage() {
         </div>
 
         {/* Catalog Blocks */}
-        <div className="space-y-12">
+        <div className="space-y-8 sm:space-y-12">
           {filteredBlocks.length === 0 ? (
             <div className="academic-card rounded-xl p-12 text-center space-y-2">
               <p className="text-base text-[#FAF6EE] font-serif font-bold">No se encontraron temas coincidentes</p>
@@ -282,7 +282,7 @@ export default function TheoryCatalogPage() {
                   </div>
 
                   {/* Clean Grid of Cards */}
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {modulesInBlock.map((mod) => (
                       <Link
                         key={mod.num}
