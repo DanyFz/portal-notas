@@ -30,6 +30,10 @@ export default function DashboardPage() {
           if (fresh) {
             setStudent(fresh);
             saveSession(fresh);
+          } else {
+            // Student was deleted or no longer exists
+            clearSession();
+            router.push("/notas");
           }
         }
       } catch (e) {

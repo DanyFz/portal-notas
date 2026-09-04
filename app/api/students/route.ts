@@ -50,7 +50,7 @@ export async function GET() {
 
           if (response.ok) {
             const data = await response.json();
-            if (data.students && data.students.length > 0) {
+            if (data && Array.isArray(data.students)) {
               debugInfo.source = `json-blob: ${jsonBlob.pathname}`;
               return NextResponse.json(
                 { students: data.students, debug: debugInfo },
@@ -72,7 +72,7 @@ export async function GET() {
       const filePath = path.join(process.cwd(), "public", "data", "students.json");
       const fileContent = await fs.readFile(filePath, "utf-8");
       const data = JSON.parse(fileContent);
-      if (data.students && data.students.length > 0) {
+      if (data && Array.isArray(data.students)) {
         debugInfo.source = "local-fs: public/data/students.json";
         return NextResponse.json(
           { students: data.students, debug: debugInfo },
@@ -93,6 +93,6 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching students:", error);
     debugInfo.error = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ students: [], debug: debugInfo });
+    return NextResponse.json({ students: [], debug: debugInfo }, { headers: NO_CACHE_HEADERS });
   }
 }
