@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
         const blobResult = await put("students-data.json", jsonPayload, {
           access: "public",
           addRandomSuffix: false,
+          allowOverwrite: true,
           contentType: "application/json",
         });
         blobSaved = true;
