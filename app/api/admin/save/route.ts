@@ -8,7 +8,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  const errors: string[] = [];
+
   try {
+    // Auth check
     const cookieToken = req.cookies.get("admin_token")?.value;
     const authHeader = req.headers.get("authorization");
     const bearerToken = authHeader?.startsWith("Bearer ")
@@ -21,8 +24,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const students: Student[] = body.students;
+    // Parse body
+    let students: Student[];
+    try {
+      const body = await req.json();
+      students = body.students;
+    } catch (parseErr) {
+      return NextResponse.json(
+        { error: "Error al leer los datos enviados: " + (parseErr instanceof Error ? parseErr.message : String(parseErr)) },
+        { status: 400 }
+      );
+    }
 
     if (!Array.isArray(students)) {
       return NextResponse.json(
@@ -48,25 +60,33 @@ export async function POST(req: NextRequest) {
         blobSaved = true;
         targets.push(`Vercel Blob (${blobResult.pathname})`);
       } catch (blobErr) {
-        console.error("Error saving to Vercel Blob:", blobErr);
+        const msg = blobErr instanceof Error ? blobErr.message : String(blobErr);
+        console.error("Error saving to Vercel Blob:", msg);
+        errors.push(`Blob: ${msg}`);
       }
     }
 
-    // 2. Save to local filesystem as well (or primary fallback)
+    // 2. Save to local filesystem
+    const cwd = process.cwd();
+    const dataDir = path.join(cwd, "public", "data");
+
     try {
-      const dataDir = path.join(process.cwd(), "public", "data");
       await fs.mkdir(dataDir, { recursive: true });
       const filePath = path.join(dataDir, "students.json");
       await fs.writeFile(filePath, jsonPayload, "utf-8");
       localSaved = true;
-      targets.push("Local JSON (public/data/students.json)");
+      targets.push(`Local (${filePath})`);
     } catch (fsErr) {
-      console.warn("Could not write to local file system (expected on readonly serverless):", fsErr);
+      const msg = fsErr instanceof Error ? fsErr.message : String(fsErr);
+      console.error(`FS write error (cwd=${cwd}, dir=${dataDir}):`, msg);
+      errors.push(`FS: ${msg}`);
     }
 
     if (!blobSaved && !localSaved) {
       return NextResponse.json(
-        { error: "No se pudo persistir la información ni en Vercel Blob ni en el sistema local" },
+        {
+          error: `No se pudo persistir la información. Detalles: ${errors.join(" | ")}`,
+        },
         { status: 500 }
       );
     }
@@ -78,9 +98,10 @@ export async function POST(req: NextRequest) {
       studentsCount: students.length,
     });
   } catch (error) {
-    console.error("Error saving students:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Unhandled error saving students:", msg);
     return NextResponse.json(
-      { error: "Error interno al guardar los cambios" },
+      { error: `Error interno: ${msg}` },
       { status: 500 }
     );
   }
