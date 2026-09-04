@@ -13,6 +13,7 @@ export default function AdminDashboardPage() {
   const [saving, setSaving] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   const [customGroups, setCustomGroups] = useState<string[]>([]);
+  const [quizPasswords, setQuizPasswords] = useState<Record<string, string>>({});
   const [initialData, setInitialData] = useState<string>("");
   const [selectedGroup, setSelectedGroup] = useState<string>("ALL");
   const [activeTab, setActiveTab] = useState<"grades" | "attendance" | "students" | "stats">("grades");
@@ -33,6 +34,7 @@ export default function AdminDashboardPage() {
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
   const [showBulkGradeModal, setShowBulkGradeModal] = useState(false);
   const [showMoveGroupModal, setShowMoveGroupModal] = useState(false);
+  const [showQuizPassModal, setShowQuizPassModal] = useState(false);
 
   // Dedicated Student Group Change Modal State
   const [studentToChangeGroup, setStudentToChangeGroup] = useState<Student | null>(null);
@@ -47,6 +49,9 @@ export default function AdminDashboardPage() {
     group: "",
   });
   const [newColName, setNewColName] = useState("");
+  const [newColPassword, setNewColPassword] = useState("");
+  const [selectedQuizForPass, setSelectedQuizForPass] = useState("");
+  const [editQuizPassInput, setEditQuizPassInput] = useState("");
   const [colToDelete, setColToDelete] = useState("");
   const [newGroupNameInput, setNewGroupNameInput] = useState("");
   
@@ -73,13 +78,20 @@ export default function AdminDashboardPage() {
           return;
         }
 
-        // Fetch students
-        const res = await fetch("/api/students", { cache: "no-store" });
+        // Fetch students and quiz metadata
+        const res = await fetch("/api/students", {
+          cache: "no-store",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (res.ok) {
           const data = await res.json();
           const list: Student[] = data.students || [];
+          const qPass: Record<string, string> = data.quizPasswords || {};
+          const cGrp: string[] = data.customGroups || [];
           setStudents(list);
-          setInitialData(JSON.stringify(list));
+          setQuizPasswords(qPass);
+          setCustomGroups(cGrp);
+          setInitialData(JSON.stringify({ students: list, quizPasswords: qPass, customGroups: cGrp }));
 
           if (list.length > 0 && selectedGroup === "ALL") {
             const firstGroup = list[0]?.group || "ALL";
@@ -203,8 +215,11 @@ export default function AdminDashboardPage() {
 
   // Unsaved changes check
   const hasUnsavedChanges = useMemo(() => {
-    return initialData !== "" && JSON.stringify(students) !== initialData;
-  }, [students, initialData]);
+    if (initialData === "") return false;
+    return (
+      JSON.stringify({ students, quizPasswords, customGroups }) !== initialData
+    );
+  }, [students, quizPasswords, customGroups, initialData]);
 
   // Overall & Group stats calculation
   const groupStats = useMemo(() => {
@@ -375,7 +390,13 @@ export default function AdminDashboardPage() {
         attendance: { ...(s.attendance || {}), [col]: "ausente" },
       }))
     );
+
+    if (newColPassword.trim()) {
+      setQuizPasswords((prev) => ({ ...prev, [col]: newColPassword.trim() }));
+    }
+
     setNewColName("");
+    setNewColPassword("");
     setShowAddColModal(false);
   }
 
@@ -395,8 +416,43 @@ export default function AdminDashboardPage() {
         return { ...s, grades: updatedGrades, attendance: updatedAttendance };
       })
     );
+
+    setQuizPasswords((prev) => {
+      const next = { ...prev };
+      delete next[colToDelete];
+      return next;
+    });
+
     setColToDelete("");
     setShowDeleteColModal(false);
+  }
+
+  // Save/Update quiz password
+  function handleSaveQuizPassword() {
+    if (!selectedQuizForPass) return;
+    const cleanPass = editQuizPassInput.trim();
+    setQuizPasswords((prev) => {
+      const next = { ...prev };
+      if (cleanPass) {
+        next[selectedQuizForPass] = cleanPass;
+      } else {
+        delete next[selectedQuizForPass];
+      }
+      return next;
+    });
+    setEditQuizPassInput(cleanPass);
+  }
+
+  // Clear password to leave quiz registration open to anyone
+  function handleLeaveQuizOpen(quizName: string) {
+    setQuizPasswords((prev) => {
+      const next = { ...prev };
+      delete next[quizName];
+      return next;
+    });
+    if (selectedQuizForPass === quizName) {
+      setEditQuizPassInput("");
+    }
   }
 
   // Mark all students present for a column
@@ -628,12 +684,14 @@ export default function AdminDashboardPage() {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ students }),
+        body: JSON.stringify({ students, quizPasswords, customGroups }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        setInitialData(JSON.stringify(students));
+        setInitialData(
+          JSON.stringify({ students, quizPasswords, customGroups })
+        );
         setSaveMessage({
           text: `Guardado exitoso: ${data.studentsCount} estudiantes sincronizados (${data.targets?.join(", ") || "Servidor"})`,
           type: "success",
@@ -1026,6 +1084,24 @@ export default function AdminDashboardPage() {
               <span>Nueva Evaluación</span>
             </button>
 
+            {/* Manage Quiz Passwords Button */}
+            {evaluationColumns.length > 0 && (
+              <button
+                onClick={() => {
+                  setSelectedQuizForPass(evaluationColumns[0]);
+                  setEditQuizPassInput(quizPasswords[evaluationColumns[0]] || "");
+                  setShowQuizPassModal(true);
+                }}
+                className="h-8 px-3 rounded-md bg-[#223028] hover:bg-[#2b3c33] border border-[rgba(217,203,182,0.15)] text-[#FAF6EE] text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
+                title="Configurar contraseñas para registro de asistencia de los estudiantes"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#8FA698]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                <span className="hidden sm:inline">Claves Asistencia</span>
+              </button>
+            )}
+
             {evaluationColumns.length > 0 && (
               <button
                 onClick={() => setShowDeleteColModal(true)}
@@ -1083,15 +1159,39 @@ export default function AdminDashboardPage() {
                       Grupo
                     </th>
 
-                    {/* Dynamic evaluation columns */}
-                    {evaluationColumns.map((col) => (
-                      <th
-                        key={col}
-                        className="p-2.5 px-3 text-[#D4AF37] font-mono font-bold text-[11px] text-center min-w-[80px] border-r border-[rgba(217,203,182,0.08)]"
-                      >
-                        {col}
-                      </th>
-                    ))}
+                    {/* Dynamic evaluation columns with key password icon */}
+                    {evaluationColumns.map((col) => {
+                      const hasPass = !!quizPasswords[col]?.trim();
+                      return (
+                        <th
+                          key={col}
+                          className="p-2.5 px-3 text-[#D4AF37] font-mono font-bold text-[11px] text-center min-w-[80px] border-r border-[rgba(217,203,182,0.08)]"
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            <span>{col}</span>
+                            <button
+                              onClick={() => {
+                                setSelectedQuizForPass(col);
+                                setEditQuizPassInput(quizPasswords[col] || "");
+                                setShowQuizPassModal(true);
+                              }}
+                              className={`p-0.5 rounded hover:bg-[#25362c] cursor-pointer transition-colors ${
+                                hasPass ? "text-[#8FA698]" : "text-[#A89F8D]/30 hover:text-[#A89F8D]"
+                              }`}
+                              title={
+                                hasPass
+                                  ? `Contraseña de asistencia: "${quizPasswords[col]}". Clic para editar.`
+                                  : "Sin contraseña de asistencia. Clic para configurar."
+                              }
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill={hasPass ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </th>
+                      );
+                    })}
 
                     <th className="p-2.5 px-4 text-[#FAF6EE] font-serif font-bold text-xs text-center min-w-[90px] bg-[#1e2b24] border-r border-[rgba(217,203,182,0.12)]">
                       Promedio
@@ -2108,8 +2208,24 @@ export default function AdminDashboardPage() {
                   className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15]"
                   autoFocus
                 />
-                <p className="text-[10px] text-[#A89F8D] mt-1.5">
+                <p className="text-[10px] text-[#A89F8D] mt-1">
                   Se creará la columna para todos los estudiantes con valor pendiente (—).
+                </p>
+              </div>
+
+              <div>
+                <label className="text-[#A89F8D] block mb-1">
+                  Contraseña para Asistencia (Opcional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Dejar vacío si no requiere contraseña"
+                  value={newColPassword}
+                  onChange={(e) => setNewColPassword(e.target.value)}
+                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15]"
+                />
+                <p className="text-[10px] text-[#8FA698] mt-1">
+                  Si la defines, el estudiante deberá ingresarla para auto-registrar su asistencia. Si la dejas vacía, podrá registrarse directamente sin contraseña.
                 </p>
               </div>
             </div>
@@ -2126,6 +2242,157 @@ export default function AdminDashboardPage() {
                 className="academic-btn-primary h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer"
               >
                 Crear Columna
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Gestionar Claves de Asistencia de Quices */}
+      {showQuizPassModal && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
+              <div>
+                <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Claves de Asistencia por Evaluación</h2>
+                <p className="text-[10px] text-[#A89F8D]">Configura contraseña para obligar clave o déjalo abierto para auto-registro libre</p>
+              </div>
+              <button onClick={() => setShowQuizPassModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer p-1">✕</button>
+            </div>
+
+            {/* List of all quizzes with their status */}
+            <div className="space-y-2 text-xs">
+              <label className="text-[11px] font-mono text-[#A89F8D] block uppercase">
+                Estado actual de las evaluaciones ({evaluationColumns.length}):
+              </label>
+
+              <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                {evaluationColumns.map((col) => {
+                  const hasPass = !!quizPasswords[col]?.trim();
+                  const isSelected = selectedQuizForPass === col;
+
+                  return (
+                    <div
+                      key={col}
+                      onClick={() => {
+                        setSelectedQuizForPass(col);
+                        setEditQuizPassInput(quizPasswords[col] || "");
+                      }}
+                      className={`p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                        isSelected
+                          ? "bg-[#223328] border-[#7A8F73] text-[#FAF6EE]"
+                          : "bg-[#131a15] border-[#202d25] text-[#EDE5D8] hover:border-[#35483b]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-mono font-bold text-xs">{col}</span>
+                        {hasPass ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#7A8F73]/20 text-[#a5e0b8] border border-[#7A8F73]/40">
+                            🔒 Clave: {quizPasswords[col]}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#223028] text-[#C8B99D] border border-[rgba(217,203,182,0.15)]">
+                            🔓 Abierto (Sin clave)
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {hasPass && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLeaveQuizOpen(col);
+                            }}
+                            className="px-2 py-1 rounded text-[10px] font-medium bg-red-950/60 hover:bg-red-900/80 text-red-200 border border-red-800/40 cursor-pointer transition-colors"
+                            title="Dejar abierto para que cualquier estudiante pueda registrarse sin clave"
+                          >
+                            Dejar Abierto
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedQuizForPass(col);
+                            setEditQuizPassInput(quizPasswords[col] || "");
+                          }}
+                          className="px-2 py-1 rounded text-[10px] font-medium bg-[#223028] hover:bg-[#2b3c33] text-[#EDE5D8] border border-[rgba(217,203,182,0.15)] cursor-pointer"
+                        >
+                          {hasPass ? "Cambiar" : "Asignar Clave"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected Quiz Editor Form */}
+            {selectedQuizForPass && (
+              <div className="p-3.5 rounded-xl bg-[#131a15] border border-[rgba(217,203,182,0.15)] space-y-3 text-xs animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-[#FAF6EE]">
+                    Editar clave para: <span className="font-mono text-[#D4AF37]">{selectedQuizForPass}</span>
+                  </span>
+                  {quizPasswords[selectedQuizForPass] ? (
+                    <span className="text-[10px] text-[#a5e0b8] font-mono">Estado: Protegido con clave</span>
+                  ) : (
+                    <span className="text-[10px] text-[#C8B99D] font-mono">Estado: Abierto</span>
+                  )}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[#A89F8D] block text-[11px]">
+                    Nueva Contraseña de Asistencia:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Escribe la clave o deja en blanco para dejarlo abierto"
+                      value={editQuizPassInput}
+                      onChange={(e) => setEditQuizPassInput(e.target.value)}
+                      className="academic-input flex-1 h-9 rounded-md px-3 font-mono text-xs bg-[#17211b]"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleSaveQuizPassword();
+                      }}
+                      className="academic-btn-primary h-9 px-3.5 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer"
+                    >
+                      Aplicar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-[rgba(217,203,182,0.08)] text-[11px]">
+                  <p className="text-[#A89F8D] text-[10px]">
+                    {editQuizPassInput.trim()
+                      ? `Requerirá "${editQuizPassInput.trim()}" a los estudiantes.`
+                      : "Sin clave: registro libre habilitado."}
+                  </p>
+                  {quizPasswords[selectedQuizForPass] && (
+                    <button
+                      type="button"
+                      onClick={() => handleLeaveQuizOpen(selectedQuizForPass)}
+                      className="text-red-400 hover:text-red-300 underline cursor-pointer"
+                    >
+                      Quitar clave (Dejar Abierto)
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(217,203,182,0.1)]">
+              <button
+                onClick={() => setShowQuizPassModal(false)}
+                className="academic-btn-primary h-8 px-5 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Listo
               </button>
             </div>
           </div>

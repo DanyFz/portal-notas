@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import { verifyAdminToken } from "@/lib/adminAuth";
+import { writeData } from "@/lib/dataStore";
 import { Student } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  const errors: string[] = [];
-
   try {
     // Auth check
     const cookieToken = req.cookies.get("admin_token")?.value;
@@ -25,16 +22,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse body
-    let students: Student[];
-    try {
-      const body = await req.json();
-      students = body.students;
-    } catch (parseErr) {
-      return NextResponse.json(
-        { error: "Error al leer los datos enviados: " + (parseErr instanceof Error ? parseErr.message : String(parseErr)) },
-        { status: 400 }
-      );
-    }
+    const body = await req.json();
+    const students: Student[] = body.students;
+    const quizPasswords: Record<string, string> = body.quizPasswords || {};
+    const customGroups: string[] = body.customGroups || [];
 
     if (!Array.isArray(students)) {
       return NextResponse.json(
@@ -43,51 +34,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const jsonPayload = JSON.stringify({ students }, null, 2);
-    let blobSaved = false;
-    let localSaved = false;
-    const targets: string[] = [];
+    const saveResult = await writeData({
+      students,
+      quizPasswords,
+      customGroups,
+    });
 
-    // 1. Save to Vercel Blob if token exists
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const { put } = await import("@vercel/blob");
-        const blobResult = await put("students-data.json", jsonPayload, {
-          access: "public",
-          addRandomSuffix: false,
-          allowOverwrite: true,
-          contentType: "application/json",
-        });
-        blobSaved = true;
-        targets.push(`Vercel Blob (${blobResult.pathname})`);
-      } catch (blobErr) {
-        const msg = blobErr instanceof Error ? blobErr.message : String(blobErr);
-        console.error("Error saving to Vercel Blob:", msg);
-        errors.push(`Blob: ${msg}`);
-      }
-    }
-
-    // 2. Save to local filesystem
-    const cwd = process.cwd();
-    const dataDir = path.join(cwd, "public", "data");
-
-    try {
-      await fs.mkdir(dataDir, { recursive: true });
-      const filePath = path.join(dataDir, "students.json");
-      await fs.writeFile(filePath, jsonPayload, "utf-8");
-      localSaved = true;
-      targets.push(`Local (${filePath})`);
-    } catch (fsErr) {
-      const msg = fsErr instanceof Error ? fsErr.message : String(fsErr);
-      console.error(`FS write error (cwd=${cwd}, dir=${dataDir}):`, msg);
-      errors.push(`FS: ${msg}`);
-    }
-
-    if (!blobSaved && !localSaved) {
+    if (!saveResult.success) {
       return NextResponse.json(
-        {
-          error: `No se pudo persistir la información. Detalles: ${errors.join(" | ")}`,
-        },
+        { error: `No se pudo persistir la información. Detalles: ${saveResult.error}` },
         { status: 500 }
       );
     }
@@ -95,7 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `Cambios guardados exitosamente (${students.length} estudiantes)`,
-      targets,
+      targets: saveResult.targets,
       studentsCount: students.length,
     });
   } catch (error) {

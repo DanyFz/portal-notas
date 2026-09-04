@@ -10,4 +10,6 @@ export interface Student {
 
 export interface StudentsData {
   students: Student[];
+  quizPasswords?: Record<string, string>;
+  customGroups?: string[];
 }

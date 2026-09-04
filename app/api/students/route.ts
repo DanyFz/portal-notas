@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
+import { NextRequest, NextResponse } from "next/server";
+import { readData } from "@/lib/dataStore";
+import { verifyAdminToken } from "@/lib/adminAuth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,87 +12,43 @@ const NO_CACHE_HEADERS = {
 
 /**
  * GET /api/students
- * Reads student data from:
- * 1. Admin-saved JSON (students-data.json) in Vercel Blob
- * 2. Local file system fallback (public/data/students.json)
+ * Reads student data from Vercel Blob or local fallback
  */
-export async function GET() {
-  const debugInfo: any = {
-    hasToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-    source: "none",
-    jsonBlobFound: null,
-    blobsList: [],
-    error: null,
-  };
-
+export async function GET(req: NextRequest) {
   try {
-    // 1. Check Vercel Blob for admin-saved JSON
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      try {
-        const { list } = await import("@vercel/blob");
+    const data = await readData();
 
-        const { blobs: allBlobs } = await list();
-        debugInfo.blobsList = allBlobs.map((b) => ({ pathname: b.pathname, url: b.url }));
+    // Check if caller is admin
+    const cookieToken = req.cookies.get("admin_token")?.value;
+    const authHeader = req.headers.get("authorization");
+    const bearerToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.substring(7)
+      : null;
+    const isAdmin = verifyAdminToken(cookieToken || bearerToken);
 
-        const jsonBlob = allBlobs.find(
-          (b) => b.pathname.startsWith("students-data") && b.pathname.endsWith(".json")
-        );
-
-        if (jsonBlob) {
-          debugInfo.jsonBlobFound = jsonBlob.pathname;
-          const bustUrl = `${jsonBlob.url}${jsonBlob.url.includes("?") ? "&" : "?"}t=${Date.now()}`;
-          const response = await fetch(bustUrl, {
-            cache: "no-store",
-            headers: {
-              Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data && Array.isArray(data.students)) {
-              debugInfo.source = `json-blob: ${jsonBlob.pathname}`;
-              return NextResponse.json(
-                { students: data.students, debug: debugInfo },
-                { headers: NO_CACHE_HEADERS }
-              );
-            }
-          } else {
-            debugInfo.error = `Failed to fetch json blob: ${response.status}`;
-          }
-        }
-      } catch (err) {
-        console.error("Vercel Blob read failed:", err);
-        debugInfo.error = err instanceof Error ? err.message : String(err);
-      }
-    }
-
-    // 2. Fallback to local file system
-    try {
-      const filePath = path.join(process.cwd(), "public", "data", "students.json");
-      const fileContent = await fs.readFile(filePath, "utf-8");
-      const data = JSON.parse(fileContent);
-      if (data && Array.isArray(data.students)) {
-        debugInfo.source = "local-fs: public/data/students.json";
-        return NextResponse.json(
-          { students: data.students, debug: debugInfo },
-          { headers: NO_CACHE_HEADERS }
-        );
-      }
-    } catch (fsErr) {
-      debugInfo.error =
-        (debugInfo.error || "") +
-        " | FS error: " +
-        (fsErr instanceof Error ? fsErr.message : String(fsErr));
+    // Build quiz status map for public/students
+    const quizRequiresPassword: Record<string, boolean> = {};
+    if (data.quizPasswords) {
+      Object.entries(data.quizPasswords).forEach(([quiz, pass]) => {
+        quizRequiresPassword[quiz] = typeof pass === "string" && pass.trim().length > 0;
+      });
     }
 
     return NextResponse.json(
-      { students: [], debug: debugInfo },
+      {
+        students: data.students,
+        customGroups: data.customGroups || [],
+        quizRequiresPassword,
+        // Only return plain-text passwords to authorized admin
+        quizPasswords: isAdmin ? data.quizPasswords || {} : undefined,
+      },
       { headers: NO_CACHE_HEADERS }
     );
   } catch (error) {
     console.error("Error fetching students:", error);
-    debugInfo.error = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ students: [], debug: debugInfo }, { headers: NO_CACHE_HEADERS });
+    return NextResponse.json(
+      { students: [], customGroups: [], quizRequiresPassword: {} },
+      { headers: NO_CACHE_HEADERS }
+    );
   }
 }

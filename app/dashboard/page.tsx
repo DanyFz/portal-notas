@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession, clearSession, calculateAverage, saveSession } from "@/lib/auth";
@@ -9,6 +9,15 @@ import { Student } from "@/lib/types";
 export default function DashboardPage() {
   const router = useRouter();
   const [student, setStudent] = useState<Student | null>(null);
+  const [quizRequiresPassword, setQuizRequiresPassword] = useState<Record<string, boolean>>({});
+
+  // Attendance Registration Modal State
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState("");
+  const [attendancePassword, setAttendancePassword] = useState("");
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [attendanceError, setAttendanceError] = useState("");
+  const [attendanceSuccess, setAttendanceSuccess] = useState("");
 
   useEffect(() => {
     const s = getSession();
@@ -24,6 +33,9 @@ export default function DashboardPage() {
         const res = await fetch("/api/students", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
+          if (data.quizRequiresPassword) {
+            setQuizRequiresPassword(data.quizRequiresPassword);
+          }
           const fresh = data.students?.find(
             (item: Student) => item.username.toLowerCase() === s!.username.toLowerCase()
           );
@@ -48,6 +60,76 @@ export default function DashboardPage() {
     router.push("/notas");
   }
 
+  // Quizzes list from grades and attendance
+  const availableQuizzes = useMemo(() => {
+    if (!student) return [];
+    const set = new Set<string>();
+    if (student.grades) Object.keys(student.grades).forEach((k) => set.add(k));
+    if (student.attendance) Object.keys(student.attendance).forEach((k) => set.add(k));
+    return Array.from(set).sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, ""), 10);
+      const numB = parseInt(b.replace(/\D/g, ""), 10);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return a.localeCompare(b);
+    });
+  }, [student]);
+
+  function openRegisterModal(targetQuiz?: string) {
+    setAttendanceError("");
+    setAttendanceSuccess("");
+    setAttendancePassword("");
+
+    if (targetQuiz) {
+      setSelectedQuiz(targetQuiz);
+    } else if (availableQuizzes.length > 0) {
+      // Find first uncompleted or first available quiz
+      const firstAbsent = availableQuizzes.find(
+        (q) => student?.attendance?.[q] !== "presente"
+      );
+      setSelectedQuiz(firstAbsent || availableQuizzes[0]);
+    }
+
+    setShowAttendanceModal(true);
+  }
+
+  async function handleRegisterAttendance(e: FormEvent) {
+    e.preventDefault();
+    if (!student || !selectedQuiz) return;
+
+    setAttendanceError("");
+    setAttendanceSuccess("");
+    setAttendanceLoading(true);
+
+    try {
+      const res = await fetch("/api/students/register-attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: student.username,
+          quiz: selectedQuiz,
+          password: attendancePassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        if (data.student) {
+          setStudent(data.student);
+          saveSession(data.student);
+        }
+        setAttendanceSuccess(data.message || `¡Asistencia registrada para ${selectedQuiz}!`);
+        setAttendancePassword("");
+      } else {
+        setAttendanceError(data.error || "No se pudo registrar la asistencia.");
+      }
+    } catch {
+      setAttendanceError("Error de conexión al enviar el registro de asistencia.");
+    } finally {
+      setAttendanceLoading(false);
+    }
+  }
+
   if (!student) {
     return (
       <main className="flex-1 flex items-center justify-center bg-[#151d18] text-[#EDE5D8]">
@@ -69,6 +151,10 @@ export default function DashboardPage() {
   const presentCount = attendanceEntries.filter(([, s]) => s === "presente").length;
   const absentCount = attendanceEntries.filter(([, s]) => s === "ausente").length;
   const excusaCount = attendanceEntries.filter(([, s]) => s === "excusa").length;
+
+  const currentQuizStatus = student.attendance?.[selectedQuiz] || "ausente";
+  const isSelectedQuizPresent = currentQuizStatus === "presente";
+  const requiresPass = quizRequiresPassword[selectedQuiz] === true;
 
   return (
     <main className="flex-1 min-h-screen bg-[#151d18] text-[#EDE5D8] academic-paper-bg">
@@ -114,9 +200,9 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => {}}
+              onClick={() => openRegisterModal()}
               className="academic-btn-primary px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2 cursor-pointer shadow-sm hover:brightness-110 active:scale-[0.98] transition-all"
-              title="Registrar Asistencia a la sesión actual"
+              title="Registrar Asistencia a una sesión / quiz"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -188,7 +274,7 @@ export default function DashboardPage() {
                         <td className="py-2.5 px-3 text-right">
                           {grade === null ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#C8B99D]/15 text-[#C8B99D] border border-[#C8B99D]/25">
-                              Excusa
+                              Pendiente
                             </span>
                           ) : grade === 0 ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#d9534f]/15 text-[#d9534f] border border-[#d9534f]/25">
@@ -217,7 +303,7 @@ export default function DashboardPage() {
               </div>
               <button
                 type="button"
-                onClick={() => {}}
+                onClick={() => openRegisterModal()}
                 className="px-2.5 py-1 text-[11px] font-medium rounded-md bg-[#223028] border border-[rgba(217,203,182,0.15)] text-[#C8B99D] hover:border-[#7A8F73] hover:text-[#FAF6EE] transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#7A8F73]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -234,7 +320,7 @@ export default function DashboardPage() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr>
-                        <th className="text-left py-2 px-3 text-[11px] font-semibold text-[#A89F8D] uppercase tracking-wider border-b border-[rgba(217,203,182,0.12)]">Fecha / Sesión</th>
+                        <th className="text-left py-2 px-3 text-[11px] font-semibold text-[#A89F8D] uppercase tracking-wider border-b border-[rgba(217,203,182,0.12)]">Evaluación / Sesión</th>
                         <th className="text-right py-2 px-3 text-[11px] font-semibold text-[#A89F8D] uppercase tracking-wider border-b border-[rgba(217,203,182,0.12)]">Estado</th>
                       </tr>
                     </thead>
@@ -252,9 +338,15 @@ export default function DashboardPage() {
                                 ◎ Excusa
                               </span>
                             ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#d9534f]/15 text-[#d9534f] border border-[#d9534f]/25">
-                                ✗ Ausente
-                              </span>
+                              <button
+                                type="button"
+                                onClick={() => openRegisterModal(date)}
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#d9534f]/15 text-[#d9534f] border border-[#d9534f]/25 hover:bg-[#d9534f]/30 transition-all cursor-pointer"
+                                title="Haz clic para registrar tu asistencia a esta sesión"
+                              >
+                                <span>✗ Ausente</span>
+                                <span className="text-[10px] text-[#C8B99D] underline ml-1">Registrar</span>
+                              </button>
                             )}
                           </td>
                         </tr>
@@ -267,6 +359,156 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* MODAL: Registrar Asistencia a Quiz */}
+      {showAttendanceModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-sm w-full p-6 sm:p-7 space-y-5 shadow-2xl relative">
+            <button
+              onClick={() => setShowAttendanceModal(false)}
+              className="absolute top-4 right-4 text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer p-1"
+            >
+              ✕
+            </button>
+
+            <div className="text-center space-y-1">
+              <div className="w-11 h-11 rounded-xl bg-[#223028] border border-[rgba(217,203,182,0.15)] mx-auto flex items-center justify-center text-[#7A8F73] mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h2 className="text-base font-serif font-bold text-[#FAF6EE]">
+                Registrar Asistencia
+              </h2>
+              <p className="text-[11px] text-[#A89F8D]">
+                Selecciona la evaluación correspondiente y confirma tu asistencia.
+              </p>
+            </div>
+
+            {availableQuizzes.length === 0 ? (
+              <div className="text-center py-4 space-y-3">
+                <p className="text-xs text-[#A89F8D]">No hay evaluaciones registradas en el curso actualmente.</p>
+                <button
+                  type="button"
+                  onClick={() => setShowAttendanceModal(false)}
+                  className="academic-btn-primary px-4 py-2 text-xs rounded-lg cursor-pointer"
+                >
+                  Entendido
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleRegisterAttendance} className="space-y-4 text-xs">
+                {/* Quiz Selector */}
+                <div className="space-y-1.5">
+                  <label className="text-[#EDE5D8] block font-medium">Evaluación / Quiz</label>
+                  <select
+                    value={selectedQuiz}
+                    onChange={(e) => {
+                      setSelectedQuiz(e.target.value);
+                      setAttendanceError("");
+                      setAttendanceSuccess("");
+                      setAttendancePassword("");
+                    }}
+                    className="academic-input w-full h-10 rounded-lg px-3 font-mono bg-[#131a15] text-[#FAF6EE] cursor-pointer"
+                  >
+                    {availableQuizzes.map((q) => {
+                      const isPres = student.attendance?.[q] === "presente";
+                      return (
+                        <option key={q} value={q}>
+                          {q} {isPres ? "— (✓ Ya Registrado)" : "— (Pendiente / Ausente)"}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* Status indicator for selected quiz */}
+                {isSelectedQuizPresent ? (
+                  <div className="p-3 rounded-lg bg-[#7A8F73]/15 border border-[#7A8F73]/30 text-[#EDE5D8] flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#7A8F73] shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-[11px] leading-tight">
+                      Ya te encuentras registrado como <b>Presente</b> en <b>{selectedQuiz}</b>.
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    {/* Password Input */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[#EDE5D8] block font-medium">
+                          Contraseña del Quiz {requiresPass ? <span className="text-[#d9534f]">*</span> : <span className="text-[#A89F8D] text-[10px] font-normal">(si aplica)</span>}
+                        </label>
+                        {!requiresPass && (
+                          <span className="text-[10px] text-[#7A8F73] font-mono">Sin clave requerida</span>
+                        )}
+                      </div>
+                      <input
+                        type="password"
+                        placeholder={requiresPass ? "Ingresa la clave dada por el docente" : "Dejar vacío o ingresar clave si aplica"}
+                        value={attendancePassword}
+                        onChange={(e) => setAttendancePassword(e.target.value)}
+                        required={requiresPass}
+                        className="academic-input w-full h-10 rounded-lg px-3 font-mono bg-[#131a15]"
+                        autoFocus={requiresPass}
+                      />
+                      <p className="text-[10px] text-[#A89F8D]">
+                        {requiresPass
+                          ? "El docente configuró una clave obligatoria para esta sesión."
+                          : "Si esta sesión no tiene contraseña, puedes confirmar de inmediato."}
+                      </p>
+                    </div>
+
+                    {attendanceError && (
+                      <div className="p-3 rounded-lg bg-red-950/60 border border-red-800/50 text-[11px] text-red-300 flex items-start gap-2 animate-fadeIn">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-red-400 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <span>{attendanceError}</span>
+                      </div>
+                    )}
+
+                    {attendanceSuccess && (
+                      <div className="p-3 rounded-lg bg-[#7A8F73]/20 border border-[#7A8F73]/40 text-[11px] text-[#a5e0b8] flex items-center gap-2 animate-fadeIn">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#7A8F73] shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span>{attendanceSuccess}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={attendanceLoading}
+                      className="academic-btn-primary w-full h-11 text-xs font-bold uppercase tracking-wider rounded-lg cursor-pointer flex items-center justify-center gap-2 mt-2"
+                    >
+                      {attendanceLoading ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+                          <span>Validando Asistencia...</span>
+                        </>
+                      ) : (
+                        <span>Confirmar Asistencia</span>
+                      )}
+                    </button>
+                  </>
+                )}
+
+                {isSelectedQuizPresent && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAttendanceModal(false)}
+                    className="w-full h-10 text-xs font-medium rounded-lg bg-[#223028] text-[#EDE5D8] hover:border-[#7A8F73] border border-[rgba(217,203,182,0.15)] cursor-pointer mt-2"
+                  >
+                    Cerrar
+                  </button>
+                )}
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
