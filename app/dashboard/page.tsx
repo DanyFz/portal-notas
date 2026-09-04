@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getSession, clearSession, calculateAverage } from "@/lib/auth";
+import { getSession, clearSession, calculateAverage, saveSession } from "@/lib/auth";
 import { Student } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -12,8 +12,31 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const s = getSession();
-    if (!s) { router.push("/notas"); return; }
+    if (!s) {
+      router.push("/notas");
+      return;
+    }
     setStudent(s);
+
+    // Fetch fresh data in the background to reflect any live changes made by admin
+    async function syncFreshData() {
+      try {
+        const res = await fetch("/api/students", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          const fresh = data.students?.find(
+            (item: Student) => item.username.toLowerCase() === s!.username.toLowerCase()
+          );
+          if (fresh) {
+            setStudent(fresh);
+            saveSession(fresh);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not sync fresh student data:", e);
+      }
+    }
+    syncFreshData();
   }, [router]);
 
   function handleLogout() {
