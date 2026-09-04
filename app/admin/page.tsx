@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, useMemo, ChangeEvent } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import * as XLSX from "xlsx";
 import { Student } from "@/lib/types";
 
 export default function AdminDashboardPage() {
@@ -375,97 +374,7 @@ export default function AdminDashboardPage() {
     }
   }
 
-  // Export to Excel (.xlsx)
-  function handleExportExcel() {
-    try {
-      const wb = XLSX.utils.book_new();
 
-      // Group students by group
-      const groupsMap = new Map<string, Student[]>();
-      students.forEach((s) => {
-        const grp = s.group || "Sin Grupo";
-        if (!groupsMap.has(grp)) groupsMap.set(grp, []);
-        groupsMap.get(grp)!.push(s);
-      });
-
-      groupsMap.forEach((groupStudents, groupName) => {
-        // Build raw matrix for Excel sheet
-        const sheetData: any[][] = [];
-
-        // 1. Asistencia Header
-        const attHeaders = ["NOMBRE DEL ESTUDIANTE", "CORREO", "PROGRAMA", "GRUPO", ...attendanceColumns];
-        sheetData.push(["REGISTRO DE ASISTENCIA - " + groupName]);
-        sheetData.push(attHeaders);
-
-        groupStudents.forEach((st) => {
-          const row: (string | number)[] = [st.fullName, st.email, st.program, st.group];
-          attendanceColumns.forEach((col) => {
-            const status = st.attendance?.[col] || "ausente";
-            row.push(status === "presente" ? 1 : status === "excusa" ? "E" : 0);
-          });
-          sheetData.push(row);
-        });
-
-        sheetData.push([]); // blank row separator
-        sheetData.push([]);
-
-        // 2. Calificaciones Header
-        const gradesHeaders = ["NOMBRE DEL ESTUDIANTE", "CORREO", "PROGRAMA", "GRUPO", ...evaluationColumns, "PROMEDIO"];
-        sheetData.push(["CALIFICACIONES - " + groupName]);
-        sheetData.push(gradesHeaders);
-
-        groupStudents.forEach((st) => {
-          const row: (string | number)[] = [st.fullName, st.email, st.program, st.group];
-          evaluationColumns.forEach((col) => {
-            const grade = st.grades?.[col];
-            row.push(grade !== null && grade !== undefined ? grade : "");
-          });
-          const avg = getStudentAverage(st.grades);
-          row.push(avg !== null ? avg : "");
-          sheetData.push(row);
-        });
-
-        const ws = XLSX.utils.aoa_to_sheet(sheetData);
-        XLSX.utils.book_append_sheet(wb, ws, groupName.substring(0, 31));
-      });
-
-      XLSX.writeFile(wb, `notas_asistencia_${new Date().toISOString().slice(0, 10)}.xlsx`);
-    } catch (err) {
-      console.error("Error exporting to Excel:", err);
-      alert("Error al exportar a Excel.");
-    }
-  }
-
-  // Import Excel file
-  function handleImportExcel(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const buffer = evt.target?.result as ArrayBuffer;
-        const { parseExcelFile } = await import("@/lib/parseExcel");
-        const { students: parsed, warnings } = parseExcelFile(buffer);
-
-        if (parsed.length === 0) {
-          alert("No se encontraron datos válidos de estudiantes en el archivo Excel.\n" + warnings.join("\n"));
-          return;
-        }
-
-        if (confirm(`Se detectaron ${parsed.length} estudiantes en el archivo Excel. ¿Deseas importarlos a la lista actual?`)) {
-          // Merge or replace
-          setStudents(parsed);
-          alert(`Excel cargado con éxito (${parsed.length} estudiantes). Recuerda presionar "Guardar Cambios" para persistir.`);
-        }
-      } catch (err) {
-        console.error("Error parsing Excel:", err);
-        alert("Error al procesar el archivo Excel.");
-      }
-    };
-    reader.readAsArrayBuffer(file);
-    e.target.value = "";
-  }
 
   // Logout
   function handleLogout() {
@@ -701,28 +610,7 @@ export default function AdminDashboardPage() {
               </button>
             )}
 
-            <div className="h-5 w-px bg-[rgba(217,203,182,0.15)] mx-1"></div>
 
-            {/* Export XLSX */}
-            <button
-              onClick={handleExportExcel}
-              className="h-8 px-3 rounded-md bg-[#1d2821] hover:bg-[#25352c] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1.5 cursor-pointer transition-colors"
-              title="Descargar archivo Excel con notas y asistencia"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-              <span>Exportar Excel</span>
-            </button>
-
-            {/* Import XLSX */}
-            <label className="h-8 px-3 rounded-md bg-[#1d2821] hover:bg-[#25352c] border border-[#3b4e42] text-[#C8B99D] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1.5 cursor-pointer transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              </svg>
-              <span>Subir Excel</span>
-              <input type="file" accept=".xlsx,.xls" onChange={handleImportExcel} className="hidden" />
-            </label>
           </div>
         </div>
       </div>
