@@ -2,7 +2,7 @@ import crypto from "crypto";
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "unal-notas-secret-key-2026-auth";
 export const ADMIN_USERNAME = process.env.ADMIN_USER || "dalopezza";
-export const ADMIN_PASSWORD = process.env.ADMIN_PASS || "Da12345#";
+export const ADMIN_PASSWORD = process.env.ADMIN_PASS || "GEADaniel12345#";
 
 export function generateAdminToken(): string {
   const payload = {

@@ -153,7 +153,7 @@ function StudentLoginContent() {
               <input
                 id="username"
                 type="text"
-                placeholder="ej: dalopezza"
+                placeholder="usuario institucional"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -234,7 +234,7 @@ function StudentLoginContent() {
                 <label className="text-[#EDE5D8] block font-medium">Usuario</label>
                 <input
                   type="text"
-                  placeholder="dalopezza"
+                  placeholder="usuario"
                   value={adminUser}
                   onChange={(e) => setAdminUser(e.target.value)}
                   required

@@ -1,26 +1,39 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Student } from "@/lib/types";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
+  const [customGroups, setCustomGroups] = useState<string[]>([]);
   const [initialData, setInitialData] = useState<string>("");
   const [selectedGroup, setSelectedGroup] = useState<string>("ALL");
-  const [activeTab, setActiveTab] = useState<"grades" | "attendance" | "students">("grades");
+  const [activeTab, setActiveTab] = useState<"grades" | "attendance" | "students" | "stats">("grades");
   const [searchTerm, setSearchTerm] = useState("");
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  // Filter & Sorting
+  const [onlyAtRisk, setOnlyAtRisk] = useState(false);
+  const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "avg-desc" | "avg-asc" | "absent-desc" | "group">("name-asc");
+
+  // Selection for bulk actions
+  const [selectedUsernames, setSelectedUsernames] = useState<string[]>([]);
 
   // Modals state
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [showAddColModal, setShowAddColModal] = useState(false);
   const [showDeleteColModal, setShowDeleteColModal] = useState(false);
   const [showNewGroupModal, setShowNewGroupModal] = useState(false);
+  const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
+  const [showBulkGradeModal, setShowBulkGradeModal] = useState(false);
+  const [showMoveGroupModal, setShowMoveGroupModal] = useState(false);
 
   // Modal form inputs
   const [newStudent, setNewStudent] = useState({
@@ -32,7 +45,12 @@ export default function AdminDashboardPage() {
   });
   const [newColName, setNewColName] = useState("");
   const [colToDelete, setColToDelete] = useState("");
-  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupNameInput, setNewGroupNameInput] = useState("");
+  const [groupToDelete, setGroupToDelete] = useState("");
+  const [groupReassignTarget, setGroupReassignTarget] = useState("");
+  const [targetMoveGroup, setTargetMoveGroup] = useState("");
+  const [bulkGradeCol, setBulkGradeCol] = useState("");
+  const [bulkGradeValue, setBulkGradeValue] = useState("");
 
   // Check auth and load students
   useEffect(() => {
@@ -70,16 +88,16 @@ export default function AdminDashboardPage() {
     init();
   }, [router]);
 
-  // Detected groups
+  // Detected groups (including created empty groups)
   const groups = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>(customGroups);
     students.forEach((s) => {
-      if (s.group) set.add(s.group);
+      if (s.group && s.group.trim()) set.add(s.group.trim());
     });
     return Array.from(set).sort();
-  }, [students]);
+  }, [students, customGroups]);
 
-  // Detected evaluation columns (e.g., "Quiz 1", "Quiz 2")
+  // Detected evaluation columns
   const evaluationColumns = useMemo(() => {
     const colSet = new Set<string>();
     students.forEach((s) => {
@@ -87,7 +105,6 @@ export default function AdminDashboardPage() {
         Object.keys(s.grades).forEach((col) => colSet.add(col));
       }
     });
-    // Natural sort: Quiz 1, Quiz 2 ... Quiz 10
     return Array.from(colSet).sort((a, b) => {
       const numA = parseInt(a.replace(/\D/g, ""), 10);
       const numB = parseInt(b.replace(/\D/g, ""), 10);
@@ -104,7 +121,6 @@ export default function AdminDashboardPage() {
         Object.keys(s.attendance).forEach((col) => colSet.add(col));
       }
     });
-    // If no attendance cols or fewer than evaluation cols, fallback to evaluation columns
     if (colSet.size === 0) {
       return evaluationColumns;
     }
@@ -116,28 +132,8 @@ export default function AdminDashboardPage() {
     });
   }, [students, evaluationColumns]);
 
-  // Filtered students by group and search
-  const filteredStudents = useMemo(() => {
-    return students.filter((s) => {
-      const matchesGroup = selectedGroup === "ALL" || s.group === selectedGroup;
-      const q = searchTerm.trim().toLowerCase();
-      const matchesSearch =
-        !q ||
-        s.fullName.toLowerCase().includes(q) ||
-        s.username.toLowerCase().includes(q) ||
-        s.email.toLowerCase().includes(q) ||
-        s.program.toLowerCase().includes(q);
-      return matchesGroup && matchesSearch;
-    });
-  }, [students, selectedGroup, searchTerm]);
-
-  // Unsaved changes check
-  const hasUnsavedChanges = useMemo(() => {
-    return initialData !== "" && JSON.stringify(students) !== initialData;
-  }, [students, initialData]);
-
   // Calculate student average
-  function getStudentAverage(grades: Record<string, number | null>): number | null {
+  function getStudentAverage(grades: Record<string, number | null> | undefined): number | null {
     if (!grades) return null;
     const valid = Object.values(grades).filter((g): g is number => g !== null && typeof g === "number");
     if (valid.length === 0) return null;
@@ -145,31 +141,115 @@ export default function AdminDashboardPage() {
     return Math.round((sum / valid.length) * 100) / 100;
   }
 
-  // Calculate group stats
+  // Calculate attendance stats for a student
+  function getStudentAttendanceStats(attendance: Record<string, string> | undefined) {
+    let present = 0;
+    let absent = 0;
+    let excuse = 0;
+    attendanceColumns.forEach((col) => {
+      const st = attendance?.[col] || "ausente";
+      if (st === "presente") present++;
+      else if (st === "ausente") absent++;
+      else if (st === "excusa") excuse++;
+    });
+    const total = attendanceColumns.length;
+    const pct = total > 0 ? Math.round((present / total) * 100) : 100;
+    return { present, absent, excuse, total, pct };
+  }
+
+  // Filtered and sorted students
+  const filteredStudents = useMemo(() => {
+    let result = students.filter((s) => {
+      const matchesGroup = selectedGroup === "ALL" || s.group === selectedGroup;
+      const q = searchTerm.trim().toLowerCase();
+      const matchesSearch =
+        !q ||
+        s.fullName.toLowerCase().includes(q) ||
+        s.username.toLowerCase().includes(q) ||
+        s.email.toLowerCase().includes(q) ||
+        (s.program && s.program.toLowerCase().includes(q)) ||
+        (s.group && s.group.toLowerCase().includes(q));
+
+      if (!matchesGroup || !matchesSearch) return false;
+
+      if (onlyAtRisk) {
+        const avg = getStudentAverage(s.grades);
+        const { pct } = getStudentAttendanceStats(s.attendance);
+        const isFailing = avg !== null && avg < 3.0;
+        const isLowAttendance = pct < 80;
+        return isFailing || isLowAttendance;
+      }
+
+      return true;
+    });
+
+    // Apply sorting
+    result.sort((a, b) => {
+      if (sortBy === "name-asc") return a.fullName.localeCompare(b.fullName);
+      if (sortBy === "name-desc") return b.fullName.localeCompare(a.fullName);
+      if (sortBy === "group") return (a.group || "").localeCompare(b.group || "");
+      if (sortBy === "avg-desc" || sortBy === "avg-asc") {
+        const avgA = getStudentAverage(a.grades) ?? -1;
+        const avgB = getStudentAverage(b.grades) ?? -1;
+        return sortBy === "avg-desc" ? avgB - avgA : avgA - avgB;
+      }
+      if (sortBy === "absent-desc") {
+        const absA = getStudentAttendanceStats(a.attendance).absent;
+        const absB = getStudentAttendanceStats(b.attendance).absent;
+        return absB - absA;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [students, selectedGroup, searchTerm, onlyAtRisk, sortBy, attendanceColumns]);
+
+  // Unsaved changes check
+  const hasUnsavedChanges = useMemo(() => {
+    return initialData !== "" && JSON.stringify(students) !== initialData;
+  }, [students, initialData]);
+
+  // Overall & Group stats calculation
   const groupStats = useMemo(() => {
     const inGroup = students.filter((s) => selectedGroup === "ALL" || s.group === selectedGroup);
-    if (inGroup.length === 0) return { total: 0, avg: 0, passing: 0 };
+    if (inGroup.length === 0) {
+      return { total: 0, avg: "0.00", passing: 0, failing: 0, passingPct: 0, atRiskCount: 0, avgAttendance: 0 };
+    }
 
     let sumAvg = 0;
-    let counted = 0;
+    let countedGrades = 0;
     let passing = 0;
+    let failing = 0;
+    let atRisk = 0;
+    let sumAttendancePct = 0;
 
     inGroup.forEach((s) => {
       const avg = getStudentAverage(s.grades);
+      const { pct } = getStudentAttendanceStats(s.attendance);
+      sumAttendancePct += pct;
+
       if (avg !== null) {
         sumAvg += avg;
-        counted++;
+        countedGrades++;
         if (avg >= 3.0) passing++;
+        else failing++;
+      }
+
+      if ((avg !== null && avg < 3.0) || pct < 80) {
+        atRisk++;
       }
     });
 
     return {
       total: inGroup.length,
-      avg: counted > 0 ? (sumAvg / counted).toFixed(2) : "0.00",
+      avg: countedGrades > 0 ? (sumAvg / countedGrades).toFixed(2) : "0.00",
       passing,
-      passingPct: counted > 0 ? Math.round((passing / counted) * 100) : 0,
+      failing,
+      passingPct: countedGrades > 0 ? Math.round((passing / countedGrades) * 100) : 0,
+      atRiskCount: atRisk,
+      avgAttendance: Math.round(sumAttendancePct / inGroup.length),
     };
-  }, [students, selectedGroup]);
+  }, [students, selectedGroup, attendanceColumns]);
 
   // Edit grade cell
   function handleGradeChange(studentUsername: string, col: string, value: string) {
@@ -186,7 +266,6 @@ export default function AdminDashboardPage() {
       prev.map((s) => {
         if (s.username.toLowerCase() === studentUsername.toLowerCase()) {
           const updatedGrades = { ...(s.grades || {}), [col]: parsed };
-          // Auto-sync attendance if empty or default
           const updatedAttendance = { ...(s.attendance || {}) };
           if (parsed === 0) {
             updatedAttendance[col] = "ausente";
@@ -225,7 +304,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // Edit student metadata
+  // Change student field
   function handleStudentFieldChange(
     studentUsername: string,
     field: "fullName" | "username" | "email" | "program" | "group",
@@ -247,9 +326,10 @@ export default function AdminDashboardPage() {
       return;
     }
     setStudents((prev) => prev.filter((s) => s.username.toLowerCase() !== studentUsername.toLowerCase()));
+    setSelectedUsernames((prev) => prev.filter((u) => u.toLowerCase() !== studentUsername.toLowerCase()));
   }
 
-  // Add new evaluation column
+  // Add evaluation column
   function handleAddColumn() {
     if (!newColName.trim()) return;
     const col = newColName.trim();
@@ -302,6 +382,115 @@ export default function AdminDashboardPage() {
     );
   }
 
+  // Mark all students absent for a column
+  function handleMarkAllAbsent(col: string) {
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (selectedGroup !== "ALL" && s.group !== selectedGroup) return s;
+        return {
+          ...s,
+          attendance: { ...(s.attendance || {}), [col]: "ausente" },
+        };
+      })
+    );
+  }
+
+  // Create new Group
+  function handleCreateGroup() {
+    const grp = newGroupNameInput.trim();
+    if (!grp) return;
+    if (groups.includes(grp)) {
+      alert("El grupo ya existe.");
+      return;
+    }
+    setCustomGroups((prev) => [...prev, grp]);
+    setSelectedGroup(grp);
+    setNewGroupNameInput("");
+    setShowNewGroupModal(false);
+  }
+
+  // Delete Group
+  function handleDeleteGroup() {
+    if (!groupToDelete) return;
+    const count = students.filter((s) => s.group === groupToDelete).length;
+
+    if (
+      !confirm(
+        `¿Eliminar el grupo "${groupToDelete}"? ${
+          count > 0
+            ? `Hay ${count} estudiantes que serán reasignados a "${groupReassignTarget || "Sin Grupo"}".`
+            : ""
+        }`
+      )
+    ) {
+      return;
+    }
+
+    const fallback = groupReassignTarget || "Sin Grupo";
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (s.group === groupToDelete) {
+          return { ...s, group: fallback };
+        }
+        return s;
+      })
+    );
+
+    setCustomGroups((prev) => prev.filter((g) => g !== groupToDelete));
+    if (selectedGroup === groupToDelete) {
+      setSelectedGroup("ALL");
+    }
+    setGroupToDelete("");
+    setGroupReassignTarget("");
+    setShowDeleteGroupModal(false);
+  }
+
+  // Move selected students to another group
+  function handleMoveSelectedToGroup() {
+    if (!targetMoveGroup || selectedUsernames.length === 0) return;
+
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (selectedUsernames.includes(s.username)) {
+          return { ...s, group: targetMoveGroup };
+        }
+        return s;
+      })
+    );
+
+    setSelectedUsernames([]);
+    setShowMoveGroupModal(false);
+  }
+
+  // Apply bulk grade to selected students or all filtered
+  function handleApplyBulkGrade() {
+    if (!bulkGradeCol) return;
+    const num = bulkGradeValue.trim() === "" ? null : parseFloat(bulkGradeValue.replace(",", "."));
+    if (bulkGradeValue.trim() !== "" && (isNaN(num!) || num! < 0 || num! > 5)) {
+      alert("La nota debe estar entre 0.0 y 5.0 (o dejar en blanco para limpiar).");
+      return;
+    }
+
+    const targetUsernames =
+      selectedUsernames.length > 0 ? selectedUsernames : filteredStudents.map((s) => s.username);
+
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (targetUsernames.includes(s.username)) {
+          return {
+            ...s,
+            grades: { ...(s.grades || {}), [bulkGradeCol]: num },
+          };
+        }
+        return s;
+      })
+    );
+
+    setBulkGradeValue("");
+    setShowBulkGradeModal(false);
+    setSelectedUsernames([]);
+  }
+
   // Add new student
   function handleAddStudent() {
     if (!newStudent.fullName.trim() || !newStudent.username.trim()) {
@@ -336,6 +525,43 @@ export default function AdminDashboardPage() {
     setStudents((prev) => [created, ...prev]);
     setNewStudent({ fullName: "", username: "", email: "", program: "", group: "" });
     setShowAddStudentModal(false);
+  }
+
+  // Export JSON Backup
+  function handleExportBackup() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students, null, 2));
+    const downloadAnchor = document.createElement("a");
+    const dateStr = new Date().toISOString().split("T")[0];
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `calificaciones_backup_${dateStr}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  }
+
+  // Import JSON Backup
+  function handleImportBackup(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].username && parsed[0].fullName) {
+          if (confirm(`Se encontraron ${parsed.length} estudiantes en el archivo. ¿Deseas reemplazar la lista actual?`)) {
+            setStudents(parsed);
+          }
+        } else {
+          alert("El archivo JSON no tiene el formato válido de estudiantes.");
+        }
+      } catch (err) {
+        alert("Error al leer el archivo JSON: " + (err instanceof Error ? err.message : String(err)));
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
   }
 
   // Save changes to API
@@ -374,7 +600,20 @@ export default function AdminDashboardPage() {
     }
   }
 
+  // Selection toggle
+  function toggleSelectAll() {
+    if (selectedUsernames.length === filteredStudents.length) {
+      setSelectedUsernames([]);
+    } else {
+      setSelectedUsernames(filteredStudents.map((s) => s.username));
+    }
+  }
 
+  function toggleSelectStudent(username: string) {
+    setSelectedUsernames((prev) =>
+      prev.includes(username) ? prev.filter((u) => u !== username) : [...prev, username]
+    );
+  }
 
   // Logout
   function handleLogout() {
@@ -388,7 +627,7 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen bg-[#151d18] text-[#EDE5D8] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-[#8FA698] border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-xs font-mono text-[#A89F8D]">Cargando Panel de Administración Excel...</span>
+          <span className="text-xs font-mono text-[#A89F8D]">Cargando Panel Docente Avanzado...</span>
         </div>
       </div>
     );
@@ -396,6 +635,15 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#121814] text-[#EDE5D8] flex flex-col font-sans selection:bg-[#34483d] selection:text-[#FAF6EE]">
+      {/* Hidden File Input for Backup Import */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImportBackup}
+        accept=".json"
+        className="hidden"
+      />
+
       {/* Top Navbar */}
       <header className="h-14 border-b border-[rgba(217,203,182,0.12)] bg-[#17201a] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
@@ -410,10 +658,10 @@ export default function AdminDashboardPage() {
                 Panel de Control Docente
               </h1>
               <span className="px-2 py-0.5 rounded bg-[#1e2a22] border border-[#3b4e42] text-[10px] font-mono text-[#8FA698]">
-                EXCEL LIVE
+                PRO
               </span>
             </div>
-            <p className="text-[10px] text-[#A89F8D]">Administración de Calificaciones, Faltas y Estudiantes</p>
+            <p className="text-[10px] text-[#A89F8D]">Administración Integral de Notas, Asistencia y Grupos</p>
           </div>
         </div>
 
@@ -424,6 +672,30 @@ export default function AdminDashboardPage() {
               Cambios sin guardar
             </span>
           )}
+
+          {/* Backup Tools */}
+          <div className="hidden md:flex items-center gap-1 bg-[#19241d] p-1 rounded-lg border border-[rgba(217,203,182,0.1)]">
+            <button
+              onClick={handleExportBackup}
+              className="h-7 px-2 rounded bg-transparent hover:bg-[#25362b] text-[#A89F8D] hover:text-[#EDE5D8] text-[11px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
+              title="Descargar copia de seguridad en JSON"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#8FA698]" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              <span>Backup</span>
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="h-7 px-2 rounded bg-transparent hover:bg-[#25362b] text-[#A89F8D] hover:text-[#EDE5D8] text-[11px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
+              title="Restaurar datos desde un archivo JSON"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#D4AF37]" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+              <span>Restaurar</span>
+            </button>
+          </div>
 
           <button
             onClick={handleSaveChanges}
@@ -478,17 +750,17 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Control Bar & Stats */}
+      {/* Control Bar & Group Management */}
       <div className="p-4 sm:p-6 pb-2 space-y-4 max-w-full">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#17211b] border border-[rgba(217,203,182,0.1)] rounded-xl p-4 shadow-sm">
-          {/* Group Selector & Search */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-[#17211b] border border-[rgba(217,203,182,0.1)] rounded-xl p-4 shadow-sm">
+          {/* Group Selector & Group Management Actions */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <label className="text-xs font-mono text-[#A89F8D] uppercase">Grupo:</label>
               <select
                 value={selectedGroup}
                 onChange={(e) => setSelectedGroup(e.target.value)}
-                className="academic-input h-9 rounded-md px-3 text-xs font-mono bg-[#1f2c24] text-[#FAF6EE] border border-[#3b4e42] focus:outline-none cursor-pointer"
+                className="academic-input h-9 rounded-md px-3 text-xs font-mono bg-[#1f2c24] text-[#FAF6EE] border border-[#3b4e42] focus:outline-none cursor-pointer font-semibold"
               >
                 <option value="ALL">Todos los Grupos ({students.length})</option>
                 {groups.map((grp) => (
@@ -497,10 +769,39 @@ export default function AdminDashboardPage() {
                   </option>
                 ))}
               </select>
+
+              {/* Group Action Buttons */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setShowNewGroupModal(true)}
+                  className="h-8 px-2.5 rounded-md bg-[#223028] hover:bg-[#2c3d33] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                  title="Crear un nuevo grupo"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  <span>+ Grupo</span>
+                </button>
+
+                {groups.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setGroupToDelete(selectedGroup !== "ALL" ? selectedGroup : groups[0]);
+                      setShowDeleteGroupModal(true);
+                    }}
+                    className="h-8 px-2 rounded-md bg-[#223028] hover:bg-red-950/40 border border-[#3b4e42] text-[#A89F8D] hover:text-red-300 text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Eliminar grupo"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Search */}
-            <div className="relative min-w-[220px]">
+            <div className="relative min-w-[200px]">
               <input
                 type="text"
                 placeholder="Buscar estudiante, correo..."
@@ -512,26 +813,61 @@ export default function AdminDashboardPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-1.5">
+              <label className="text-[11px] font-mono text-[#A89F8D]">Ordenar:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="academic-input h-9 rounded-md px-2.5 text-xs font-mono bg-[#1f2c24] border border-[#3b4e42] cursor-pointer text-[#C8B99D]"
+              >
+                <option value="name-asc">Nombre (A-Z)</option>
+                <option value="name-desc">Nombre (Z-A)</option>
+                <option value="avg-desc">Mayor Promedio</option>
+                <option value="avg-asc">Menor Promedio</option>
+                <option value="absent-desc">Más Faltas</option>
+                <option value="group">Por Grupo</option>
+              </select>
+            </div>
+
+            {/* Risk Filter Toggle */}
+            <button
+              onClick={() => setOnlyAtRisk(!onlyAtRisk)}
+              className={`h-9 px-3 rounded-md text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer border ${
+                onlyAtRisk
+                  ? "bg-red-950/80 border-red-700 text-red-300 shadow-sm"
+                  : "bg-[#1f2c24] border-[#3b4e42] text-[#A89F8D] hover:text-[#EDE5D8]"
+              }`}
+              title="Filtrar estudiantes con nota < 3.0 o asistencia < 80%"
+            >
+              <span>⚠️</span>
+              <span>En Riesgo ({groupStats.atRiskCount})</span>
+            </button>
           </div>
 
           {/* Quick Stats Pill */}
-          <div className="flex items-center gap-4 text-xs font-mono text-[#C8B99D]">
+          <div className="flex items-center gap-3 text-xs font-mono text-[#C8B99D] flex-wrap">
             <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
               <span className="text-[#8FA698]">Estudiantes:</span>
               <span className="font-bold text-[#FAF6EE]">{filteredStudents.length}</span>
             </div>
             <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
-              <span className="text-[#8FA698]">Promedio Grupo:</span>
+              <span className="text-[#8FA698]">Promedio:</span>
               <span className="font-bold text-[#D4AF37]">{groupStats.avg}</span>
             </div>
             <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
               <span className="text-[#8FA698]">Aprobación:</span>
               <span className="font-bold text-[#8FA698]">{groupStats.passingPct}%</span>
             </div>
+            <div className="flex items-center gap-1.5 bg-[#121914] px-3 py-1.5 rounded-lg border border-[rgba(217,203,182,0.08)]">
+              <span className="text-[#8FA698]">Asistencia:</span>
+              <span className="font-bold text-[#8FA698]">{groupStats.avgAttendance}%</span>
+            </div>
           </div>
         </div>
 
-        {/* Action Toolbar */}
+        {/* Action Toolbar & Bulk Operations */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
           {/* Tabs */}
           <div className="flex items-center bg-[#17211b] p-1 rounded-lg border border-[rgba(217,203,182,0.12)]">
@@ -572,12 +908,52 @@ export default function AdminDashboardPage() {
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
               </svg>
-              <span>Estudiantes</span>
+              <span>Estudiantes ({filteredStudents.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("stats")}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeTab === "stats"
+                  ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
+                  : "text-[#A89F8D] hover:text-[#EDE5D8]"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+              </svg>
+              <span>Estadísticas</span>
             </button>
           </div>
 
-          {/* Quick Buttons */}
+          {/* Quick Buttons & Bulk Actions */}
           <div className="flex flex-wrap items-center gap-2">
+            {selectedUsernames.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-[#1b2b21] border border-[#2f6645] px-2.5 py-1 rounded-lg animate-fadeIn text-xs">
+                <span className="font-mono text-[#a5e0b8] font-semibold">{selectedUsernames.length} selecc.</span>
+                <button
+                  onClick={() => setShowMoveGroupModal(true)}
+                  className="px-2 py-0.5 rounded bg-[#274432] text-[#FAF6EE] hover:bg-[#345942] font-mono cursor-pointer"
+                  title="Mover estudiantes seleccionados a otro grupo"
+                >
+                  Cambiar Grupo
+                </button>
+                <button
+                  onClick={() => setShowBulkGradeModal(true)}
+                  className="px-2 py-0.5 rounded bg-[#274432] text-[#FAF6EE] hover:bg-[#345942] font-mono cursor-pointer"
+                  title="Poner nota masiva a los seleccionados"
+                >
+                  Asignar Nota
+                </button>
+                <button
+                  onClick={() => setSelectedUsernames([])}
+                  className="text-[#A89F8D] hover:text-[#FAF6EE] px-1 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             <button
               onClick={() => setShowAddStudentModal(true)}
               className="h-8 px-3 rounded-md bg-[#223028] hover:bg-[#2b3c33] border border-[rgba(217,203,182,0.15)] text-[#FAF6EE] text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
@@ -610,7 +986,17 @@ export default function AdminDashboardPage() {
               </button>
             )}
 
-
+            <button
+              onClick={() => setShowBulkGradeModal(true)}
+              className="h-8 px-2.5 rounded-md bg-[#223028] hover:bg-[#2b3c33] border border-[rgba(217,203,182,0.15)] text-[#A89F8D] hover:text-[#FAF6EE] text-xs font-medium flex items-center gap-1 cursor-pointer transition-colors"
+              title="Asignar nota masiva a todos los estudiantes del filtro"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#D4AF37]" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
+              </svg>
+              <span className="hidden sm:inline">Nota Masiva</span>
+            </button>
           </div>
         </div>
       </div>
@@ -619,20 +1005,29 @@ export default function AdminDashboardPage() {
       <main className="flex-1 p-4 sm:p-6 pt-2 overflow-hidden flex flex-col">
         <div className="flex-1 rounded-xl border border-[rgba(217,203,182,0.15)] bg-[#17211b] overflow-hidden flex flex-col shadow-xl">
           <div className="flex-1 overflow-auto">
+            {/* TAB: NOTAS (Excel Live) */}
             {activeTab === "grades" && (
               <table className="w-full text-xs text-left border-collapse select-none">
                 <thead className="bg-[#1b2620] sticky top-0 z-20 shadow-sm border-b border-[rgba(217,203,182,0.15)]">
                   <tr>
+                    <th className="p-2.5 px-3 text-[#8FA698] font-mono font-medium text-[11px] w-10 text-center border-r border-[rgba(217,203,182,0.08)]">
+                      <input
+                        type="checkbox"
+                        checked={filteredStudents.length > 0 && selectedUsernames.length === filteredStudents.length}
+                        onChange={toggleSelectAll}
+                        className="cursor-pointer accent-[#8FA698]"
+                      />
+                    </th>
                     <th className="p-2.5 px-3 text-[#8FA698] font-mono font-medium text-[11px] w-12 text-center border-r border-[rgba(217,203,182,0.08)]">
                       #
                     </th>
                     <th className="p-2.5 px-4 text-[#FAF6EE] font-serif font-bold text-xs sticky left-0 z-30 bg-[#1b2620] border-r border-[rgba(217,203,182,0.12)] min-w-[220px]">
                       Nombre del Estudiante
                     </th>
-                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[130px] border-r border-[rgba(217,203,182,0.08)]">
-                      Usuario UNAL
+                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[120px] border-r border-[rgba(217,203,182,0.08)]">
+                      Usuario
                     </th>
-                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[90px] border-r border-[rgba(217,203,182,0.08)]">
+                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[110px] border-r border-[rgba(217,203,182,0.08)]">
                       Grupo
                     </th>
 
@@ -657,15 +1052,38 @@ export default function AdminDashboardPage() {
                 <tbody className="divide-y divide-[rgba(217,203,182,0.06)] font-sans">
                   {filteredStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={6 + evaluationColumns.length} className="p-8 text-center text-xs text-[#A89F8D]">
+                      <td colSpan={7 + evaluationColumns.length} className="p-8 text-center text-xs text-[#A89F8D]">
                         No se encontraron estudiantes con los filtros actuales.
                       </td>
                     </tr>
                   ) : (
                     filteredStudents.map((st, idx) => {
                       const avg = getStudentAverage(st.grades);
+                      const isSelected = selectedUsernames.includes(st.username);
+                      const { pct } = getStudentAttendanceStats(st.attendance);
+                      const isAtRisk = (avg !== null && avg < 3.0) || pct < 80;
+
                       return (
-                        <tr key={st.username} className="hover:bg-[#1f2d24]/60 transition-colors group">
+                        <tr
+                          key={st.username}
+                          className={`transition-colors group ${
+                            isSelected
+                              ? "bg-[#203326]"
+                              : isAtRisk
+                              ? "bg-red-950/15 hover:bg-red-950/30"
+                              : "hover:bg-[#1f2d24]/60"
+                          }`}
+                        >
+                          {/* Selection Checkbox */}
+                          <td className="p-2 text-center border-r border-[rgba(217,203,182,0.06)]">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectStudent(st.username)}
+                              className="cursor-pointer accent-[#8FA698]"
+                            />
+                          </td>
+
                           {/* Row # */}
                           <td className="p-2 text-center text-[11px] font-mono text-[#8FA698]/70 border-r border-[rgba(217,203,182,0.06)]">
                             {idx + 1}
@@ -673,7 +1091,14 @@ export default function AdminDashboardPage() {
 
                           {/* Student Full Name (Sticky) */}
                           <td className="p-2.5 px-4 text-[#FAF6EE] font-medium sticky left-0 z-10 bg-[#17211b] group-hover:bg-[#1d2921] border-r border-[rgba(217,203,182,0.1)] truncate max-w-[240px]">
-                            <div className="truncate font-semibold">{st.fullName}</div>
+                            <div className="flex items-center gap-1.5 truncate">
+                              {isAtRisk && (
+                                <span className="text-red-400 font-bold" title="En riesgo académico o de asistencia">
+                                  ⚠️
+                                </span>
+                              )}
+                              <span className="truncate font-semibold">{st.fullName}</span>
+                            </div>
                             <div className="text-[10px] text-[#A89F8D] truncate">{st.program || "Sin programa"}</div>
                           </td>
 
@@ -682,11 +1107,22 @@ export default function AdminDashboardPage() {
                             {st.username}
                           </td>
 
-                          {/* Group Badge */}
-                          <td className="p-2 px-3 font-mono text-[11px] text-[#8FA698] border-r border-[rgba(217,203,182,0.06)]">
-                            <span className="px-2 py-0.5 rounded bg-[#1e2b23] border border-[#3b4e42]/50 text-[10px]">
-                              {st.group}
-                            </span>
+                          {/* Editable Group Selector Dropdown */}
+                          <td className="p-1 px-2 border-r border-[rgba(217,203,182,0.06)]">
+                            <select
+                              value={st.group || ""}
+                              onChange={(e) => handleStudentFieldChange(st.username, "group", e.target.value)}
+                              className="academic-input w-full h-7 px-1.5 rounded font-mono text-[11px] bg-[#141c16] text-[#8FA698] border border-[#3b4e42]/60 cursor-pointer focus:outline-none"
+                            >
+                              {groups.map((g) => (
+                                <option key={g} value={g}>
+                                  {g}
+                                </option>
+                              ))}
+                              {!groups.includes(st.group) && st.group && (
+                                <option value={st.group}>{st.group}</option>
+                              )}
+                            </select>
                           </td>
 
                           {/* Grade Cells (Editable Excel-like inputs) */}
@@ -756,34 +1192,53 @@ export default function AdminDashboardPage() {
               </table>
             )}
 
+            {/* TAB: ASISTENCIA */}
             {activeTab === "attendance" && (
               <table className="w-full text-xs text-left border-collapse select-none">
                 <thead className="bg-[#1b2620] sticky top-0 z-20 shadow-sm border-b border-[rgba(217,203,182,0.15)]">
                   <tr>
+                    <th className="p-2.5 px-3 text-[#8FA698] font-mono font-medium text-[11px] w-10 text-center border-r border-[rgba(217,203,182,0.08)]">
+                      <input
+                        type="checkbox"
+                        checked={filteredStudents.length > 0 && selectedUsernames.length === filteredStudents.length}
+                        onChange={toggleSelectAll}
+                        className="cursor-pointer accent-[#8FA698]"
+                      />
+                    </th>
                     <th className="p-2.5 px-3 text-[#8FA698] font-mono font-medium text-[11px] w-12 text-center border-r border-[rgba(217,203,182,0.08)]">
                       #
                     </th>
                     <th className="p-2.5 px-4 text-[#FAF6EE] font-serif font-bold text-xs sticky left-0 z-30 bg-[#1b2620] border-r border-[rgba(217,203,182,0.12)] min-w-[220px]">
                       Nombre del Estudiante
                     </th>
-                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[120px] border-r border-[rgba(217,203,182,0.08)]">
-                      Usuario
+                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[100px] border-r border-[rgba(217,203,182,0.08)]">
+                      Grupo
                     </th>
 
-                    {/* Attendance columns */}
+                    {/* Attendance columns with quick toggle all */}
                     {attendanceColumns.map((col) => (
                       <th
                         key={col}
-                        className="p-2 px-2 text-[#8FA698] font-mono text-[11px] text-center min-w-[70px] border-r border-[rgba(217,203,182,0.08)]"
+                        className="p-2 px-2 text-[#8FA698] font-mono text-[11px] text-center min-w-[76px] border-r border-[rgba(217,203,182,0.08)]"
                       >
-                        <div>{col}</div>
-                        <button
-                          onClick={() => handleMarkAllPresent(col)}
-                          className="mt-0.5 text-[9px] text-[#A89F8D] hover:text-[#FAF6EE] underline cursor-pointer"
-                          title="Marcar todos presentes en esta sesión"
-                        >
-                          todos P
-                        </button>
+                        <div className="font-bold">{col}</div>
+                        <div className="flex items-center justify-center gap-1 mt-0.5">
+                          <button
+                            onClick={() => handleMarkAllPresent(col)}
+                            className="text-[9px] text-[#a5e0b8] hover:underline cursor-pointer"
+                            title="Marcar todos presentes en esta sesión"
+                          >
+                            Todos P
+                          </button>
+                          <span>·</span>
+                          <button
+                            onClick={() => handleMarkAllAbsent(col)}
+                            className="text-[9px] text-red-400 hover:underline cursor-pointer"
+                            title="Marcar todos ausentes"
+                          >
+                            Todos A
+                          </button>
+                        </div>
                       </th>
                     ))}
 
@@ -797,32 +1252,33 @@ export default function AdminDashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-[rgba(217,203,182,0.06)] font-sans">
                   {filteredStudents.map((st, idx) => {
-                    // Count absences and attendance %
-                    let presentCount = 0;
-                    let absentCount = 0;
-                    let excuseCount = 0;
-
-                    attendanceColumns.forEach((col) => {
-                      const status = st.attendance?.[col] || "ausente";
-                      if (status === "presente") presentCount++;
-                      else if (status === "ausente") absentCount++;
-                      else if (status === "excusa") excuseCount++;
-                    });
-
-                    const total = attendanceColumns.length;
-                    const pct = total > 0 ? Math.round((presentCount / total) * 100) : 100;
+                    const { absent, pct } = getStudentAttendanceStats(st.attendance);
+                    const isSelected = selectedUsernames.includes(st.username);
 
                     return (
-                      <tr key={st.username} className="hover:bg-[#1f2d24]/60 transition-colors group">
+                      <tr
+                        key={st.username}
+                        className={`transition-colors group ${
+                          isSelected ? "bg-[#203326]" : "hover:bg-[#1f2d24]/60"
+                        }`}
+                      >
+                        <td className="p-2 text-center border-r border-[rgba(217,203,182,0.06)]">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectStudent(st.username)}
+                            className="cursor-pointer accent-[#8FA698]"
+                          />
+                        </td>
                         <td className="p-2 text-center text-[11px] font-mono text-[#8FA698]/70 border-r border-[rgba(217,203,182,0.06)]">
                           {idx + 1}
                         </td>
                         <td className="p-2.5 px-4 text-[#FAF6EE] font-medium sticky left-0 z-10 bg-[#17211b] group-hover:bg-[#1d2921] border-r border-[rgba(217,203,182,0.1)] truncate max-w-[240px]">
                           <div className="truncate font-semibold">{st.fullName}</div>
-                          <div className="text-[10px] text-[#A89F8D] truncate">{st.group}</div>
+                          <div className="text-[10px] text-[#A89F8D] truncate">{st.username}</div>
                         </td>
-                        <td className="p-2 px-3 font-mono text-[11px] text-[#C8B99D] border-r border-[rgba(217,203,182,0.06)]">
-                          {st.username}
+                        <td className="p-2 px-3 font-mono text-[11px] text-[#8FA698] border-r border-[rgba(217,203,182,0.06)]">
+                          {st.group}
                         </td>
 
                         {/* Interactive Attendance Toggle Badges */}
@@ -842,7 +1298,7 @@ export default function AdminDashboardPage() {
                                     ? "bg-amber-950/80 text-amber-300 border border-amber-700/50"
                                     : "bg-red-950/80 text-red-300 border border-red-800/50"
                                 }`}
-                                title={`Clic para alternar: ${status.toUpperCase()}`}
+                                title={`Clic para alternar: ${status.toUpperCase()} (P = Presente, E = Excusa, A = Ausente)`}
                               >
                                 {status === "presente" ? "P" : status === "excusa" ? "E" : "A"}
                               </button>
@@ -854,20 +1310,20 @@ export default function AdminDashboardPage() {
                         <td className="p-2 px-3 text-center font-mono font-bold text-xs bg-[#1a251e] border-r border-[rgba(217,203,182,0.1)]">
                           <span
                             className={`px-2 py-0.5 rounded ${
-                              absentCount === 0
+                              absent === 0
                                 ? "text-[#a5e0b8] bg-[#1d3527]"
-                                : absentCount > 3
+                                : absent > 3
                                 ? "text-red-300 bg-red-950"
                                 : "text-amber-300 bg-amber-950"
                             }`}
                           >
-                            {absentCount}
+                            {absent}
                           </span>
                         </td>
 
                         {/* % Asistencia */}
                         <td className="p-2 px-3 text-center font-mono font-bold text-xs bg-[#1a251e]">
-                          <span className={pct >= 80 ? "text-[#a5e0b8]" : "text-red-300"}>
+                          <span className={pct >= 80 ? "text-[#a5e0b8]" : "text-red-300 font-bold"}>
                             {pct}%
                           </span>
                         </td>
@@ -878,10 +1334,19 @@ export default function AdminDashboardPage() {
               </table>
             )}
 
+            {/* TAB: ESTUDIANTES (Edición de Metadata y Grupos) */}
             {activeTab === "students" && (
               <table className="w-full text-xs text-left border-collapse select-none">
                 <thead className="bg-[#1b2620] sticky top-0 z-20 shadow-sm border-b border-[rgba(217,203,182,0.15)]">
                   <tr>
+                    <th className="p-2.5 px-3 text-[#8FA698] font-mono font-medium text-[11px] w-10 text-center border-r border-[rgba(217,203,182,0.08)]">
+                      <input
+                        type="checkbox"
+                        checked={filteredStudents.length > 0 && selectedUsernames.length === filteredStudents.length}
+                        onChange={toggleSelectAll}
+                        className="cursor-pointer accent-[#8FA698]"
+                      />
+                    </th>
                     <th className="p-2.5 px-3 text-[#8FA698] font-mono text-[11px] w-12 text-center border-r border-[rgba(217,203,182,0.08)]">
                       #
                     </th>
@@ -897,7 +1362,7 @@ export default function AdminDashboardPage() {
                     <th className="p-2.5 px-3 text-[#FAF6EE] font-mono text-[11px] border-r border-[rgba(217,203,182,0.08)]">
                       Programa Académico
                     </th>
-                    <th className="p-2.5 px-3 text-[#FAF6EE] font-mono text-[11px] border-r border-[rgba(217,203,182,0.08)]">
+                    <th className="p-2.5 px-3 text-[#FAF6EE] font-mono text-[11px] border-r border-[rgba(217,203,182,0.08)] min-w-[130px]">
                       Grupo
                     </th>
                     <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] text-center w-20">
@@ -908,6 +1373,14 @@ export default function AdminDashboardPage() {
                 <tbody className="divide-y divide-[rgba(217,203,182,0.06)] font-sans">
                   {filteredStudents.map((st, idx) => (
                     <tr key={st.username} className="hover:bg-[#1f2d24]/60 transition-colors">
+                      <td className="p-2 text-center border-r border-[rgba(217,203,182,0.06)]">
+                        <input
+                          type="checkbox"
+                          checked={selectedUsernames.includes(st.username)}
+                          onChange={() => toggleSelectStudent(st.username)}
+                          className="cursor-pointer accent-[#8FA698]"
+                        />
+                      </td>
                       <td className="p-2 text-center text-[11px] font-mono text-[#8FA698]/70 border-r border-[rgba(217,203,182,0.06)]">
                         {idx + 1}
                       </td>
@@ -944,12 +1417,20 @@ export default function AdminDashboardPage() {
                         />
                       </td>
                       <td className="p-1.5 px-3 border-r border-[rgba(217,203,182,0.06)]">
-                        <input
-                          type="text"
-                          value={st.group}
+                        <select
+                          value={st.group || ""}
                           onChange={(e) => handleStudentFieldChange(st.username, "group", e.target.value)}
-                          className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15]"
-                        />
+                          className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15] text-[#8FA698] cursor-pointer"
+                        >
+                          {groups.map((g) => (
+                            <option key={g} value={g}>
+                              {g}
+                            </option>
+                          ))}
+                          {!groups.includes(st.group) && st.group && (
+                            <option value={st.group}>{st.group}</option>
+                          )}
+                        </select>
                       </td>
                       <td className="p-2 text-center">
                         <button
@@ -967,6 +1448,81 @@ export default function AdminDashboardPage() {
                 </tbody>
               </table>
             )}
+
+            {/* TAB: ESTADÍSTICAS Y DISTRIBUCIÓN */}
+            {activeTab === "stats" && (
+              <div className="p-6 space-y-6 max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-[#1b2620] p-4 rounded-xl border border-[rgba(217,203,182,0.12)] space-y-1">
+                    <span className="text-[11px] font-mono text-[#8FA698] uppercase">Aprobados (≥ 3.0)</span>
+                    <div className="text-2xl font-bold font-serif text-[#a5e0b8]">{groupStats.passing}</div>
+                    <p className="text-[10px] text-[#A89F8D]">{groupStats.passingPct}% del grupo seleccionado</p>
+                  </div>
+                  <div className="bg-[#1b2620] p-4 rounded-xl border border-[rgba(217,203,182,0.12)] space-y-1">
+                    <span className="text-[11px] font-mono text-[#D4AF37] uppercase">Reprobados (&lt; 3.0)</span>
+                    <div className="text-2xl font-bold font-serif text-[#fca5a5]">{groupStats.failing}</div>
+                    <p className="text-[10px] text-[#A89F8D]">{100 - groupStats.passingPct}% del grupo seleccionado</p>
+                  </div>
+                  <div className="bg-[#1b2620] p-4 rounded-xl border border-[rgba(217,203,182,0.12)] space-y-1">
+                    <span className="text-[11px] font-mono text-red-400 uppercase">En Riesgo Académico</span>
+                    <div className="text-2xl font-bold font-serif text-red-300">{groupStats.atRiskCount}</div>
+                    <p className="text-[10px] text-[#A89F8D]">Baja nota (&lt; 3.0) o asistencia (&lt; 80%)</p>
+                  </div>
+                </div>
+
+                {/* Groups Summary Table */}
+                <div className="bg-[#1b2620] rounded-xl border border-[rgba(217,203,182,0.12)] p-5 space-y-3">
+                  <h3 className="text-xs font-serif font-bold text-[#FAF6EE] uppercase tracking-wider">
+                    Resumen Comparativo por Grupos
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="border-b border-[rgba(217,203,182,0.1)] text-[#8FA698] font-mono text-[11px]">
+                          <th className="py-2">Grupo</th>
+                          <th className="py-2 text-center">Total Estudiantes</th>
+                          <th className="py-2 text-center">Promedio</th>
+                          <th className="py-2 text-center">Aprobados</th>
+                          <th className="py-2 text-center">En Riesgo</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[rgba(217,203,182,0.06)] font-mono">
+                        {groups.map((grp) => {
+                          const grpStudents = students.filter((s) => s.group === grp);
+                          let sum = 0;
+                          let counted = 0;
+                          let pass = 0;
+                          let risk = 0;
+
+                          grpStudents.forEach((s) => {
+                            const avg = getStudentAverage(s.grades);
+                            const { pct } = getStudentAttendanceStats(s.attendance);
+                            if (avg !== null) {
+                              sum += avg;
+                              counted++;
+                              if (avg >= 3.0) pass++;
+                            }
+                            if ((avg !== null && avg < 3.0) || pct < 80) risk++;
+                          });
+
+                          const grpAvg = counted > 0 ? (sum / counted).toFixed(2) : "—";
+
+                          return (
+                            <tr key={grp} className="hover:bg-[#223028]/50">
+                              <td className="py-2.5 font-bold text-[#FAF6EE]">{grp}</td>
+                              <td className="py-2.5 text-center text-[#A89F8D]">{grpStudents.length}</td>
+                              <td className="py-2.5 text-center font-bold text-[#D4AF37]">{grpAvg}</td>
+                              <td className="py-2.5 text-center text-[#a5e0b8]">{pass}</td>
+                              <td className="py-2.5 text-center text-red-300">{risk}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer Bar inside sheet */}
@@ -974,7 +1530,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center gap-3">
               <span>{filteredStudents.length} estudiantes listados</span>
               <span>·</span>
-              <span>{evaluationColumns.length} columnas de evaluación</span>
+              <span>{evaluationColumns.length} evaluaciones</span>
               <span>·</span>
               <span>{groups.length} grupos activos</span>
             </div>
@@ -1050,13 +1606,17 @@ export default function AdminDashboardPage() {
                 </div>
                 <div>
                   <label className="text-[#A89F8D] block mb-1">Grupo</label>
-                  <input
-                    type="text"
-                    placeholder={selectedGroup !== "ALL" ? selectedGroup : "GEA 24"}
-                    value={newStudent.group}
+                  <select
+                    value={newStudent.group || (selectedGroup !== "ALL" ? selectedGroup : groups[0] || "")}
                     onChange={(e) => setNewStudent({ ...newStudent, group: e.target.value })}
-                    className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15]"
-                  />
+                    className="academic-input w-full h-9 rounded-md px-2 font-mono bg-[#131a15] text-[#FAF6EE] cursor-pointer"
+                  >
+                    {groups.map((grp) => (
+                      <option key={grp} value={grp}>
+                        {grp}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>
@@ -1073,6 +1633,226 @@ export default function AdminDashboardPage() {
                 className="academic-btn-primary h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer"
               >
                 Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Crear Nuevo Grupo */}
+      {showNewGroupModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
+              <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Crear Nuevo Grupo</h2>
+              <button onClick={() => setShowNewGroupModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-[#A89F8D] block mb-1">Nombre o Código del Grupo</label>
+                <input
+                  type="text"
+                  placeholder="ej: GEA 25, Grupo 02, etc."
+                  value={newGroupNameInput}
+                  onChange={(e) => setNewGroupNameInput(e.target.value)}
+                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15]"
+                  autoFocus
+                />
+                <p className="text-[10px] text-[#A89F8D] mt-1.5">
+                  El nuevo grupo quedará habilitado para asignar estudiantes de inmediato.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(217,203,182,0.1)]">
+              <button
+                onClick={() => setShowNewGroupModal(false)}
+                className="h-8 px-3 rounded-md text-xs text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateGroup}
+                className="academic-btn-primary h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Crear Grupo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Eliminar Grupo */}
+      {showDeleteGroupModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
+              <h2 className="text-sm font-serif font-bold text-red-300">Eliminar Grupo</h2>
+              <button onClick={() => setShowDeleteGroupModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-[#A89F8D] block mb-1">Grupo a eliminar:</label>
+                <select
+                  value={groupToDelete}
+                  onChange={(e) => setGroupToDelete(e.target.value)}
+                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15] text-[#FAF6EE]"
+                >
+                  {groups.map((g) => (
+                    <option key={g} value={g}>
+                      {g} ({students.filter((s) => s.group === g).length} estudiantes)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[#A89F8D] block mb-1">Reasignar estudiantes a:</label>
+                <select
+                  value={groupReassignTarget}
+                  onChange={(e) => setGroupReassignTarget(e.target.value)}
+                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15] text-[#FAF6EE]"
+                >
+                  <option value="">-- Sin Grupo / General --</option>
+                  {groups
+                    .filter((g) => g !== groupToDelete)
+                    .map((g) => (
+                      <option key={g} value={g}>
+                        {g}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(217,203,182,0.1)]">
+              <button
+                onClick={() => setShowDeleteGroupModal(false)}
+                className="h-8 px-3 rounded-md text-xs text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteGroup}
+                className="h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider bg-red-800 hover:bg-red-700 text-white cursor-pointer"
+              >
+                Eliminar Grupo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Mover Grupo Masivo */}
+      {showMoveGroupModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
+              <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Cambiar de Grupo</h2>
+              <button onClick={() => setShowMoveGroupModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-[#A89F8D]">
+                Mover <span className="text-[#FAF6EE] font-bold">{selectedUsernames.length}</span> estudiante(s) seleccionados a:
+              </p>
+              <div>
+                <label className="text-[#A89F8D] block mb-1">Grupo destino:</label>
+                <select
+                  value={targetMoveGroup}
+                  onChange={(e) => setTargetMoveGroup(e.target.value)}
+                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15] text-[#FAF6EE]"
+                >
+                  <option value="">-- Seleccionar grupo --</option>
+                  {groups.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(217,203,182,0.1)]">
+              <button
+                onClick={() => setShowMoveGroupModal(false)}
+                className="h-8 px-3 rounded-md text-xs text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleMoveSelectedToGroup}
+                disabled={!targetMoveGroup}
+                className="academic-btn-primary h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
+              >
+                Mover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Nota Masiva */}
+      {showBulkGradeModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
+              <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Asignar Nota Masiva</h2>
+              <button onClick={() => setShowBulkGradeModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="text-[11px] text-[#A89F8D]">
+                Afectará a{" "}
+                <span className="text-[#FAF6EE] font-bold">
+                  {selectedUsernames.length > 0 ? selectedUsernames.length : filteredStudents.length}
+                </span>{" "}
+                estudiante(s).
+              </p>
+
+              <div>
+                <label className="text-[#A89F8D] block mb-1">Evaluación / Columna:</label>
+                <select
+                  value={bulkGradeCol}
+                  onChange={(e) => setBulkGradeCol(e.target.value)}
+                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15] text-[#FAF6EE]"
+                >
+                  <option value="">-- Seleccionar columna --</option>
+                  {evaluationColumns.map((col) => (
+                    <option key={col} value={col}>
+                      {col}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[#A89F8D] block mb-1">Nota (0.0 - 5.0) o dejar vacío para limpiar:</label>
+                <input
+                  type="text"
+                  placeholder="ej: 5.0"
+                  value={bulkGradeValue}
+                  onChange={(e) => setBulkGradeValue(e.target.value)}
+                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15]"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(217,203,182,0.1)]">
+              <button
+                onClick={() => setShowBulkGradeModal(false)}
+                className="h-8 px-3 rounded-md text-xs text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleApplyBulkGrade}
+                disabled={!bulkGradeCol}
+                className="academic-btn-primary h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
+              >
+                Aplicar Nota
               </button>
             </div>
           </div>
