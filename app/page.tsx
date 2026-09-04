@@ -21,7 +21,7 @@ export default function MainHubPage() {
         </header>
 
         {/* Two Curated Main Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Card 1: Teoría */}
           <Link href="/teoria" className="group block focus:outline-none">
             <div className="academic-card-elevated rounded-2xl p-5 sm:p-8 h-full flex flex-col justify-between hover:border-[#7A8F73] transition-all relative overflow-hidden group-hover:-translate-y-1">
@@ -123,6 +123,60 @@ export default function MainHubPage() {
 
               <div className="mt-6 sm:mt-8 pt-3 sm:pt-4 border-t border-[rgba(217,203,182,0.1)] flex items-center justify-between text-xs font-semibold text-[#7A8F73] group-hover:text-[#FAF6EE] transition-colors">
                 <span>Ingresar al módulo de notas</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </div>
+            </div>
+          </Link>
+
+          {/* Card 3: Parciales Pasados Resueltos */}
+          <Link href="/parciales" className="group block focus:outline-none">
+            <div className="academic-card-elevated rounded-2xl p-5 sm:p-8 h-full flex flex-col justify-between hover:border-[#7A8F73] transition-all relative overflow-hidden group-hover:-translate-y-1">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-[#223028] border border-[rgba(217,203,182,0.15)] flex items-center justify-center text-[#dfa745] group-hover:bg-[#dfa745] group-hover:text-[#141c17] transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <span className="font-mono text-[11px] sm:text-xs text-[#A89F8D] px-2.5 py-1 rounded-md bg-[#17211b] border border-[rgba(217,203,182,0.1)]">
+                    EXÁMENES
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 sm:space-y-2">
+                  <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#FAF6EE] group-hover:text-[#C8B99D] transition-colors">
+                    Parciales Pasados Resueltos
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[#A89F8D] leading-relaxed">
+                    Parciales de semestres anteriores resueltos de forma guiada, con explicaciones paso a paso para cada ejercicio.
+                  </p>
+                </div>
+
+                {/* Features list */}
+                <div className="space-y-2 pt-3 sm:pt-4 border-t border-[rgba(217,203,182,0.08)] text-xs text-[#EDE5D8]/80">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#dfa745] shrink-0" />
+                    <span>Soluciones desarrolladas paso a paso</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#dfa745] shrink-0" />
+                    <span>Explicación guiada de cada procedimiento</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#dfa745] shrink-0" />
+                    <span>Parciales reales de semestres anteriores</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#dfa745] shrink-0" />
+                    <span>Material de preparación para evaluaciones</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 sm:mt-8 pt-3 sm:pt-4 border-t border-[rgba(217,203,182,0.1)] flex items-center justify-between text-xs font-semibold text-[#7A8F73] group-hover:text-[#FAF6EE] transition-colors">
+                <span>Ver parciales resueltos</span>
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>

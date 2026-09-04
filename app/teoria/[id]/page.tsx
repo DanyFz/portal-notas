@@ -146,7 +146,7 @@ export default async function TheoryModulePage({ params }: { params: Promise<{ i
             <div className="hidden sm:flex items-center gap-2 text-xs text-[#A89F8D]">
               <span>Matemáticas Básicas</span>
               <span>/</span>
-              <span className="text-[#EDE5D8] font-medium">Módulo {mod.num}</span>
+              <span className="text-[#EDE5D8] font-medium truncate max-w-[200px]" title={`Módulo ${mod.num}: ${mod.title}`}>{mod.title}</span>
             </div>
           </div>
 
