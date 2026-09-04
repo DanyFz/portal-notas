@@ -134,7 +134,7 @@ export default function MainHubPage() {
         {/* Institutional Footer */}
         <footer className="pt-8 border-t border-[rgba(217,203,182,0.12)] text-center text-xs text-[#A89F8D] space-y-1">
           <p>Universidad Nacional de Colombia · Facultad de Ciencias · Escuela de Matemáticas</p>
-          <p className="text-[11px] text-[#A89F8D]/70">Semestre Académico 2025-01 · Sede Medellín</p>
+          <p className="text-[11px] text-[#A89F8D]/70">Semestre Académico 2026-02 · Sede Medellín</p>
         </footer>
       </div>
     </main>
