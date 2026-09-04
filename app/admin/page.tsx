@@ -19,11 +19,10 @@ export default function AdminDashboardPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [saveMessage, setSaveMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  // Filter & Sorting
-  const [onlyAtRisk, setOnlyAtRisk] = useState(false);
+  // Sorting
   const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "avg-desc" | "avg-asc" | "absent-desc" | "group">("name-asc");
 
-  // Selection for bulk actions
+  // Selection for bulk actions (students)
   const [selectedUsernames, setSelectedUsernames] = useState<string[]>([]);
 
   // Modals state
@@ -34,6 +33,10 @@ export default function AdminDashboardPage() {
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);
   const [showBulkGradeModal, setShowBulkGradeModal] = useState(false);
   const [showMoveGroupModal, setShowMoveGroupModal] = useState(false);
+
+  // Dedicated Student Group Change Modal State
+  const [studentToChangeGroup, setStudentToChangeGroup] = useState<Student | null>(null);
+  const [customNewGroupName, setCustomNewGroupName] = useState("");
 
   // Modal form inputs
   const [newStudent, setNewStudent] = useState({
@@ -46,8 +49,12 @@ export default function AdminDashboardPage() {
   const [newColName, setNewColName] = useState("");
   const [colToDelete, setColToDelete] = useState("");
   const [newGroupNameInput, setNewGroupNameInput] = useState("");
-  const [groupToDelete, setGroupToDelete] = useState("");
+  
+  // Multi-group deletion state
+  const [groupsToDelete, setGroupsToDelete] = useState<string[]>([]);
+  const [groupDeleteAction, setGroupDeleteAction] = useState<"reassign" | "delete-students">("reassign");
   const [groupReassignTarget, setGroupReassignTarget] = useState("");
+
   const [targetMoveGroup, setTargetMoveGroup] = useState("");
   const [bulkGradeCol, setBulkGradeCol] = useState("");
   const [bulkGradeValue, setBulkGradeValue] = useState("");
@@ -170,17 +177,7 @@ export default function AdminDashboardPage() {
         (s.program && s.program.toLowerCase().includes(q)) ||
         (s.group && s.group.toLowerCase().includes(q));
 
-      if (!matchesGroup || !matchesSearch) return false;
-
-      if (onlyAtRisk) {
-        const avg = getStudentAverage(s.grades);
-        const { pct } = getStudentAttendanceStats(s.attendance);
-        const isFailing = avg !== null && avg < 3.0;
-        const isLowAttendance = pct < 80;
-        return isFailing || isLowAttendance;
-      }
-
-      return true;
+      return matchesGroup && matchesSearch;
     });
 
     // Apply sorting
@@ -202,7 +199,7 @@ export default function AdminDashboardPage() {
     });
 
     return result;
-  }, [students, selectedGroup, searchTerm, onlyAtRisk, sortBy, attendanceColumns]);
+  }, [students, selectedGroup, searchTerm, sortBy, attendanceColumns]);
 
   // Unsaved changes check
   const hasUnsavedChanges = useMemo(() => {
@@ -213,14 +210,13 @@ export default function AdminDashboardPage() {
   const groupStats = useMemo(() => {
     const inGroup = students.filter((s) => selectedGroup === "ALL" || s.group === selectedGroup);
     if (inGroup.length === 0) {
-      return { total: 0, avg: "0.00", passing: 0, failing: 0, passingPct: 0, atRiskCount: 0, avgAttendance: 0 };
+      return { total: 0, avg: "0.00", passing: 0, failing: 0, passingPct: 0, avgAttendance: 0 };
     }
 
     let sumAvg = 0;
     let countedGrades = 0;
     let passing = 0;
     let failing = 0;
-    let atRisk = 0;
     let sumAttendancePct = 0;
 
     inGroup.forEach((s) => {
@@ -234,10 +230,6 @@ export default function AdminDashboardPage() {
         if (avg >= 3.0) passing++;
         else failing++;
       }
-
-      if ((avg !== null && avg < 3.0) || pct < 80) {
-        atRisk++;
-      }
     });
 
     return {
@@ -246,7 +238,6 @@ export default function AdminDashboardPage() {
       passing,
       failing,
       passingPct: countedGrades > 0 ? Math.round((passing / countedGrades) * 100) : 0,
-      atRiskCount: atRisk,
       avgAttendance: Math.round(sumAttendancePct / inGroup.length),
     };
   }, [students, selectedGroup, attendanceColumns]);
@@ -320,13 +311,52 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // Delete student
+  // Dedicated function to assign a student to a group
+  function handleAssignStudentToGroup(username: string, targetGroup: string) {
+    const cleanGroup = targetGroup.trim();
+    if (!cleanGroup) return;
+
+    if (!groups.includes(cleanGroup)) {
+      setCustomGroups((prev) => [...prev, cleanGroup]);
+    }
+
+    setStudents((prev) =>
+      prev.map((s) => {
+        if (s.username.toLowerCase() === username.toLowerCase()) {
+          return { ...s, group: cleanGroup };
+        }
+        return s;
+      })
+    );
+
+    setStudentToChangeGroup(null);
+    setCustomNewGroupName("");
+  }
+
+  // Delete student single
   function handleDeleteStudent(studentUsername: string) {
     if (!confirm(`¿Eliminar al estudiante ${studentUsername}? Esta acción no se puede deshacer.`)) {
       return;
     }
     setStudents((prev) => prev.filter((s) => s.username.toLowerCase() !== studentUsername.toLowerCase()));
     setSelectedUsernames((prev) => prev.filter((u) => u.toLowerCase() !== studentUsername.toLowerCase()));
+  }
+
+  // Bulk Delete Students
+  function handleBulkDeleteStudents() {
+    if (selectedUsernames.length === 0) return;
+
+    if (
+      !confirm(
+        `¿Estás seguro de eliminar a los ${selectedUsernames.length} estudiantes seleccionados? Esta acción no se puede deshacer.`
+      )
+    ) {
+      return;
+    }
+
+    const set = new Set(selectedUsernames.map((u) => u.toLowerCase()));
+    setStudents((prev) => prev.filter((s) => !set.has(s.username.toLowerCase())));
+    setSelectedUsernames([]);
   }
 
   // Add evaluation column
@@ -409,38 +439,60 @@ export default function AdminDashboardPage() {
     setShowNewGroupModal(false);
   }
 
-  // Delete Group
-  function handleDeleteGroup() {
-    if (!groupToDelete) return;
-    const count = students.filter((s) => s.group === groupToDelete).length;
+  // Toggle selection for group deletion
+  function toggleGroupToDelete(grp: string) {
+    setGroupsToDelete((prev) =>
+      prev.includes(grp) ? prev.filter((g) => g !== grp) : [...prev, grp]
+    );
+  }
 
-    if (
-      !confirm(
-        `¿Eliminar el grupo "${groupToDelete}"? ${
-          count > 0
-            ? `Hay ${count} estudiantes que serán reasignados a "${groupReassignTarget || "Sin Grupo"}".`
-            : ""
-        }`
-      )
-    ) {
-      return;
+  function toggleSelectAllGroupsToDelete() {
+    if (groupsToDelete.length === groups.length) {
+      setGroupsToDelete([]);
+    } else {
+      setGroupsToDelete([...groups]);
+    }
+  }
+
+  // Bulk Delete Groups
+  function handleExecuteDeleteGroups() {
+    if (groupsToDelete.length === 0) return;
+
+    const affectedStudentsCount = students.filter((s) => s.group && groupsToDelete.includes(s.group)).length;
+
+    let confirmMsg = `¿Estás seguro de eliminar los ${groupsToDelete.length} grupos seleccionados (${groupsToDelete.join(", ")})?`;
+    if (groupDeleteAction === "delete-students") {
+      confirmMsg += `\n⚠️ ATENCIÓN: También se eliminarán los ${affectedStudentsCount} estudiantes que pertenecen a estos grupos.`;
+    } else {
+      confirmMsg += `\nLos ${affectedStudentsCount} estudiantes serán reasignados a "${groupReassignTarget || "Sin Grupo"}".`;
     }
 
-    const fallback = groupReassignTarget || "Sin Grupo";
-    setStudents((prev) =>
-      prev.map((s) => {
-        if (s.group === groupToDelete) {
-          return { ...s, group: fallback };
-        }
-        return s;
-      })
-    );
+    if (!confirm(confirmMsg)) return;
 
-    setCustomGroups((prev) => prev.filter((g) => g !== groupToDelete));
-    if (selectedGroup === groupToDelete) {
+    if (groupDeleteAction === "delete-students") {
+      // Delete students belonging to deleted groups
+      const deletedSet = new Set(groupsToDelete);
+      setStudents((prev) => prev.filter((s) => !deletedSet.has(s.group)));
+    } else {
+      // Reassign students
+      const fallback = groupReassignTarget || "Sin Grupo";
+      const deletedSet = new Set(groupsToDelete);
+      setStudents((prev) =>
+        prev.map((s) => {
+          if (deletedSet.has(s.group)) {
+            return { ...s, group: fallback };
+          }
+          return s;
+        })
+      );
+    }
+
+    setCustomGroups((prev) => prev.filter((g) => !groupsToDelete.includes(g)));
+    if (groupsToDelete.includes(selectedGroup)) {
       setSelectedGroup("ALL");
     }
-    setGroupToDelete("");
+
+    setGroupsToDelete([]);
     setGroupReassignTarget("");
     setShowDeleteGroupModal(false);
   }
@@ -600,7 +652,7 @@ export default function AdminDashboardPage() {
     }
   }
 
-  // Selection toggle
+  // Selection toggle (students)
   function toggleSelectAll() {
     if (selectedUsernames.length === filteredStudents.length) {
       setSelectedUsernames([]);
@@ -771,7 +823,7 @@ export default function AdminDashboardPage() {
               </select>
 
               {/* Group Action Buttons */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => setShowNewGroupModal(true)}
                   className="h-8 px-2.5 rounded-md bg-[#223028] hover:bg-[#2c3d33] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
@@ -786,15 +838,16 @@ export default function AdminDashboardPage() {
                 {groups.length > 0 && (
                   <button
                     onClick={() => {
-                      setGroupToDelete(selectedGroup !== "ALL" ? selectedGroup : groups[0]);
+                      setGroupsToDelete(selectedGroup !== "ALL" ? [selectedGroup] : []);
                       setShowDeleteGroupModal(true);
                     }}
-                    className="h-8 px-2 rounded-md bg-[#223028] hover:bg-red-950/40 border border-[#3b4e42] text-[#A89F8D] hover:text-red-300 text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
-                    title="Eliminar grupo"
+                    className="h-8 px-2.5 rounded-md bg-[#223028] hover:bg-red-950/50 border border-[#3b4e42] text-red-300 text-xs font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Eliminar uno o múltiples grupos"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
+                    <span>Eliminar Grupos</span>
                   </button>
                 )}
               </div>
@@ -830,20 +883,6 @@ export default function AdminDashboardPage() {
                 <option value="group">Por Grupo</option>
               </select>
             </div>
-
-            {/* Risk Filter Toggle */}
-            <button
-              onClick={() => setOnlyAtRisk(!onlyAtRisk)}
-              className={`h-9 px-3 rounded-md text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer border ${
-                onlyAtRisk
-                  ? "bg-red-950/80 border-red-700 text-red-300 shadow-sm"
-                  : "bg-[#1f2c24] border-[#3b4e42] text-[#A89F8D] hover:text-[#EDE5D8]"
-              }`}
-              title="Filtrar estudiantes con nota < 3.0 o asistencia < 80%"
-            >
-              <span>⚠️</span>
-              <span>En Riesgo ({groupStats.atRiskCount})</span>
-            </button>
           </div>
 
           {/* Quick Stats Pill */}
@@ -933,10 +972,13 @@ export default function AdminDashboardPage() {
                 <span className="font-mono text-[#a5e0b8] font-semibold">{selectedUsernames.length} selecc.</span>
                 <button
                   onClick={() => setShowMoveGroupModal(true)}
-                  className="px-2 py-0.5 rounded bg-[#274432] text-[#FAF6EE] hover:bg-[#345942] font-mono cursor-pointer"
+                  className="px-2 py-0.5 rounded bg-[#274432] text-[#FAF6EE] hover:bg-[#345942] font-mono cursor-pointer flex items-center gap-1"
                   title="Mover estudiantes seleccionados a otro grupo"
                 >
-                  Cambiar Grupo
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#8FA698]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  <span>Mover Grupo</span>
                 </button>
                 <button
                   onClick={() => setShowBulkGradeModal(true)}
@@ -944,6 +986,16 @@ export default function AdminDashboardPage() {
                   title="Poner nota masiva a los seleccionados"
                 >
                   Asignar Nota
+                </button>
+                <button
+                  onClick={handleBulkDeleteStudents}
+                  className="px-2 py-0.5 rounded bg-red-950/80 hover:bg-red-800 text-red-200 border border-red-700/60 font-mono cursor-pointer flex items-center gap-1"
+                  title="Eliminar estudiantes seleccionados"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-red-300" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span>Eliminar ({selectedUsernames.length})</span>
                 </button>
                 <button
                   onClick={() => setSelectedUsernames([])}
@@ -1027,7 +1079,7 @@ export default function AdminDashboardPage() {
                     <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[120px] border-r border-[rgba(217,203,182,0.08)]">
                       Usuario
                     </th>
-                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[110px] border-r border-[rgba(217,203,182,0.08)]">
+                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[120px] border-r border-[rgba(217,203,182,0.08)] text-center">
                       Grupo
                     </th>
 
@@ -1044,7 +1096,7 @@ export default function AdminDashboardPage() {
                     <th className="p-2.5 px-4 text-[#FAF6EE] font-serif font-bold text-xs text-center min-w-[90px] bg-[#1e2b24] border-r border-[rgba(217,203,182,0.12)]">
                       Promedio
                     </th>
-                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] text-center w-20">
+                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] text-center w-24">
                       Acciones
                     </th>
                   </tr>
@@ -1060,18 +1112,12 @@ export default function AdminDashboardPage() {
                     filteredStudents.map((st, idx) => {
                       const avg = getStudentAverage(st.grades);
                       const isSelected = selectedUsernames.includes(st.username);
-                      const { pct } = getStudentAttendanceStats(st.attendance);
-                      const isAtRisk = (avg !== null && avg < 3.0) || pct < 80;
 
                       return (
                         <tr
                           key={st.username}
                           className={`transition-colors group ${
-                            isSelected
-                              ? "bg-[#203326]"
-                              : isAtRisk
-                              ? "bg-red-950/15 hover:bg-red-950/30"
-                              : "hover:bg-[#1f2d24]/60"
+                            isSelected ? "bg-[#203326]" : "hover:bg-[#1f2d24]/60"
                           }`}
                         >
                           {/* Selection Checkbox */}
@@ -1091,14 +1137,7 @@ export default function AdminDashboardPage() {
 
                           {/* Student Full Name (Sticky) */}
                           <td className="p-2.5 px-4 text-[#FAF6EE] font-medium sticky left-0 z-10 bg-[#17211b] group-hover:bg-[#1d2921] border-r border-[rgba(217,203,182,0.1)] truncate max-w-[240px]">
-                            <div className="flex items-center gap-1.5 truncate">
-                              {isAtRisk && (
-                                <span className="text-red-400 font-bold" title="En riesgo académico o de asistencia">
-                                  ⚠️
-                                </span>
-                              )}
-                              <span className="truncate font-semibold">{st.fullName}</span>
-                            </div>
+                            <div className="truncate font-semibold">{st.fullName}</div>
                             <div className="text-[10px] text-[#A89F8D] truncate">{st.program || "Sin programa"}</div>
                           </td>
 
@@ -1107,22 +1146,21 @@ export default function AdminDashboardPage() {
                             {st.username}
                           </td>
 
-                          {/* Editable Group Selector Dropdown */}
-                          <td className="p-1 px-2 border-r border-[rgba(217,203,182,0.06)]">
-                            <select
-                              value={st.group || ""}
-                              onChange={(e) => handleStudentFieldChange(st.username, "group", e.target.value)}
-                              className="academic-input w-full h-7 px-1.5 rounded font-mono text-[11px] bg-[#141c16] text-[#8FA698] border border-[#3b4e42]/60 cursor-pointer focus:outline-none"
+                          {/* Interactive Group Badge (Opens Group Change Modal) */}
+                          <td className="p-2 px-3 text-center border-r border-[rgba(217,203,182,0.06)]">
+                            <button
+                              onClick={() => {
+                                setStudentToChangeGroup(st);
+                                setCustomNewGroupName("");
+                              }}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1d2b22] hover:bg-[#273b2f] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] font-mono text-[11px] font-semibold transition-all cursor-pointer shadow-xs group/grpbtn"
+                              title="Haz clic para cambiar a este estudiante de grupo"
                             >
-                              {groups.map((g) => (
-                                <option key={g} value={g}>
-                                  {g}
-                                </option>
-                              ))}
-                              {!groups.includes(st.group) && st.group && (
-                                <option value={st.group}>{st.group}</option>
-                              )}
-                            </select>
+                              <span>{st.group || "Sin Grupo"}</span>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#A89F8D] group-hover/grpbtn:text-[#8FA698]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                              </svg>
+                            </button>
                           </td>
 
                           {/* Grade Cells (Editable Excel-like inputs) */}
@@ -1174,15 +1212,29 @@ export default function AdminDashboardPage() {
 
                           {/* Row Actions */}
                           <td className="p-2 text-center">
-                            <button
-                              onClick={() => handleDeleteStudent(st.username)}
-                              className="p-1 rounded hover:bg-red-950/60 text-[#A89F8D] hover:text-red-400 cursor-pointer transition-colors"
-                              title="Eliminar estudiante"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                              </svg>
-                            </button>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => {
+                                  setStudentToChangeGroup(st);
+                                  setCustomNewGroupName("");
+                                }}
+                                className="p-1.5 rounded hover:bg-[#25362c] text-[#8FA698] hover:text-[#FAF6EE] cursor-pointer transition-colors"
+                                title="Cambiar grupo del estudiante"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteStudent(st.username)}
+                                className="p-1.5 rounded hover:bg-red-950/60 text-[#A89F8D] hover:text-red-400 cursor-pointer transition-colors"
+                                title="Eliminar estudiante"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1211,7 +1263,7 @@ export default function AdminDashboardPage() {
                     <th className="p-2.5 px-4 text-[#FAF6EE] font-serif font-bold text-xs sticky left-0 z-30 bg-[#1b2620] border-r border-[rgba(217,203,182,0.12)] min-w-[220px]">
                       Nombre del Estudiante
                     </th>
-                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[100px] border-r border-[rgba(217,203,182,0.08)]">
+                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] min-w-[120px] border-r border-[rgba(217,203,182,0.08)] text-center">
                       Grupo
                     </th>
 
@@ -1277,8 +1329,17 @@ export default function AdminDashboardPage() {
                           <div className="truncate font-semibold">{st.fullName}</div>
                           <div className="text-[10px] text-[#A89F8D] truncate">{st.username}</div>
                         </td>
-                        <td className="p-2 px-3 font-mono text-[11px] text-[#8FA698] border-r border-[rgba(217,203,182,0.06)]">
-                          {st.group}
+                        <td className="p-2 px-3 font-mono text-[11px] text-center text-[#8FA698] border-r border-[rgba(217,203,182,0.06)]">
+                          <button
+                            onClick={() => {
+                              setStudentToChangeGroup(st);
+                              setCustomNewGroupName("");
+                            }}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#1e2a22] hover:bg-[#283b30] border border-[#3b4e42] text-[10px] cursor-pointer"
+                            title="Cambiar grupo"
+                          >
+                            <span>{st.group}</span>
+                          </button>
                         </td>
 
                         {/* Interactive Attendance Toggle Badges */}
@@ -1362,11 +1423,11 @@ export default function AdminDashboardPage() {
                     <th className="p-2.5 px-3 text-[#FAF6EE] font-mono text-[11px] border-r border-[rgba(217,203,182,0.08)]">
                       Programa Académico
                     </th>
-                    <th className="p-2.5 px-3 text-[#FAF6EE] font-mono text-[11px] border-r border-[rgba(217,203,182,0.08)] min-w-[130px]">
-                      Grupo
+                    <th className="p-2.5 px-3 text-[#FAF6EE] font-mono text-[11px] border-r border-[rgba(217,203,182,0.08)] min-w-[140px] text-center">
+                      Grupo Actual
                     </th>
-                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] text-center w-20">
-                      Acción
+                    <th className="p-2.5 px-3 text-[#A89F8D] font-mono text-[11px] text-center w-28">
+                      Acciones
                     </th>
                   </tr>
                 </thead>
@@ -1416,32 +1477,40 @@ export default function AdminDashboardPage() {
                           className="academic-input w-full h-7 px-2 text-xs rounded bg-[#131a15]"
                         />
                       </td>
-                      <td className="p-1.5 px-3 border-r border-[rgba(217,203,182,0.06)]">
-                        <select
-                          value={st.group || ""}
-                          onChange={(e) => handleStudentFieldChange(st.username, "group", e.target.value)}
-                          className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15] text-[#8FA698] cursor-pointer"
+                      <td className="p-1.5 px-3 text-center border-r border-[rgba(217,203,182,0.06)]">
+                        <button
+                          onClick={() => {
+                            setStudentToChangeGroup(st);
+                            setCustomNewGroupName("");
+                          }}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#1e2a22] hover:bg-[#283b30] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] font-mono text-xs cursor-pointer transition-colors"
+                          title="Cambiar grupo del estudiante"
                         >
-                          {groups.map((g) => (
-                            <option key={g} value={g}>
-                              {g}
-                            </option>
-                          ))}
-                          {!groups.includes(st.group) && st.group && (
-                            <option value={st.group}>{st.group}</option>
-                          )}
-                        </select>
+                          <span className="font-semibold">{st.group || "Sin Grupo"}</span>
+                          <span className="text-[10px] text-[#A89F8D]">✎</span>
+                        </button>
                       </td>
                       <td className="p-2 text-center">
-                        <button
-                          onClick={() => handleDeleteStudent(st.username)}
-                          className="p-1 rounded hover:bg-red-950/60 text-[#A89F8D] hover:text-red-400 cursor-pointer transition-colors"
-                          title="Eliminar estudiante"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => {
+                              setStudentToChangeGroup(st);
+                              setCustomNewGroupName("");
+                            }}
+                            className="px-2 py-1 rounded bg-[#1f2c24] hover:bg-[#273b2f] border border-[#3b4e42] text-[#8FA698] hover:text-[#FAF6EE] text-[10px] font-mono cursor-pointer transition-colors"
+                          >
+                            Mover
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStudent(st.username)}
+                            className="p-1 rounded hover:bg-red-950/60 text-[#A89F8D] hover:text-red-400 cursor-pointer transition-colors"
+                            title="Eliminar estudiante"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1449,10 +1518,10 @@ export default function AdminDashboardPage() {
               </table>
             )}
 
-            {/* TAB: ESTADÍSTICAS Y DISTRIBUCIÓN */}
+            {/* TAB: ESTADÍSTICAS */}
             {activeTab === "stats" && (
               <div className="p-6 space-y-6 max-w-4xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-[#1b2620] p-4 rounded-xl border border-[rgba(217,203,182,0.12)] space-y-1">
                     <span className="text-[11px] font-mono text-[#8FA698] uppercase">Aprobados (≥ 3.0)</span>
                     <div className="text-2xl font-bold font-serif text-[#a5e0b8]">{groupStats.passing}</div>
@@ -1462,11 +1531,6 @@ export default function AdminDashboardPage() {
                     <span className="text-[11px] font-mono text-[#D4AF37] uppercase">Reprobados (&lt; 3.0)</span>
                     <div className="text-2xl font-bold font-serif text-[#fca5a5]">{groupStats.failing}</div>
                     <p className="text-[10px] text-[#A89F8D]">{100 - groupStats.passingPct}% del grupo seleccionado</p>
-                  </div>
-                  <div className="bg-[#1b2620] p-4 rounded-xl border border-[rgba(217,203,182,0.12)] space-y-1">
-                    <span className="text-[11px] font-mono text-red-400 uppercase">En Riesgo Académico</span>
-                    <div className="text-2xl font-bold font-serif text-red-300">{groupStats.atRiskCount}</div>
-                    <p className="text-[10px] text-[#A89F8D]">Baja nota (&lt; 3.0) o asistencia (&lt; 80%)</p>
                   </div>
                 </div>
 
@@ -1483,7 +1547,6 @@ export default function AdminDashboardPage() {
                           <th className="py-2 text-center">Total Estudiantes</th>
                           <th className="py-2 text-center">Promedio</th>
                           <th className="py-2 text-center">Aprobados</th>
-                          <th className="py-2 text-center">En Riesgo</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[rgba(217,203,182,0.06)] font-mono">
@@ -1492,17 +1555,14 @@ export default function AdminDashboardPage() {
                           let sum = 0;
                           let counted = 0;
                           let pass = 0;
-                          let risk = 0;
 
                           grpStudents.forEach((s) => {
                             const avg = getStudentAverage(s.grades);
-                            const { pct } = getStudentAttendanceStats(s.attendance);
                             if (avg !== null) {
                               sum += avg;
                               counted++;
                               if (avg >= 3.0) pass++;
                             }
-                            if ((avg !== null && avg < 3.0) || pct < 80) risk++;
                           });
 
                           const grpAvg = counted > 0 ? (sum / counted).toFixed(2) : "—";
@@ -1513,7 +1573,6 @@ export default function AdminDashboardPage() {
                               <td className="py-2.5 text-center text-[#A89F8D]">{grpStudents.length}</td>
                               <td className="py-2.5 text-center font-bold text-[#D4AF37]">{grpAvg}</td>
                               <td className="py-2.5 text-center text-[#a5e0b8]">{pass}</td>
-                              <td className="py-2.5 text-center text-red-300">{risk}</td>
                             </tr>
                           );
                         })}
@@ -1542,6 +1601,112 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </main>
+
+      {/* ======================================================== */}
+      {/* MODAL: CAMBIAR ESTUDIANTE DE GRUPO (Dedicado y Claro) */}
+      {/* ======================================================== */}
+      {studentToChangeGroup && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[#223028] border border-[#3b4e42] flex items-center justify-center text-[#8FA698]">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Cambiar Grupo de Estudiante</h2>
+                  <p className="text-[10px] text-[#A89F8D]">Reasignar curso o grupo académico</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setStudentToChangeGroup(null)}
+                className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Student Info Card */}
+            <div className="bg-[#121914] p-3.5 rounded-xl border border-[rgba(217,203,182,0.08)] flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-semibold text-[#FAF6EE]">{studentToChangeGroup.fullName}</h3>
+                <p className="text-[10px] font-mono text-[#A89F8D]">{studentToChangeGroup.username} · {studentToChangeGroup.program || "UNAL"}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-[9px] font-mono text-[#A89F8D] block uppercase">Grupo Actual:</span>
+                <span className="px-2 py-0.5 rounded bg-[#1e2a22] border border-[#3b4e42] text-xs font-mono font-bold text-[#8FA698]">
+                  {studentToChangeGroup.group || "Sin Grupo"}
+                </span>
+              </div>
+            </div>
+
+            {/* Option 1: Select from existing groups */}
+            <div className="space-y-2 text-xs">
+              <label className="text-[#A89F8D] font-mono uppercase text-[11px] block">
+                Selecciona el nuevo grupo destino:
+              </label>
+              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                {groups.map((grp) => {
+                  const isCurrent = studentToChangeGroup.group === grp;
+                  const count = students.filter((s) => s.group === grp).length;
+                  return (
+                    <button
+                      key={grp}
+                      onClick={() => handleAssignStudentToGroup(studentToChangeGroup.username, grp)}
+                      disabled={isCurrent}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        isCurrent
+                          ? "bg-[#162019] border-[#2d4234] opacity-50 cursor-not-allowed"
+                          : "bg-[#1e2c23] hover:bg-[#283c30] border-[#3b4e42] hover:border-[#8FA698] text-[#FAF6EE]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-mono font-bold text-xs">{grp}</span>
+                        {isCurrent && <span className="text-[9px] text-[#8FA698]">(Actual)</span>}
+                      </div>
+                      <span className="text-[10px] text-[#A89F8D] font-mono mt-1">
+                        {count} estudiante(s)
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Option 2: Type a brand new group */}
+            <div className="space-y-2 pt-2 border-t border-[rgba(217,203,182,0.1)] text-xs">
+              <label className="text-[#A89F8D] block text-[11px]">O escribir un nuevo grupo:</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="ej: GEA 26"
+                  value={customNewGroupName}
+                  onChange={(e) => setCustomNewGroupName(e.target.value)}
+                  className="academic-input flex-1 h-9 rounded-md px-3 font-mono bg-[#121914]"
+                />
+                <button
+                  onClick={() => handleAssignStudentToGroup(studentToChangeGroup.username, customNewGroupName)}
+                  disabled={!customNewGroupName.trim()}
+                  className="academic-btn-primary h-9 px-4 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer disabled:opacity-50"
+                >
+                  Asignar
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-2">
+              <button
+                onClick={() => setStudentToChangeGroup(null)}
+                className="h-8 px-4 rounded-md text-xs text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL: Nuevo Estudiante */}
       {showAddStudentModal && (
@@ -1683,47 +1848,110 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* MODAL: Eliminar Grupo */}
+      {/* MODAL: Eliminar Uno o Múltiples Grupos */}
       {showDeleteGroupModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.25)] rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
-              <h2 className="text-sm font-serif font-bold text-red-300">Eliminar Grupo</h2>
+              <div>
+                <h2 className="text-sm font-serif font-bold text-red-300">Eliminar Grupos</h2>
+                <p className="text-[10px] text-[#A89F8D]">Selecciona uno o más grupos para eliminar</p>
+              </div>
               <button onClick={() => setShowDeleteGroupModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div>
-                <label className="text-[#A89F8D] block mb-1">Grupo a eliminar:</label>
-                <select
-                  value={groupToDelete}
-                  onChange={(e) => setGroupToDelete(e.target.value)}
-                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15] text-[#FAF6EE]"
+              {/* Quick Select/Deselect All */}
+              <div className="flex items-center justify-between text-[11px] font-mono border-b border-[rgba(217,203,182,0.06)] pb-1.5">
+                <span className="text-[#A89F8D]">Grupos disponibles ({groups.length}):</span>
+                <button
+                  type="button"
+                  onClick={toggleSelectAllGroupsToDelete}
+                  className="text-[#8FA698] hover:underline cursor-pointer"
                 >
-                  {groups.map((g) => (
-                    <option key={g} value={g}>
-                      {g} ({students.filter((s) => s.group === g).length} estudiantes)
-                    </option>
-                  ))}
-                </select>
+                  {groupsToDelete.length === groups.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
+                </button>
               </div>
 
-              <div>
-                <label className="text-[#A89F8D] block mb-1">Reasignar estudiantes a:</label>
-                <select
-                  value={groupReassignTarget}
-                  onChange={(e) => setGroupReassignTarget(e.target.value)}
-                  className="academic-input w-full h-9 rounded-md px-3 font-mono bg-[#131a15] text-[#FAF6EE]"
-                >
-                  <option value="">-- Sin Grupo / General --</option>
-                  {groups
-                    .filter((g) => g !== groupToDelete)
-                    .map((g) => (
-                      <option key={g} value={g}>
-                        {g}
-                      </option>
-                    ))}
-                </select>
+              {/* Group Checkbox List */}
+              <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                {groups.map((grp) => {
+                  const isChecked = groupsToDelete.includes(grp);
+                  const count = students.filter((s) => s.group === grp).length;
+                  return (
+                    <label
+                      key={grp}
+                      className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
+                        isChecked
+                          ? "bg-red-950/40 border-red-700/60 text-red-200"
+                          : "bg-[#131a15] border-[#223028] text-[#EDE5D8] hover:border-[#3b4e42]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleGroupToDelete(grp)}
+                          className="accent-red-600 cursor-pointer"
+                        />
+                        <span className="font-mono font-bold">{grp}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-[#A89F8D]">
+                        {count} estudiante(s)
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* What to do with students */}
+              <div className="space-y-2 pt-2 border-t border-[rgba(217,203,182,0.1)]">
+                <label className="text-[#A89F8D] font-mono uppercase text-[10px] block">
+                  ¿Qué hacer con los estudiantes de los grupos eliminados?
+                </label>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer">
+                    <input
+                      type="radio"
+                      name="groupDeleteAction"
+                      checked={groupDeleteAction === "reassign"}
+                      onChange={() => setGroupDeleteAction("reassign")}
+                      className="accent-[#8FA698]"
+                    />
+                    <span>Reasignar a otro grupo</span>
+                  </label>
+
+                  {groupDeleteAction === "reassign" && (
+                    <div className="pl-5">
+                      <select
+                        value={groupReassignTarget}
+                        onChange={(e) => setGroupReassignTarget(e.target.value)}
+                        className="academic-input w-full h-8 px-2.5 font-mono text-xs bg-[#131a15] text-[#FAF6EE] rounded"
+                      >
+                        <option value="">-- Sin Grupo / General --</option>
+                        {groups
+                          .filter((g) => !groupsToDelete.includes(g))
+                          .map((g) => (
+                            <option key={g} value={g}>
+                              {g}
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <label className="flex items-center gap-2 text-xs text-red-300 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="groupDeleteAction"
+                      checked={groupDeleteAction === "delete-students"}
+                      onChange={() => setGroupDeleteAction("delete-students")}
+                      className="accent-red-600"
+                    />
+                    <span>Eliminar también a todos sus estudiantes de la plataforma</span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -1735,22 +1963,23 @@ export default function AdminDashboardPage() {
                 Cancelar
               </button>
               <button
-                onClick={handleDeleteGroup}
-                className="h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider bg-red-800 hover:bg-red-700 text-white cursor-pointer"
+                onClick={handleExecuteDeleteGroups}
+                disabled={groupsToDelete.length === 0}
+                className="h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider bg-red-800 hover:bg-red-700 text-white cursor-pointer disabled:opacity-40"
               >
-                Eliminar Grupo
+                Eliminar {groupsToDelete.length > 0 ? `(${groupsToDelete.length})` : ""}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL: Mover Grupo Masivo */}
+      {/* MODAL: Mover Grupo Masivo (Selección Múltiple) */}
       {showMoveGroupModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
           <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
-              <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Cambiar de Grupo</h2>
+              <h2 className="text-sm font-serif font-bold text-[#FAF6EE]">Mover Estudiantes de Grupo</h2>
               <button onClick={() => setShowMoveGroupModal(false)} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
             </div>
 
