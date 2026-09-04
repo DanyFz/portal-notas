@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
   const [editQuizPassInput, setEditQuizPassInput] = useState("");
   const [colToDelete, setColToDelete] = useState("");
   const [newGroupNameInput, setNewGroupNameInput] = useState("");
-  
+
   // Multi-group deletion state
   const [groupsToDelete, setGroupsToDelete] = useState<string[]>([]);
   const [groupDeleteAction, setGroupDeleteAction] = useState<"reassign" | "delete-students">("reassign");
@@ -853,11 +853,10 @@ export default function AdminDashboardPage() {
       {/* Save Toast Notification */}
       {saveMessage && (
         <div
-          className={`mx-3 sm:mx-6 mt-3 p-3 rounded-lg border text-xs flex items-center justify-between animate-fadeIn ${
-            saveMessage.type === "success"
+          className={`mx-3 sm:mx-6 mt-3 p-3 rounded-lg border text-xs flex items-center justify-between animate-fadeIn ${saveMessage.type === "success"
               ? "bg-[#182a20] border-[#2f553f] text-[#a5e0b8]"
               : "bg-red-950/60 border-red-800 text-red-300"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -980,11 +979,10 @@ export default function AdminDashboardPage() {
           <div className="flex items-center bg-[#17211b] p-1 rounded-lg border border-[rgba(217,203,182,0.12)] overflow-x-auto max-w-full no-scrollbar shrink-0">
             <button
               onClick={() => setActiveTab("grades")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === "grades"
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${activeTab === "grades"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
-              }`}
+                }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
@@ -993,11 +991,10 @@ export default function AdminDashboardPage() {
             </button>
             <button
               onClick={() => setActiveTab("attendance")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === "attendance"
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${activeTab === "attendance"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
-              }`}
+                }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -1006,11 +1003,10 @@ export default function AdminDashboardPage() {
             </button>
             <button
               onClick={() => setActiveTab("students")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === "students"
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${activeTab === "students"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
-              }`}
+                }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
@@ -1019,11 +1015,10 @@ export default function AdminDashboardPage() {
             </button>
             <button
               onClick={() => setActiveTab("stats")}
-              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === "stats"
+              className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${activeTab === "stats"
                   ? "bg-[#25362c] text-[#FAF6EE] shadow-sm font-semibold"
                   : "text-[#A89F8D] hover:text-[#EDE5D8]"
-              }`}
+                }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
@@ -1190,9 +1185,8 @@ export default function AdminDashboardPage() {
                                 setEditQuizPassInput(quizPasswords[col] || "");
                                 setShowQuizPassModal(true);
                               }}
-                              className={`p-0.5 rounded hover:bg-[#25362c] cursor-pointer transition-colors ${
-                                hasPass ? "text-[#8FA698]" : "text-[#A89F8D]/30 hover:text-[#A89F8D]"
-                              }`}
+                              className={`p-0.5 rounded hover:bg-[#25362c] cursor-pointer transition-colors ${hasPass ? "text-[#8FA698]" : "text-[#A89F8D]/30 hover:text-[#A89F8D]"
+                                }`}
                               title={
                                 hasPass
                                   ? `Contraseña de asistencia: "${quizPasswords[col]}". Clic para editar.`
@@ -1231,9 +1225,8 @@ export default function AdminDashboardPage() {
                       return (
                         <tr
                           key={st.username}
-                          className={`transition-colors group ${
-                            isSelected ? "bg-[#203326]" : "hover:bg-[#1f2d24]/60"
-                          }`}
+                          className={`transition-colors group ${isSelected ? "bg-[#203326]" : "hover:bg-[#1f2d24]/60"
+                            }`}
                         >
                           {/* Selection Checkbox */}
                           <td className="p-2 text-center border-r border-[rgba(217,203,182,0.06)]">
@@ -1296,13 +1289,12 @@ export default function AdminDashboardPage() {
                                   value={displayVal}
                                   onChange={(e) => handleGradeChange(st.username, col, e.target.value)}
                                   placeholder="—"
-                                  className={`w-full h-7 text-center font-mono text-xs rounded transition-all focus:outline-none focus:ring-1 focus:ring-[#8FA698] ${
-                                    isPassing
+                                  className={`w-full h-7 text-center font-mono text-xs rounded transition-all focus:outline-none focus:ring-1 focus:ring-[#8FA698] ${isPassing
                                       ? "bg-[#1b2b21] text-[#9ae6b4] font-bold"
                                       : isFailing
-                                      ? "bg-[#2d1b1b] text-[#feb2b2] font-bold"
-                                      : "bg-[#141b16] text-[#A89F8D]"
-                                  }`}
+                                        ? "bg-[#2d1b1b] text-[#feb2b2] font-bold"
+                                        : "bg-[#141b16] text-[#A89F8D]"
+                                    }`}
                                 />
                               </td>
                             );
@@ -1312,11 +1304,10 @@ export default function AdminDashboardPage() {
                           <td className="p-2 px-4 text-center font-mono font-bold text-xs bg-[#1a251e] border-r border-[rgba(217,203,182,0.1)]">
                             {avg !== null ? (
                               <span
-                                className={`px-2 py-0.5 rounded ${
-                                  avg >= 3.0
+                                className={`px-2 py-0.5 rounded ${avg >= 3.0
                                     ? "text-[#a5e0b8] bg-[#1d3527]"
                                     : "text-[#fca5a5] bg-red-950/60"
-                                }`}
+                                  }`}
                               >
                                 {avg.toFixed(2)}
                               </span>
@@ -1425,9 +1416,8 @@ export default function AdminDashboardPage() {
                     return (
                       <tr
                         key={st.username}
-                        className={`transition-colors group ${
-                          isSelected ? "bg-[#203326]" : "hover:bg-[#1f2d24]/60"
-                        }`}
+                        className={`transition-colors group ${isSelected ? "bg-[#203326]" : "hover:bg-[#1f2d24]/60"
+                          }`}
                       >
                         <td className="p-2 text-center border-r border-[rgba(217,203,182,0.06)]">
                           <input
@@ -1467,15 +1457,14 @@ export default function AdminDashboardPage() {
                             >
                               <button
                                 onClick={() => handleAttendanceToggle(st.username, col)}
-                                className={`w-8 h-7 rounded font-mono text-xs font-bold transition-all cursor-pointer ${
-                                  status === "presente"
+                                className={`w-8 h-7 rounded font-mono text-xs font-bold transition-all cursor-pointer ${status === "presente"
                                     ? "bg-[#183624] text-[#a5e0b8] border border-[#2f6645]"
                                     : status === "excusa"
-                                    ? "bg-amber-950/80 text-amber-300 border border-amber-700/50"
-                                    : status === "ausente"
-                                    ? "bg-red-950/80 text-red-300 border border-red-800/50"
-                                    : "bg-[#1f2c23] text-[#A89F8D] border border-[rgba(217,203,182,0.15)] hover:border-[#7A8F73]"
-                                }`}
+                                      ? "bg-amber-950/80 text-amber-300 border border-amber-700/50"
+                                      : status === "ausente"
+                                        ? "bg-red-950/80 text-red-300 border border-red-800/50"
+                                        : "bg-[#1f2c23] text-[#A89F8D] border border-[rgba(217,203,182,0.15)] hover:border-[#7A8F73]"
+                                  }`}
                                 title={`Clic para alternar: ${status.toUpperCase()} (P = Presente, A = Ausente [Bloquea registro del estudiante], E = Excusa, — = Pendiente)`}
                               >
                                 {status === "presente" ? "P" : status === "excusa" ? "E" : status === "ausente" ? "A" : "—"}
@@ -1487,13 +1476,12 @@ export default function AdminDashboardPage() {
                         {/* Total Faltas */}
                         <td className="p-2 px-3 text-center font-mono font-bold text-xs bg-[#1a251e] border-r border-[rgba(217,203,182,0.1)]">
                           <span
-                            className={`px-2 py-0.5 rounded ${
-                              absent === 0
+                            className={`px-2 py-0.5 rounded ${absent === 0
                                 ? "text-[#a5e0b8] bg-[#1d3527]"
                                 : absent > 3
-                                ? "text-red-300 bg-red-950"
-                                : "text-amber-300 bg-amber-950"
-                            }`}
+                                  ? "text-red-300 bg-red-950"
+                                  : "text-amber-300 bg-amber-950"
+                              }`}
                           >
                             {absent}
                           </span>
@@ -1720,7 +1708,7 @@ export default function AdminDashboardPage() {
       </main>
 
       {/* ======================================================== */}
-      {/* MODAL: CAMBIAR ESTUDIANTE DE GRUPO (Dedicado y Claro) */}
+      {/* MODAL: CAMBIAR ESTUDIANTE DE GRUPO  */}
       {/* ======================================================== */}
       {studentToChangeGroup && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
@@ -1773,11 +1761,10 @@ export default function AdminDashboardPage() {
                       key={grp}
                       onClick={() => handleAssignStudentToGroup(studentToChangeGroup.username, grp)}
                       disabled={isCurrent}
-                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        isCurrent
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${isCurrent
                           ? "bg-[#162019] border-[#2d4234] opacity-50 cursor-not-allowed"
                           : "bg-[#1e2c23] hover:bg-[#283c30] border-[#3b4e42] hover:border-[#8FA698] text-[#FAF6EE]"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between w-full">
                         <span className="font-mono font-bold text-xs">{grp}</span>
@@ -1998,11 +1985,10 @@ export default function AdminDashboardPage() {
                   return (
                     <label
                       key={grp}
-                      className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
-                        isChecked
+                      className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${isChecked
                           ? "bg-red-950/40 border-red-700/60 text-red-200"
                           : "bg-[#131a15] border-[#223028] text-[#EDE5D8] hover:border-[#3b4e42]"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <input
@@ -2295,11 +2281,10 @@ export default function AdminDashboardPage() {
                         setSelectedQuizForPass(col);
                         setEditQuizPassInput(quizPasswords[col] || "");
                       }}
-                      className={`p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                        isSelected
+                      className={`p-2.5 rounded-lg border transition-all cursor-pointer flex items-center justify-between gap-3 ${isSelected
                           ? "bg-[#223328] border-[#7A8F73] text-[#FAF6EE]"
                           : "bg-[#131a15] border-[#202d25] text-[#EDE5D8] hover:border-[#35483b]"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="font-mono font-bold text-xs">{col}</span>
