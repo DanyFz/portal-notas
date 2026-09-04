@@ -33,6 +33,18 @@ export async function POST(req: NextRequest) {
     }
 
     const currentStudent = data.students[studentIndex];
+    const currentStatus = currentStudent.attendance?.[cleanQuiz];
+
+    // If teacher explicitly set the student as "ausente", block self-registration
+    if (currentStatus === "ausente") {
+      return NextResponse.json(
+        {
+          error: "El docente ha registrado tu estado como Ausente para esta sesión. Solo el docente puede modificar este registro.",
+          isBlocked: true,
+        },
+        { status: 403 }
+      );
+    }
 
     // Check required password for this quiz/column
     const requiredPassword = (data.quizPasswords?.[cleanQuiz] || "").trim();

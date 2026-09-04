@@ -273,10 +273,17 @@ export default function AdminDashboardPage() {
         if (s.username.toLowerCase() === studentUsername.toLowerCase()) {
           const updatedGrades = { ...(s.grades || {}), [col]: parsed };
           const updatedAttendance = { ...(s.attendance || {}) };
+          const currentAtt = s.attendance?.[col];
+
           if (parsed === 0) {
-            updatedAttendance[col] = "ausente";
-          } else if (parsed !== null) {
-            updatedAttendance[col] = "presente";
+            // Only mark as ausente if the student has NOT already registered attendance
+            if (currentAtt !== "presente") {
+              updatedAttendance[col] = "ausente";
+            }
+          } else if (parsed !== null && parsed > 0) {
+            if (currentAtt !== "excusa") {
+              updatedAttendance[col] = "presente";
+            }
           } else if (trimmed.toLowerCase() === "excusa" || trimmed.toLowerCase() === "e") {
             updatedAttendance[col] = "excusa";
           }
@@ -296,11 +303,12 @@ export default function AdminDashboardPage() {
     setStudents((prev) =>
       prev.map((s) => {
         if (s.username.toLowerCase() === studentUsername.toLowerCase()) {
-          const current = s.attendance?.[col] || "ausente";
+          const current = s.attendance?.[col] || "pendiente";
           let next = "presente";
-          if (current === "presente") next = "ausente";
+          if (current === "pendiente") next = "presente";
+          else if (current === "presente") next = "ausente";
           else if (current === "ausente") next = "excusa";
-          else if (current === "excusa") next = "presente";
+          else if (current === "excusa") next = "pendiente";
 
           const updatedAttendance = { ...(s.attendance || {}), [col]: next };
           return { ...s, attendance: updatedAttendance };
@@ -387,7 +395,7 @@ export default function AdminDashboardPage() {
       prev.map((s) => ({
         ...s,
         grades: { ...(s.grades || {}), [col]: null },
-        attendance: { ...(s.attendance || {}), [col]: "ausente" },
+        attendance: { ...(s.attendance || {}), [col]: "pendiente" },
       }))
     );
 
@@ -615,7 +623,7 @@ export default function AdminDashboardPage() {
     const defaultAttendance: Record<string, string> = {};
     evaluationColumns.forEach((col) => {
       defaultGrades[col] = null;
-      defaultAttendance[col] = "ausente";
+      defaultAttendance[col] = "pendiente";
     });
 
     const targetGroup = newStudent.group.trim() || (selectedGroup !== "ALL" ? selectedGroup : groups[0] || "GEA 24");
@@ -1444,7 +1452,7 @@ export default function AdminDashboardPage() {
 
                         {/* Interactive Attendance Toggle Badges */}
                         {attendanceColumns.map((col) => {
-                          const status = st.attendance?.[col] || "ausente";
+                          const status = st.attendance?.[col] || "pendiente";
                           return (
                             <td
                               key={col}
@@ -1457,11 +1465,13 @@ export default function AdminDashboardPage() {
                                     ? "bg-[#183624] text-[#a5e0b8] border border-[#2f6645]"
                                     : status === "excusa"
                                     ? "bg-amber-950/80 text-amber-300 border border-amber-700/50"
-                                    : "bg-red-950/80 text-red-300 border border-red-800/50"
+                                    : status === "ausente"
+                                    ? "bg-red-950/80 text-red-300 border border-red-800/50"
+                                    : "bg-[#1f2c23] text-[#A89F8D] border border-[rgba(217,203,182,0.15)] hover:border-[#7A8F73]"
                                 }`}
-                                title={`Clic para alternar: ${status.toUpperCase()} (P = Presente, E = Excusa, A = Ausente)`}
+                                title={`Clic para alternar: ${status.toUpperCase()} (P = Presente, A = Ausente [Bloquea registro del estudiante], E = Excusa, — = Pendiente)`}
                               >
-                                {status === "presente" ? "P" : status === "excusa" ? "E" : "A"}
+                                {status === "presente" ? "P" : status === "excusa" ? "E" : status === "ausente" ? "A" : "—"}
                               </button>
                             </td>
                           );

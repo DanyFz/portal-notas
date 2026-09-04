@@ -268,26 +268,31 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {gradeEntries.map(([quiz, grade]) => (
-                      <tr key={quiz} className="hover:bg-[#223028] transition-colors">
-                        <td className="py-2.5 px-3 font-medium text-[#EDE5D8]">{quiz}</td>
-                        <td className="py-2.5 px-3 text-right">
-                          {grade === null ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#C8B99D]/15 text-[#C8B99D] border border-[#C8B99D]/25">
-                              Pendiente
-                            </span>
-                          ) : grade === 0 ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#d9534f]/15 text-[#d9534f] border border-[#d9534f]/25">
-                              0.0 — Ausente
-                            </span>
-                          ) : (
-                            <span className={`font-bold font-mono ${grade >= 3.0 ? 'text-[#7A8F73]' : 'text-[#d9534f]'}`}>
-                              {grade.toFixed(1)}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {gradeEntries.map(([quiz, grade]) => {
+                      const att = student.attendance?.[quiz];
+                      const isPresent = att === "presente";
+
+                      return (
+                        <tr key={quiz} className="hover:bg-[#223028] transition-colors">
+                          <td className="py-2.5 px-3 font-medium text-[#EDE5D8]">{quiz}</td>
+                          <td className="py-2.5 px-3 text-right">
+                            {grade === null ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#C8B99D]/15 text-[#C8B99D] border border-[#C8B99D]/25">
+                                Pendiente
+                              </span>
+                            ) : grade === 0 && !isPresent ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#d9534f]/15 text-[#d9534f] border border-[#d9534f]/25">
+                                0.0 — Ausente
+                              </span>
+                            ) : (
+                              <span className={`font-bold font-mono ${grade >= 3.0 ? 'text-[#7A8F73]' : 'text-[#d9534f]'}`}>
+                                {grade.toFixed(1)}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
@@ -337,15 +342,22 @@ export default function DashboardPage() {
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#C8B99D]/15 text-[#C8B99D] border border-[#C8B99D]/25">
                                 ◎ Excusa
                               </span>
+                            ) : status === "ausente" ? (
+                              <span
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#d9534f]/15 text-[#d9534f] border border-[#d9534f]/25"
+                                title="El docente registró tu estado como Ausente (Bloqueado)"
+                              >
+                                ✗ Ausente
+                              </span>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => openRegisterModal(date)}
-                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#d9534f]/15 text-[#d9534f] border border-[#d9534f]/25 hover:bg-[#d9534f]/30 transition-all cursor-pointer"
-                                title="Haz clic para registrar tu asistencia a esta sesión"
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#223028] text-[#C8B99D] border border-[rgba(217,203,182,0.2)] hover:border-[#7A8F73] hover:text-[#FAF6EE] transition-all cursor-pointer"
+                                title="Sesión abierta. Haz clic para registrar tu asistencia"
                               >
-                                <span>✗ Ausente</span>
-                                <span className="text-[10px] text-[#C8B99D] underline ml-1">Registrar</span>
+                                <span>⏳ Pendiente</span>
+                                <span className="text-[10px] text-[#7A8F73] underline ml-1">Registrar</span>
                               </button>
                             )}
                           </td>
@@ -412,10 +424,12 @@ export default function DashboardPage() {
                     className="academic-input w-full h-10 rounded-lg px-3 font-mono bg-[#131a15] text-[#FAF6EE] cursor-pointer"
                   >
                     {availableQuizzes.map((q) => {
-                      const isPres = student.attendance?.[q] === "presente";
+                      const st = student.attendance?.[q];
+                      const isPres = st === "presente";
+                      const isAbs = st === "ausente";
                       return (
                         <option key={q} value={q}>
-                          {q} {isPres ? "— (✓ Ya Registrado)" : "— (Pendiente / Ausente)"}
+                          {q} {isPres ? "— (✓ Registrado)" : isAbs ? "— (✗ Ausente - Bloqueado)" : "— (⏳ Pendiente)"}
                         </option>
                       );
                     })}
@@ -431,6 +445,18 @@ export default function DashboardPage() {
                     <span className="text-[11px] leading-tight">
                       Ya te encuentras registrado como <b>Presente</b> en <b>{selectedQuiz}</b>.
                     </span>
+                  </div>
+                ) : currentQuizStatus === "ausente" ? (
+                  <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-800/40 text-red-200 space-y-1.5 animate-fadeIn">
+                    <div className="flex items-center gap-2 font-bold text-red-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-red-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <span>Registro Bloqueado por el Docente</span>
+                    </div>
+                    <p className="text-[11px] text-[#A89F8D] leading-relaxed">
+                      El docente ha registrado tu estado como <b className="text-red-300">Ausente</b> para esta sesión. Solo el docente puede modificar o justificar esta inasistencia.
+                    </p>
                   </div>
                 ) : (
                   <>
@@ -495,7 +521,7 @@ export default function DashboardPage() {
                   </>
                 )}
 
-                {isSelectedQuizPresent && (
+                {(isSelectedQuizPresent || currentQuizStatus === "ausente") && (
                   <button
                     type="button"
                     onClick={() => setShowAttendanceModal(false)}
