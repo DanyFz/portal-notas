@@ -16,7 +16,7 @@ export default function MainHubPage() {
           </h1>
 
           <p className="text-[#A89F8D] text-sm sm:text-base leading-relaxed">
-            Plataforma institucional para el estudio riguroso de la teoría del curso y la consulta individual de notas y asistencia.
+            Plataforma institucional para el estudio riguroso de la teoría del curso y la consulta individual de notas y asistencia para los grupos GEAS de Daniel Felipe Lopez Zapata.
           </p>
         </header>
 
@@ -134,7 +134,7 @@ export default function MainHubPage() {
         {/* Institutional Footer */}
         <footer className="pt-8 border-t border-[rgba(217,203,182,0.12)] text-center text-xs text-[#A89F8D] space-y-1">
           <p>Universidad Nacional de Colombia · Facultad de Ciencias · Escuela de Matemáticas</p>
-          <p className="text-[11px] text-[#A89F8D]/70">Semestre Académico 2025-1 · Sede Medellín</p>
+          <p className="text-[11px] text-[#A89F8D]/70">Semestre Académico 2025-01 · Sede Medellín</p>
         </footer>
       </div>
     </main>
