@@ -1228,27 +1228,64 @@ export function TheoryDiagram({ id, caption }: TheoryDiagramProps) {
 
     case "inversa_simetria_identidad":
       diagramContent = (
-        <svg viewBox="0 0 460 230" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="30" y1="190" x2="430" y2="190" stroke="#556b5d" strokeWidth="1.5" />
-          <line x1="110" y1="210" x2="110" y2="20" stroke="#556b5d" strokeWidth="1.5" />
+        <svg viewBox="0 0 460 260" className="w-full max-w-lg mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid_inv" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(85,107,93,0.25)" strokeWidth="0.8" />
+            </pattern>
+          </defs>
+          <rect x="30" y="10" width="400" height="240" fill="url(#grid_inv)" rx="10" />
 
-          {/* Identity line y = x */}
-          <line x1="60" y1="200" x2="380" y2="40" stroke="#A89F8D" strokeWidth="1.5" strokeDasharray="4,4" />
-          <text x="385" y="45" fill="#A89F8D" fontSize="10.5">y = x</text>
+          {/* Coordinate Axes with Origin at (120, 200) => 1 unit = 30px */}
+          <line x1="40" y1="200" x2="415" y2="200" stroke="#556b5d" strokeWidth="1.8" />
+          <line x1="120" y1="250" x2="120" y2="15" stroke="#556b5d" strokeWidth="1.8" />
+          <text x="420" y="204" fill="#A89F8D" fontSize="11" fontWeight="bold">x</text>
+          <text x="124" y="20" fill="#A89F8D" fontSize="11" fontWeight="bold">y</text>
 
-          {/* f(x) = sqrt(2x+1) */}
-          <path d="M 80,190 Q 140,110 320,80" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
-          <text x="325" y="80" fill="#7A8F73" fontSize="11" fontWeight="bold">y = f(x)</text>
+          {/* Tick numbers on X */}
+          <text x="120" y="215" fill="#A89F8D" fontSize="9" textAnchor="middle">0</text>
+          <text x="150" y="215" fill="#A89F8D" fontSize="9" textAnchor="middle">1</text>
+          <text x="180" y="215" fill="#A89F8D" fontSize="9" textAnchor="middle">2</text>
+          <text x="210" y="215" fill="#A89F8D" fontSize="9" textAnchor="middle">3</text>
+          <text x="240" y="215" fill="#A89F8D" fontSize="9" textAnchor="middle">4</text>
+          <text x="270" y="215" fill="#A89F8D" fontSize="9" textAnchor="middle">5</text>
+          <text x="300" y="215" fill="#A89F8D" fontSize="9" textAnchor="middle">6</text>
 
-          {/* f^-1(x) = (x^2 - 1)/2 for x >= 0 */}
-          <path d="M 110,160 Q 190,140 220,-20" fill="none" stroke="#dfa745" strokeWidth="2.5" />
-          <text x="230" y="30" fill="#dfa745" fontSize="11" fontWeight="bold">y = f⁻¹(x)</text>
+          {/* Tick numbers on Y */}
+          <text x="110" y="174" fill="#A89F8D" fontSize="9" textAnchor="end">1</text>
+          <text x="110" y="144" fill="#A89F8D" fontSize="9" textAnchor="end">2</text>
+          <text x="110" y="114" fill="#A89F8D" fontSize="9" textAnchor="end">3</text>
+          <text x="110" y="84" fill="#A89F8D" fontSize="9" textAnchor="end">4</text>
+          <text x="110" y="54" fill="#A89F8D" fontSize="9" textAnchor="end">5</text>
 
-          {/* Symmetric points (0, 1) and (1, 0) */}
-          <circle cx="110" cy="140" r="3.5" fill="#7A8F73" />
-          <circle cx="160" cy="190" r="3.5" fill="#dfa745" />
-          <text x="115" y="138" fill="#7A8F73" fontSize="9">(0, 1)</text>
-          <text x="160" y="205" fill="#dfa745" fontSize="9">(1, 0)</text>
+          {/* Line of Symmetry y = x */}
+          <line x1="75" y1="245" x2="310" y2="10" stroke="#EDE5D8" strokeWidth="1.5" strokeDasharray="5,4" opacity="0.8" />
+          <text x="315" y="18" fill="#EDE5D8" fontSize="11" fontWeight="bold">y = x</text>
+
+          {/* Function f(x) = sqrt(2x + 1) */}
+          <path d="M 105,200 Q 130,165 240,110 T 360,70" fill="none" stroke="#7A8F73" strokeWidth="3" />
+          <text x="365" y="70" fill="#7A8F73" fontSize="11.5" fontWeight="bold">y = f(x) = √(2x+1)</text>
+
+          {/* Inverse Function f^-1(x) = (x^2 - 1)/2 for x >= 0 */}
+          <path d="M 120,215 Q 165,190 210,80 T 230,15" fill="none" stroke="#dfa745" strokeWidth="3" />
+          <text x="180" y="30" fill="#dfa745" fontSize="11.5" fontWeight="bold">y = f⁻¹(x) = (x²−1)/2</text>
+
+          {/* Symmetric dashed connecting lines */}
+          <line x1="120" y1="170" x2="150" y2="200" stroke="rgba(217,203,182,0.45)" strokeWidth="1.2" strokeDasharray="3,3" />
+          <circle cx="120" cy="170" r="4" fill="#7A8F73" stroke="#FAF6EE" strokeWidth="1" />
+          <circle cx="150" cy="200" r="4" fill="#dfa745" stroke="#FAF6EE" strokeWidth="1" />
+          <text x="90" y="166" fill="#7A8F73" fontSize="9.5" fontWeight="bold">(0, 1)</text>
+          <text x="155" y="215" fill="#dfa745" fontSize="9.5" fontWeight="bold">(1, 0)</text>
+
+          <line x1="240" y1="110" x2="210" y2="80" stroke="rgba(217,203,182,0.45)" strokeWidth="1.2" strokeDasharray="3,3" />
+          <circle cx="240" cy="110" r="4" fill="#7A8F73" stroke="#FAF6EE" strokeWidth="1" />
+          <circle cx="210" cy="80" r="4" fill="#dfa745" stroke="#FAF6EE" strokeWidth="1" />
+          <text x="248" y="118" fill="#7A8F73" fontSize="9.5" fontWeight="bold">(4, 3)</text>
+          <text x="168" y="76" fill="#dfa745" fontSize="9.5" fontWeight="bold">(3, 4)</text>
+
+          {/* Intersection Point on y = x */}
+          <circle cx="192.4" cy="127.6" r="4.5" fill="#EDE5D8" stroke="#dfa745" strokeWidth="1.5" />
+          <text x="198" y="138" fill="#EDE5D8" fontSize="8.5">Punto fijo sobre y = x</text>
         </svg>
       );
       break;
@@ -1258,29 +1295,36 @@ export function TheoryDiagram({ id, caption }: TheoryDiagramProps) {
     // ══════════════════════════════════════════════════════════════
     case "exponencial_bases_comparacion":
       diagramContent = (
-        <svg viewBox="0 0 460 220" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="30" y1="170" x2="430" y2="170" stroke="#556b5d" strokeWidth="1.5" />
-          <line x1="230" y1="210" x2="230" y2="20" stroke="#556b5d" strokeWidth="1.5" />
-          <text x="435" y="174" fill="#A89F8D" fontSize="10">x</text>
-          <text x="234" y="25" fill="#A89F8D" fontSize="10">y</text>
+        <svg viewBox="0 0 460 230" className="w-full max-w-lg mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid_exp" width="28" height="28" patternUnits="userSpaceOnUse">
+              <path d="M 28 0 L 0 0 0 28" fill="none" stroke="rgba(85,107,93,0.2)" strokeWidth="0.8" />
+            </pattern>
+          </defs>
+          <rect x="25" y="15" width="410" height="205" fill="url(#grid_exp)" rx="10" />
+
+          <line x1="30" y1="170" x2="430" y2="170" stroke="#556b5d" strokeWidth="1.8" />
+          <line x1="230" y1="215" x2="230" y2="20" stroke="#556b5d" strokeWidth="1.8" />
+          <text x="435" y="174" fill="#A89F8D" fontSize="11" fontWeight="bold">x</text>
+          <text x="234" y="25" fill="#A89F8D" fontSize="11" fontWeight="bold">y</text>
 
           {/* Common point (0, 1) */}
-          <circle cx="230" cy="130" r="4" fill="#FAF6EE" />
-          <text x="238" y="132" fill="#FAF6EE" fontSize="10" fontWeight="bold">(0, 1)</text>
+          <circle cx="230" cy="130" r="4.5" fill="#FAF6EE" stroke="#dfa745" strokeWidth="1.5" />
+          <text x="240" y="132" fill="#FAF6EE" fontSize="10" fontWeight="bold">(0, 1)</text>
 
           {/* y = 3^x */}
-          <path d="M 70,168 Q 210,165 260,25" fill="none" stroke="#7A8F73" strokeWidth="2" />
-          <text x="265" y="30" fill="#7A8F73" fontSize="10" fontWeight="bold">y = 3ˣ</text>
+          <path d="M 60,169 Q 205,165 260,25" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
+          <text x="265" y="30" fill="#7A8F73" fontSize="10.5" fontWeight="bold">y = 3ˣ</text>
 
           {/* y = 2^x */}
-          <path d="M 50,168 Q 200,160 290,40" fill="none" stroke="#dfa745" strokeWidth="2" />
-          <text x="295" y="45" fill="#dfa745" fontSize="10" fontWeight="bold">y = 2ˣ</text>
+          <path d="M 40,169 Q 200,160 290,40" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+          <text x="295" y="45" fill="#dfa745" fontSize="10.5" fontWeight="bold">y = 2ˣ</text>
 
           {/* y = (1/2)^x */}
-          <path d="M 170,40 Q 260,160 410,168" fill="none" stroke="#C8B99D" strokeWidth="2" strokeDasharray="4,3" />
-          <text x="130" y="45" fill="#C8B99D" fontSize="10" fontWeight="bold">y = (½)ˣ</text>
+          <path d="M 170,40 Q 260,160 420,169" fill="none" stroke="#C8B99D" strokeWidth="2.5" strokeDasharray="5,3" />
+          <text x="125" y="45" fill="#C8B99D" fontSize="10.5" fontWeight="bold">y = (½)ˣ = 2⁻ˣ</text>
 
-          <text x="50" y="185" fill="#A89F8D" fontSize="9.5">Asíntota horizontal y = 0</text>
+          <text x="45" y="190" fill="#A89F8D" fontSize="10">Asíntota horizontal: y = 0</text>
         </svg>
       );
       break;
@@ -1290,27 +1334,48 @@ export function TheoryDiagram({ id, caption }: TheoryDiagramProps) {
     // ══════════════════════════════════════════════════════════════
     case "logaritmo_exponencial_inversa":
       diagramContent = (
-        <svg viewBox="0 0 460 220" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="30" y1="160" x2="430" y2="160" stroke="#556b5d" strokeWidth="1.5" />
-          <line x1="170" y1="210" x2="170" y2="20" stroke="#556b5d" strokeWidth="1.5" />
+        <svg viewBox="0 0 460 260" className="w-full max-w-lg mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid_log" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(85,107,93,0.25)" strokeWidth="0.8" />
+            </pattern>
+          </defs>
+          <rect x="30" y="10" width="400" height="240" fill="url(#grid_log)" rx="10" />
 
-          {/* y = x */}
-          <line x1="60" y1="200" x2="380" y2="40" stroke="#A89F8D" strokeWidth="1.5" strokeDasharray="4,4" />
-          <text x="385" y="45" fill="#A89F8D" fontSize="10">y = x</text>
+          {/* Coordinate Axes with Origin at (150, 180) */}
+          <line x1="40" y1="180" x2="415" y2="180" stroke="#556b5d" strokeWidth="1.8" />
+          <line x1="150" y1="245" x2="150" y2="15" stroke="#556b5d" strokeWidth="1.8" />
+          <text x="420" y="184" fill="#A89F8D" fontSize="11" fontWeight="bold">x</text>
+          <text x="154" y="20" fill="#A89F8D" fontSize="11" fontWeight="bold">y</text>
 
-          {/* Exponential y = a^x (a > 1) */}
-          <path d="M 50,158 Q 150,150 220,30" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
-          <circle cx="170" cy="115" r="3.5" fill="#7A8F73" />
-          <text x="135" y="115" fill="#7A8F73" fontSize="9.5">(0, 1)</text>
-          <text x="225" y="35" fill="#7A8F73" fontSize="11" fontWeight="bold">y = aˣ</text>
+          {/* Line of Symmetry y = x */}
+          <line x1="85" y1="245" x2="315" y2="15" stroke="#EDE5D8" strokeWidth="1.5" strokeDasharray="5,4" opacity="0.8" />
+          <text x="320" y="22" fill="#EDE5D8" fontSize="11" fontWeight="bold">y = x</text>
 
-          {/* Logarithm y = log_a(x) */}
-          <path d="M 175,200 Q 180,140 370,70" fill="none" stroke="#dfa745" strokeWidth="2.5" />
-          <circle cx="215" cy="160" r="3.5" fill="#dfa745" />
-          <text x="215" y="175" fill="#dfa745" fontSize="9.5">(1, 0)</text>
-          <text x="375" y="75" fill="#dfa745" fontSize="11" fontWeight="bold">y = logₐ(x)</text>
+          {/* Exponential y = e^x */}
+          <path d="M 50,178 Q 145,175 182,93 T 202,18" fill="none" stroke="#7A8F73" strokeWidth="3" />
+          <text x="208" y="25" fill="#7A8F73" fontSize="11.5" fontWeight="bold">y = eˣ</text>
 
-          <text x="185" y="200" fill="#dfa745" fontSize="9">Asíntota x = 0</text>
+          {/* Logarithm y = ln(x) */}
+          <path d="M 152,245 Q 155,155 237,148 T 390,110" fill="none" stroke="#dfa745" strokeWidth="3" />
+          <text x="395" y="112" fill="#dfa745" fontSize="11.5" fontWeight="bold">y = ln(x)</text>
+
+          {/* Symmetric dashed connecting lines */}
+          <line x1="150" y1="148" x2="182" y2="180" stroke="rgba(217,203,182,0.45)" strokeWidth="1.2" strokeDasharray="3,3" />
+          <circle cx="150" cy="148" r="4" fill="#7A8F73" stroke="#FAF6EE" strokeWidth="1" />
+          <circle cx="182" cy="180" r="4" fill="#dfa745" stroke="#FAF6EE" strokeWidth="1" />
+          <text x="120" y="145" fill="#7A8F73" fontSize="9.5" fontWeight="bold">(0, 1)</text>
+          <text x="186" y="196" fill="#dfa745" fontSize="9.5" fontWeight="bold">(1, 0)</text>
+
+          <line x1="182" y1="93" x2="237" y2="148" stroke="rgba(217,203,182,0.45)" strokeWidth="1.2" strokeDasharray="3,3" />
+          <circle cx="182" cy="93" r="4" fill="#7A8F73" stroke="#FAF6EE" strokeWidth="1" />
+          <circle cx="237" cy="148" r="4" fill="#dfa745" stroke="#FAF6EE" strokeWidth="1" />
+          <text x="148" y="90" fill="#7A8F73" fontSize="9.5" fontWeight="bold">(1, e)</text>
+          <text x="242" y="156" fill="#dfa745" fontSize="9.5" fontWeight="bold">(e, 1)</text>
+
+          {/* Asymptotes indicators */}
+          <text x="50" y="195" fill="#7A8F73" fontSize="9">Asíntota horizontal: y = 0</text>
+          <text x="60" y="240" fill="#dfa745" fontSize="9">Asíntota vertical: x = 0</text>
         </svg>
       );
       break;

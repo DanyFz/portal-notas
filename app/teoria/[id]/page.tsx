@@ -77,20 +77,48 @@ function TheoryParagraph({ text }: { text: string }) {
     );
   }
 
-  // Warning / Important note
-  if (/^(Nota|NOTA|Cuidado|Precaución|Importante)/i.test(trimmed) || trimmed.includes("≠")) {
-    if (trimmed.startsWith("• (a + b)² ≠") || trimmed.startsWith("• \\sqrt{a") || trimmed.startsWith("• \\frac{1}{a} +") || trimmed.startsWith("Es muy importante")) {
-      return (
-        <div className="my-3 p-4 callout-note text-[13.5px] leading-relaxed text-[#EDE5D8] space-y-1">
-          <div className="text-[10px] uppercase tracking-widest font-bold text-[#dfa745]">
-            Observación Importante
-          </div>
-          <div>
-            <MathText content={trimmed} />
-          </div>
+  // Mathematical Proof Callout: starts with "Demostración"
+  if (/^Demostración/i.test(trimmed)) {
+    return (
+      <div className="my-3 pl-4 border-l-2 border-[#7A8F73]/60 bg-[#223028]/30 py-2.5 pr-3 rounded-r-lg space-y-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-bold text-[#7A8F73] uppercase tracking-wider">
+            Demostración
+          </span>
         </div>
-      );
-    }
+        <div className="text-[13.5px] leading-relaxed text-[#EDE5D8]/90 font-serif">
+          <MathText content={trimmed.replace(/^Demostración:?\s*/i, "")} />
+        </div>
+      </div>
+    );
+  }
+
+  // Solution Callout: starts with "Solución"
+  if (/^Solución/i.test(trimmed)) {
+    return (
+      <div className="my-2.5 pl-3.5 border-l-2 border-[#dfa745]/50 bg-[#223028]/20 py-2 pr-3 rounded-r-lg space-y-1">
+        <span className="text-[9.5px] font-bold text-[#dfa745] uppercase tracking-wider block">
+          Solución
+        </span>
+        <div className="text-[13.5px] leading-relaxed text-[#EDE5D8]/90">
+          <MathText content={trimmed.replace(/^Solución:?\s*/i, "")} />
+        </div>
+      </div>
+    );
+  }
+
+  // Warning / Important note / Observation
+  if (/^(Nota|NOTA|Observación|Observaciones|Cuidado|Precaución|Importante)/i.test(trimmed) || trimmed.includes("≠")) {
+    return (
+      <div className="my-3 p-3.5 callout-note text-[13.5px] leading-relaxed text-[#EDE5D8] space-y-1 rounded-xl">
+        <div className="text-[10px] uppercase tracking-widest font-bold text-[#dfa745] flex items-center gap-1.5">
+          <span>Observación / Nota</span>
+        </div>
+        <div>
+          <MathText content={trimmed} />
+        </div>
+      </div>
+    );
   }
 
   // List items with bullet or letters
