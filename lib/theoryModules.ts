@@ -1700,5 +1700,686 @@ export const THEORY_MODULES: Record<number, TheoryModule> = {
       },
     ],
   },
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 21: FUNCIONES POR TRAMOS, VALOR ABSOLUTO Y POTENCIAS
+  // ══════════════════════════════════════════════════════════════
+  21: {
+    num: 21,
+    title: "Funciones por Tramos, Valor Absoluto y Potencias",
+    pdfPages: "Págs. 85 – 86",
+    tag: "Funciones",
+    sections: [
+      {
+        heading: "Funciones Definidas por Tramos",
+        level: 1,
+        content: [
+          "Se dice que una función está **definida por tramos** (o a trozos) si está definida mediante expresiones distintas en diferentes subconjuntos de su dominio.",
+          "Ejemplo 1: Consideremos la función:",
+          "$$f(x) = \\begin{cases} -x - 3 & \\text{si } x \\le -2 \\\\ 3 & \\text{si } -2 < x < 1 \\\\ 2 & \\text{si } x = 1 \\\\ \\frac{1}{2}x + \\frac{1}{2} & \\text{si } x > 1 \\end{cases}$$",
+          "• En el intervalo $(-\\infty, -2]$, la gráfica de $f$ es la recta $y = -x - 3$, con pendiente $m = -1$; para $x = -2, y = -1$.",
+          "• En el intervalo $(-2, 1)$, la gráfica de $f$ es la recta horizontal $y = 3$, que corta al eje $y$ en el punto $(0, 3)$.",
+          "• En el intervalo $(1, \\infty)$, la gráfica de $f$ es la recta $y = \\frac{1}{2}x + \\frac{1}{2}$, con pendiente $m = \\frac{1}{2}$; para $x = 1, y = 1$, pero el punto $(1, 1)$ no está en la gráfica, ya que por definición $f(1) = 2$. Por lo tanto, el punto $(1, 2)$ está en la gráfica de $f$.",
+          "[FIGURA: tramos_ejemplo_rectas | Gráfica de la función por tramos con rectas, constante y punto aislado]",
+          "Como la función $f$ está definida para cualquier número real, el dominio de $f$ es $D_f = \\mathbb{R}$.",
+          "A partir de la gráfica se deduce que el conjunto de los posibles valores para $y = f(x)$ es $\\{y \\in \\mathbb{R} \\mid y \\ge -1\\}$. Por lo tanto, el rango de $f$ es el intervalo $[-1, \\infty)$.",
+        ],
+      },
+      {
+        heading: "Función Valor Absoluto",
+        level: 1,
+        content: [
+          "Recordemos que $|x| = \\begin{cases} -x & \\text{si } x < 0 \\\\ x & \\text{si } x \\ge 0 \\end{cases}$. Por lo tanto, la función $f(x) = |x|$ es una función definida por tramos.",
+          "• Si $x < 0$, la gráfica de $f$ es la línea recta $y = -x$.",
+          "• Si $x \\ge 0$, la gráfica de $f$ es la línea recta $y = x$.",
+          "El dominio de $f(x) = |x|$ es $\\mathbb{R}$ y su rango es $[0, \\infty)$.",
+          "Ejemplo 2: Empleando la definición de valor absoluto trace la gráfica de $g(x) = ||x| - 3|$:",
+          "$$g(x) = \\begin{cases} |x| - 3 & \\text{si } |x| - 3 \\ge 0 \\\\ -(|x| - 3) & \\text{si } |x| - 3 < 0 \\end{cases} = \\begin{cases} |x| - 3 & \\text{si } |x| \\ge 3 \\\\ -|x| + 3 & \\text{si } |x| < 3 \\end{cases}$$",
+          "Analizando por casos:",
+          "• $|x| \\ge 3 \\iff x \\le -3 \\text{ ó } x \\ge 3$. Si $x \\le -3, g(x) = -x - 3$; si $x \\ge 3, g(x) = x - 3$.",
+          "• $|x| < 3 \\iff -3 < x < 3$. Si $-3 < x < 0, g(x) = -(-x) + 3 = x + 3$; si $0 \\le x < 3, g(x) = -x + 3$.",
+          "Reuniendo los resultados:",
+          "$$g(x) = \\begin{cases} -x - 3 & \\text{si } x \\le -3 \\\\ x + 3 & \\text{si } -3 < x < 0 \\\\ -x + 3 & \\text{si } 0 \\le x < 3 \\\\ x - 3 & \\text{si } x \\ge 3 \\end{cases}$$",
+          "[FIGURA: valor_absoluto_desplazado | Gráfica en forma de W para la función compuesta con valor absoluto g(x) = ||x| - 3|]",
+        ],
+      },
+      {
+        heading: "Funciones de la Forma f(x) = xⁿ para n ∈ ℕ",
+        level: 1,
+        content: [
+          "• Si $n = 1$, la gráfica corresponde a una línea recta que pasa por el origen con pendiente $m = 1$.",
+          "• Si $n = 2$, la gráfica es una parábola $y = x^2$ que abre hacia arriba con vértice en $(0, 0)$.",
+          "• **Regla general para potencias:**",
+          "  • Cuando $n$ es **par**, las gráficas son similares a la de $y = x^2$, todas pasan por los puntos $(-1, 1)$, $(0, 0)$ y $(1, 1)$, con simetría respecto al eje $y$.",
+          "  • Cuando $n$ es **impar**, las gráficas son similares a la de $y = x^3$, todas pasan por los puntos $(-1, -1)$, $(0, 0)$ y $(1, 1)$, con simetría respecto al origen.",
+          "  • En ambos casos, a medida que $n$ crece, la gráfica se vuelve más horizontal y aplanada para $-1 < x < 1$ y más vertical (\"empinada\") cuando $|x| \\ge 1$.",
+          "[FIGURA: funciones_potencia_pares_impares | Comparación de gráficas de potencias pares x², x⁴ e impares x³, x⁵]",
+        ],
+      },
+      {
+        heading: "Funciones de la Forma f(x) = x^(1/n) para n ∈ ℕ, n ≥ 2",
+        level: 1,
+        content: [
+          "• Si $n$ es un número **par**, el dominio de la función $f(x) = \\sqrt[n]{x}$ es $[0, \\infty)$ y el rango es $[0, \\infty)$. Todas las gráficas contienen los puntos $(0, 0)$ y $(1, 1)$.",
+          "• Si $n$ es un número **impar**, el dominio de la función $f(x) = \\sqrt[n]{x}$ es $\\mathbb{R}$ y el rango es $\\mathbb{R}$. Todas las gráficas pasan por $(-1, -1)$, $(0, 0)$ y $(1, 1)$.",
+          "[FIGURA: funciones_raiz_n | Comportamiento de raíces pares f(x) = √x e impares f(x) = ∛x]",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 22: FUNCIONES PARES E IMPARES, COMBINACIÓN DE FUNCIONES
+  // ══════════════════════════════════════════════════════════════
+  22: {
+    num: 22,
+    title: "Funciones Pares e Impares, Combinación de Funciones",
+    pdfPages: "Págs. 87 – 90",
+    tag: "Funciones",
+    sections: [
+      {
+        heading: "Funciones Pares e Impares",
+        level: 1,
+        content: [
+          "Sea $f$ una función con dominio $D_f$. Decimos que:",
+          "• $f$ es **par** si $f(-x) = f(x)$ para todo $x \\in D_f$. La gráfica de una función par es **simétrica con respecto al eje $y$**.",
+          "• $f$ es **impar** si $f(-x) = -f(x)$ para todo $x \\in D_f$. La gráfica de una función impar es **simétrica con respecto al origen**.",
+          "[FIGURA: funciones_simetria_par_impar | Simetría de funciones pares respecto al eje Y e impares respecto al origen]",
+          "Ejemplo 1: Determine si las siguientes funciones son pares, impares o ninguna de las dos:",
+          "• $f(x) = (x^2 + x^4)^2 \\implies f(-x) = ((-x)^2 + (-x)^4)^2 = (x^2 + x^4)^2 = f(x) \\implies f \\text{ es par}$.",
+          "• $f(x) = 1 - x^7 + x^3 \\implies f(-x) = 1 + x^7 - x^3 \\neq f(x) \\text{ y } \\neq -f(x) \\implies \\text{no es par ni impar}$.",
+          "• $f(x) = \\frac{1}{x^3 - x^9} + 5x + 10x^7 \\implies f(-x) = -f(x) \\implies f \\text{ es impar}$.",
+          "• $f(x) = x^2 + |x| \\implies f(-x) = (-x)^2 + |-x| = x^2 + |x| = f(x) \\implies f \\text{ es par}$.",
+        ],
+      },
+      {
+        heading: "Álgebra de Funciones",
+        level: 1,
+        content: [
+          "Sean $f$ y $g$ funciones con dominios $D_f$ y $D_g$:",
+          "1. $(f \\pm g)(x) = f(x) \\pm g(x)$, con $D_{f \\pm g} = D_f \\cap D_g$.",
+          "2. $(fg)(x) = f(x)g(x)$, con $D_{fg} = D_f \\cap D_g$.",
+          "3. $\\left(\\frac{f}{g}\\right)(x) = \\frac{f(x)}{g(x)}$, con $D_{f/g} = (D_f \\cap D_g) \\setminus \\{x \\in \\mathbb{R} \\mid g(x) = 0\\}$.",
+          "Ejemplo 2: Sean $f(x) = \\frac{5x}{x^2 - 4}$ y $g(x) = \\sqrt{x - 1}$:",
+          "• $D_f = \\mathbb{R} \\setminus \\{-2, 2\\}$ y $D_g = [1, \\infty)$. Intersección: $D_f \\cap D_g = [1, 2) \\cup (2, \\infty)$.",
+          "• $(f + g)(x) = \\frac{5x}{x^2 - 4} + \\sqrt{x - 1}$ en $D_{f+g} = [1, 2) \\cup (2, \\infty)$.",
+          "• $(fg)(x) = \\frac{5x\\sqrt{x - 1}}{x^2 - 4}$ en $D_{fg} = [1, 2) \\cup (2, \\infty)$.",
+          "• $\\left(\\frac{f}{g}\\right)(x) = \\frac{5x}{(x^2 - 4)\\sqrt{x - 1}}$, excluyendo $g(x) = 0 \\implies x = 1$. Así, $D_{f/g} = (1, 2) \\cup (2, \\infty)$.",
+          "Evaluaciones: $(f+g)(5) = \\frac{25}{21} + 2 = \\frac{67}{21}$, $(f-g)(3) = 3 - \\sqrt{2}$, $(fg)(10) = \\frac{25}{16}$, $\\left(\\frac{f}{g}\\right)(4) = \\frac{5\\sqrt{3}}{9}$.",
+        ],
+      },
+      {
+        heading: "Composición de Funciones",
+        level: 1,
+        content: [
+          "Definición: La **función compuesta** de $f$ y $g$, denotada $f \\circ g$, se define por:",
+          "$$(f \\circ g)(x) = f(g(x))$$",
+          "El dominio de $f \\circ g$ está formado por los elementos $x \\in D_g$ tales que $g(x) \\in D_f$:",
+          "$$D_{f \\circ g} = \\{x \\in \\mathbb{R} \\mid x \\in D_g \\land g(x) \\in D_f\\}$$",
+          "[FIGURA: funciones_composicion_maquinas | Diagrama de bloques en cascada para la composición (f ∘ g)(x)]",
+          "Ejemplo 3: Sean $f(x) = x^2$ y $g(x) = \\sqrt{x + 1}$:",
+          "• $(f \\circ g)(x) = f(\\sqrt{x + 1}) = (\\sqrt{x + 1})^2 = x + 1$, con $D_{f \\circ g} = [-1, \\infty)$.",
+          "• $(g \\circ f)(x) = g(x^2) = \\sqrt{x^2 + 1}$, con $D_{g \\circ f} = \\mathbb{R}$.",
+          "• $(f \\circ g)(4) = 5$, $(g \\circ f)(4) = \\sqrt{17}$.",
+          "Ejemplo 4: Si $f(x) = \\frac{1}{x^2}$, entonces $(f \\circ f)(x) = f(1/x^2) = x^4$, con $D_{f \\circ f} = \\mathbb{R} \\setminus \\{0\\}$.",
+          "Ejemplo 6: Exprese $F(x) = \\sqrt{\\frac{1}{x + 1}}$ como composición de 3 funciones: $F(x) = (f \\circ g \\circ h)(x)$:",
+          "$$h(x) = x + 1, \\quad g(x) = \\frac{1}{x}, \\quad f(x) = \\sqrt{x} \\implies f(g(h(x))) = \\sqrt{\\frac{1}{x + 1}}$$",
+        ],
+      },
+      {
+        heading: "Modelado con Composición de Funciones",
+        level: 1,
+        content: [
+          "Ejemplo 7 (Problema de Aplicación): Se infla un globo esférico de modo que su radio crece a razón de $2\\text{ cm/s}$.",
+          "• a) Radio en función del tiempo: $r(t) = 2t$.",
+          "• b) Volumen en función del radio: $v(r) = \\frac{4}{3}\\pi r^3$.",
+          "• c) Composición $v \\circ r$:",
+          "$$(v \\circ r)(t) = v(r(t)) = v(2t) = \\frac{4}{3}\\pi (2t)^3 = \\frac{32\\pi t^3}{3}$$",
+          "La función $v \\circ r$ representa el volumen del globo directamente en función del tiempo $t$.",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 23: FUNCIONES INYECTIVAS E INVERSA DE UNA FUNCIÓN
+  // ══════════════════════════════════════════════════════════════
+  23: {
+    num: 23,
+    title: "Funciones Inyectivas e Inversa de una Función",
+    pdfPages: "Págs. 91 – 94",
+    tag: "Funciones",
+    sections: [
+      {
+        heading: "Funciones Inyectivas (Uno a Uno)",
+        level: 1,
+        content: [
+          "Definición: Una función $f$ con dominio $D_f$ se dice **uno a uno (1-1) o inyectiva** si no existen dos elementos distintos en $D_f$ con la misma imagen:",
+          "$$x_1 \\neq x_2 \\implies f(x_1) \\neq f(x_2) \\quad \\text{ó equivalentemente} \\quad f(x_1) = f(x_2) \\implies x_1 = x_2$$",
+          "Ejemplo 1: $f(x) = x^2$ no es uno a uno porque $f(-2) = f(2) = 4$.",
+          "Teorema: **Prueba de la Recta Horizontal:** Una función $f$ es uno a uno si y sólo si **ninguna recta horizontal corta su gráfica en más de un punto**.",
+          "[FIGURA: prueba_recta_horizontal | Criterio de la recta horizontal para determinar inyectividad]",
+          "Ejemplo 2:",
+          "• 1. $f(x) = \\sqrt{x - 2}$: Toda horizontal corta a lo sumo en un punto $\\implies f$ es uno a uno.",
+          "• 2. $g(x) = |x| - 3$: Existen horizontales que cortan en dos puntos $\\implies g$ no es uno a uno.",
+          "• 3. $h(x) = (x + 1)^3$: Toda recta horizontal corta en un solo punto $\\implies h$ es uno a uno.",
+        ],
+      },
+      {
+        heading: "Inversa de una Función y Propiedades de Cancelación",
+        level: 1,
+        content: [
+          "Definición: Sea $f$ una función uno a uno con dominio $D_f$ y rango $R_f$. La función $f^{-1}$ con dominio $R_f$ y rango $D_f$, definida por:",
+          "$$f^{-1}(y) = x \\iff f(x) = y, \\quad \\forall y \\in R_f$$",
+          "se llama la **función inversa** de $f$.",
+          "Propiedades de Cancelación:",
+          "• $f^{-1}(f(x)) = x, \\quad \\forall x \\in D_f$",
+          "• $f(f^{-1}(y)) = y, \\quad \\forall y \\in R_f$",
+          "Ejemplo 4: Compruebe que $f(x) = \\sqrt[3]{x - 5}$ y $g(x) = x^3 + 5$ son inversas entre sí:",
+          "• $(f \\circ g)(x) = \\sqrt[3]{(x^3 + 5) - 5} = \\sqrt[3]{x^3} = x, \\quad \\forall x \\in \\mathbb{R}$.",
+          "• $(g \\circ f)(x) = (\\sqrt[3]{x - 5})^3 + 5 = (x - 5) + 5 = x, \\quad \\forall x \\in \\mathbb{R}$.",
+          "Por lo tanto, $f^{-1}(x) = x^3 + 5$ y $g^{-1}(x) = \\sqrt[3]{x - 5}$.",
+        ],
+      },
+      {
+        heading: "Método para Hallar la Función Inversa",
+        level: 1,
+        content: [
+          "Para hallar la inversa de $y = f(x)$ uno a uno:",
+          "1. Se escribe $y = f(x)$.",
+          "2. Se despeja la variable $x$ en términos de $y$: $x = f^{-1}(y)$.",
+          "3. Se intercambian $x$ e $y$ para obtener $y = f^{-1}(x)$.",
+          "Ejemplo 5:",
+          "• 1. $f(x) = \\frac{x^7}{3} + 1 \\implies y - 1 = \\frac{x^7}{3} \\implies 3y - 3 = x^7 \\implies x = \\sqrt[7]{3y - 3} \\implies f^{-1}(x) = \\sqrt[7]{3x - 3}$.",
+          "• 2. $g(x) = \\frac{1 + 3x}{5 - 2x} \\implies 5y - 2xy = 1 + 3x \\implies 5y - 1 = (3 + 2y)x \\implies x = \\frac{5y - 1}{3 + 2y} \\implies g^{-1}(x) = \\frac{5x - 1}{3 + 2x}$.",
+        ],
+      },
+      {
+        heading: "Gráfica de la Función Inversa y Simetría respecto a y = x",
+        level: 1,
+        content: [
+          "Si $(a, b)$ pertenece a la gráfica de $f$, entonces $(b, a)$ pertenece a la gráfica de $f^{-1}$. Geométricamente, el punto $(b, a)$ es la reflexión de $(a, b)$ con respecto a la recta **$y = x$**.",
+          "Por lo tanto, la gráfica de $y = f^{-1}(x)$ se obtiene reflejando la gráfica de $y = f(x)$ con respecto a la recta $y = x$.",
+          "[FIGURA: inversa_simetria_identidad | Simetría especular de una función y su inversa respecto a la recta y = x]",
+          "Ejemplo 7: Sea $f(x) = \\sqrt{2x + 1}$:",
+          "• Dominio $D_f = [-1/2, \\infty)$, Rango $R_f = [0, \\infty)$.",
+          "• Despejando: $y^2 = 2x + 1 \\implies x = \\frac{y^2 - 1}{2}, \\; (y \\ge 0) \\implies f^{-1}(x) = \\frac{x^2 - 1}{2}, \\; (x \\ge 0)$.",
+          "• $D_{f^{-1}} = [0, \\infty)$ y $R_{f^{-1}} = [-1/2, \\infty)$.",
+          "Ejemplo 8: Sea $f(x) = \\begin{cases} 2x + 4 & \\text{si } x \\le -1 \\\\ (x + 1)^2 + 2 & \\text{si } x > -1 \\end{cases}$.",
+          "La función es inyectiva en ambos tramos. Despejando $x$:",
+          "• Para $x \\le -1, y \\le 2 \\implies x = \\frac{y - 4}{2}$.",
+          "• Para $x > -1, y > 2 \\implies x = \\sqrt{y - 2} - 1$.",
+          "$$f^{-1}(x) = \\begin{cases} \\frac{x - 4}{2} & \\text{si } x \\le 2 \\\\ \\sqrt{x - 2} - 1 & \\text{si } x > 2 \\end{cases}$$",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 24: FUNCIONES EXPONENCIALES
+  // ══════════════════════════════════════════════════════════════
+  24: {
+    num: 24,
+    title: "Funciones Exponenciales",
+    pdfPages: "Págs. 95 – 98",
+    tag: "Funciones",
+    sections: [
+      {
+        heading: "Definición y Gráfica de la Función Exponencial",
+        level: 1,
+        content: [
+          "Definición: Sea $a > 0$ con $a \\neq 1$. La función $f: \\mathbb{R} \\to \\mathbb{R}$ definida por:",
+          "$$f(x) = a^x$$",
+          "se llama **función exponencial con base $a$**.",
+          "Propiedades de la gráfica:",
+          "• El dominio es $D_f = \\mathbb{R}$.",
+          "• Como $a^x > 0, \\forall x \\in \\mathbb{R}$, el rango es $R_f = (0, \\infty)$.",
+          "• Pasa siempre por el punto $(0, 1)$, pues $a^0 = 1$.",
+          "• Si $a > 1$, la función es estrictamente creciente; a medida que $a$ aumenta, la gráfica se vuelve más empinada para $x > 0$.",
+          "• Si $0 < a < 1$, la función es estrictamente decreciente.",
+          "• Las gráficas de $y = a^x$ e $y = (1/a)^x = a^{-x}$ son reflexiones respecto al eje $y$.",
+          "[FIGURA: exponencial_bases_comparacion | Curvas exponenciales para bases mayores a 1 y entre 0 y 1]",
+          "Ejemplo 1: Trazar $h(x) = -2^{-x} + 1$ a partir de $y = 2^x$:",
+          "1. $y = 2^x$ $\\to$ 2. $y = 2^{-x}$ (reflexión eje $y$) $\\to$ 3. $y = -2^{-x}$ (reflexión eje $x$) $\\to$ 4. $y = -2^{-x} + 1$ (traslación $1$ unidad hacia arriba).",
+        ],
+      },
+      {
+        heading: "Función Exponencial Natural y Número de Euler (e)",
+        level: 1,
+        content: [
+          "La función exponencial natural tiene como base el número irracional **$e \\approx 2.718281828459...$**:",
+          "$$f(x) = e^x$$",
+          "El número $e$ se define como el límite al que se acerca la expresión $\\left(1 + \\frac{1}{n}\\right)^n$ cuando $n \\to \\infty$:",
+          "$$\\begin{matrix} n = 1: & 2.00000000 \\\\ n = 100: & 2.70481383 \\\\ n = 10\\,000: & 2.71814593 \\\\ n = 10\\,000\\,000: & 2.71828169 \\end{matrix}$$",
+          "Como $2 < e < 3$, la curva de $y = e^x$ se ubica estrictamente entre las gráficas de $y = 2^x$ e $y = 3^x$.",
+        ],
+      },
+      {
+        heading: "Modelo de Crecimiento y Decaimiento Exponencial",
+        level: 1,
+        content: [
+          "Si una población crece a una tasa proporcional a su tamaño en cada instante, se modela mediante:",
+          "$$P(t) = P_0 e^{rt}$$",
+          "donde $t$ es el tiempo, $P_0$ es la población inicial en $t = 0$, y $r$ es la tasa relativa de crecimiento (si $r > 0$) o tasa de decaimiento radiactivo (si $r < 0$).",
+          "Ejemplo 2: La población de Itagüí fue de $230\\,000$ habitantes en 2010, con tasa relativa $r = 3\\% = 0.03$ anual.",
+          "• 1. Función: $P(t) = 230\\,000 e^{0.03t}$ ($t$ años desde 2010).",
+          "• 2. Para el año 2025 ($t = 15$): $P(15) = 230\\,000 e^{0.03(15)} \\approx 360\\,712$ habitantes.",
+          "Ejemplo 3: Una sustancia radiactiva de $15\\text{ kg}$ iniciales se desintegra según $m(t) = 15 e^{-0.023t}$.",
+          "• En $t = 60$ días: $m(60) = 15 e^{-0.023(60)} \\approx 3.77\\text{ kg}$.",
+          "Ejemplo 4: En una muestra de $50\\text{ mL}$ con $200\\text{ indiv/mL}$ iniciales ($P_0 = 10\\,000$), la población de protozoarios se duplica cada $5$ horas:",
+          "• Al pasar $15$ horas: $10\\,000 \\cdot 2^3 = 80\\,000$ individuos.",
+          "• Modelo $f(t) = A \\cdot 2^{kt} \\implies A = 10\\,000, \\; k = \\frac{1}{5} \\implies f(t) = 10\\,000 \\cdot 2^{t/5} = 10\\,000 e^{\\frac{\\ln 2}{5}t}$.",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 25: FUNCIONES LOGARÍTMICAS Y PROPIEDADES DE LOS LOGARITMOS
+  // ══════════════════════════════════════════════════════════════
+  25: {
+    num: 25,
+    title: "Funciones Logarítmicas y Propiedades de los Logaritmos",
+    pdfPages: "Págs. 99 – 102",
+    tag: "Funciones",
+    sections: [
+      {
+        heading: "Definición y Gráfica de la Función Logarítmica",
+        level: 1,
+        content: [
+          "Como $f(x) = a^x$ ($a > 0, a \\neq 1$) es uno a uno, su función inversa es la **función logarítmica con base $a$**, denotada $\\log_a$:",
+          "$$\\log_a x = y \\iff a^y = x, \\quad (x > 0, y \\in \\mathbb{R})$$",
+          "\"$\\log_a x$ es el exponente al que se debe elevar la base $a$ para obtener $x$\".",
+          "• Dominio $D_{\\log_a} = (0, \\infty)$ y Rango $R_{\\log_a} = \\mathbb{R}$.",
+          "• Pasa por el punto $(1, 0)$ y tiene asíntota vertical en la recta $x = 0$ (eje $y$).",
+          "[FIGURA: logaritmo_exponencial_inversa | Relación inversa entre la curva exponencial y la curva logarítmica]",
+          "Logaritmos Especiales:",
+          "• **Logaritmo Común:** $\\log x = \\log_{10} x$.",
+          "• **Logaritmo Natural:** $\\ln x = \\log_e x$. Propiedades: $\\ln 1 = 0, \\; \\ln e = 1, \\; \\ln(e^x) = x, \\; e^{\\ln x} = x$.",
+        ],
+      },
+      {
+        heading: "Leyes de los Logaritmos y Cambio de Base",
+        level: 1,
+        content: [
+          "Sean $a > 0, a \\neq 1, x > 0, y > 0$:",
+          "• **1. Logaritmo de un Producto:** $\\log_a(xy) = \\log_a x + \\log_a y$",
+          "• **2. Logaritmo de un Cociente:** $\\log_a\\left(\\frac{x}{y}\\right) = \\log_a x - \\log_a y$",
+          "• **3. Logaritmo de una Potencia:** $\\log_a(x^r) = r \\log_a x, \\quad \\forall r \\in \\mathbb{R}$",
+          "Demostración de 1: $a^{\\log_a x + \\log_a y} = a^{\\log_a x} \\cdot a^{\\log_a y} = xy \\implies \\log_a(xy) = \\log_a x + \\log_a y$.",
+          "¡Cuidado con errores comunes! $\\log_a(x + y) \\neq \\log_a x + \\log_a y$, $\\frac{\\log_a x}{\\log_a y} \\neq \\log_a(x/y)$, $(\\log_a x)^r \\neq r \\log_a x$.",
+          "Teorema: **Fórmula de Cambio de Base:**",
+          "$$\\log_b x = \\frac{\\log_a x}{\\log_a b} = \\frac{\\ln x}{\\ln b}$$",
+          "Ejemplo 6: Condensar en un solo logaritmo:",
+          "$$\\frac{1}{3}\\ln(2x + 1) + \\frac{1}{2}[\\ln(x - 4) - \\ln(x^2 + 5)] = \\ln\\left[\\sqrt[3]{2x + 1} \\cdot \\sqrt{\\frac{x - 4}{x^2 + 5}}\\right]$$",
+        ],
+      },
+      {
+        heading: "Ecuaciones Exponenciales y Logarítmicas",
+        level: 1,
+        content: [
+          "Estrategia general: Aislar el término exponencial/logarítmico, aplicar la función inversa (logaritmo o exponencial) en ambos lados y despejar la incógnita.",
+          "Ejemplos Resueltos:",
+          "• 1. $e^{8 - 3x} = 20 \\implies 8 - 3x = \\ln 20 \\implies x = \\frac{8 - \\ln 20}{3}$.",
+          "• 2. $7^x = 3^{x+1} \\implies x \\ln 7 = (x + 1)\\ln 3 \\implies x(\\ln 7 - \\ln 3) = \\ln 3 \\implies x = \\frac{\\ln 3}{\\ln(7/3)} = \\log_{7/3}(3)$.",
+          "• 3. $e^{2x} - 2e^x - 15 = 0 \\implies (e^x - 5)(e^x + 3) = 0 \\implies e^x = 5 \\implies x = \\ln 5$ (ya que $e^x > 0$).",
+          "• 4. $\\log_2 7 + \\log_2 x = \\log_2 11 + \\log_2(x - 4) \\implies \\log_2(7x) = \\log_2[11(x - 4)] \\implies 7x = 11x - 44 \\implies x = 11$.",
+          "• 5. $\\ln(x - 2) + \\ln(x - 3) = \\ln 2 \\implies \\ln[(x - 2)(x - 3)] = \\ln 2 \\implies x^2 - 5x + 6 = 2 \\implies x^2 - 5x + 4 = 0 \\implies (x - 4)(x - 1) = 0$. Descartamos $x = 1$ por dominio de los logaritmos. La única solución es $x = 4$.",
+        ],
+      },
+      {
+        heading: "Aplicaciones: Vida Media y Modelos Inversos",
+        level: 1,
+        content: [
+          "Ejemplo 8 (Vida Media): Para una masa de $15\\text{ kg}$ con $m(t) = 15 e^{-0.023t}$, la vida media ocurre cuando $m(t) = 15/2$:",
+          "$$15 e^{-0.023t} = \\frac{15}{2} \\iff e^{0.023t} = 2 \\iff t = \\frac{\\ln 2}{0.023} \\approx 30.14 \\text{ días}$$",
+          "Ejemplo 10 (Cultivo de Bacterias): Cepa que se triplica cada $4$ horas. Si en $t = 10\\text{ h}$ hay $300\\,000$ bacterias, ¿en qué instante había $100\\,000$?",
+          "• Como $100\\,000$ es un tercio de $300\\,000$ y la población se triplica cada $4$ horas, debieron haber transcurrido $4$ horas menos:",
+          "$$t = 10 - 4 = 6 \\text{ horas}$$",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 26: FUNCIONES TRIGONOMÉTRICAS DE ÁNGULOS
+  // ══════════════════════════════════════════════════════════════
+  26: {
+    num: 26,
+    title: "Funciones Trigonométricas de Ángulos",
+    pdfPages: "Págs. 103 – 107",
+    tag: "Trigonometría",
+    sections: [
+      {
+        heading: "Ángulos en Posición Estándar y Ángulos Coterminales",
+        level: 1,
+        content: [
+          "Un ángulo está en **posición estándar** si su vértice está en el origen $(0,0)$ y su lado inicial coincide con la dirección positiva del eje $x$.",
+          "• **Rotación positiva:** en sentido contrario a las manecillas del reloj.",
+          "• **Rotación negativa:** en el sentido de las manecillas del reloj.",
+          "• **Ángulos Coterminales:** Dos ángulos en posición estándar son coterminales si sus lados terminales coinciden. Si $\\theta$ es un ángulo, todos sus coterminales tienen la forma $\\theta + 360^\\circ n$ (ó $\\theta + 2\\pi n$), con $n \\in \\mathbb{Z}$.",
+          "Ejemplo 1: Coterminales de $\\theta = 45^\\circ$: $45^\\circ + 360^\\circ = 405^\\circ$, $45^\\circ + 720^\\circ = 765^\\circ$, $45^\\circ - 360^\\circ = -315^\\circ$.",
+        ],
+      },
+      {
+        heading: "Definición de las Funciones Trigonométricas de Ángulos",
+        level: 1,
+        content: [
+          "Sea $\\theta$ un ángulo en posición estándar y sea $P = (x, y) \\neq (0, 0)$ un punto sobre su lado terminal con $r = \\sqrt{x^2 + y^2}$:",
+          "$$\\text{sen } \\theta = \\frac{y}{r}, \\quad \\cos \\theta = \\frac{x}{r}, \\quad \\tan \\theta = \\frac{y}{x} \\; (x \\neq 0)$$",
+          "$$\\cot \\theta = \\frac{x}{y} \\; (y \\neq 0), \\quad \\sec \\theta = \\frac{r}{x} \\; (x \\neq 0), \\quad \\csc \\theta = \\frac{r}{y} \\; (y \\neq 0)$$",
+          "En un triángulo rectángulo agudo:",
+          "$$\\text{sen } \\theta = \\frac{\\text{cateto opuesto}}{\\text{hipotenusa}}, \\quad \\cos \\theta = \\frac{\\text{cateto adyacente}}{\\text{hipotenusa}}, \\quad \\tan \\theta = \\frac{\\text{cateto opuesto}}{\\text{cateto adyacente}}$$",
+          "[FIGURA: triangulo_rectangulo_razones | Definición de las razones trigonométricas en un triángulo rectángulo]",
+        ],
+      },
+      {
+        heading: "Ángulos Notables (30°, 45°, 60°)",
+        level: 1,
+        content: [
+          "Deducción geométrica:",
+          "• **Para $45^\\circ$ ($\\pi/4$):** En un cuadrado de lado $1$, la diagonal mide $\\sqrt{2}$:",
+          "$$\\text{sen}(45^\\circ) = \\frac{\\sqrt{2}}{2}, \\quad \\cos(45^\\circ) = \\frac{\\sqrt{2}}{2}, \\quad \\tan(45^\\circ) = 1, \\quad \\sec(45^\\circ) = \\sqrt{2}$$",
+          "• **Para $30^\\circ$ ($\\pi/6$) y $60^\\circ$ ($\\pi/3$):** En un triángulo equilátero de lado $2$, la altura mide $\\sqrt{3}$:",
+          "$$\\text{sen}(60^\\circ) = \\frac{\\sqrt{3}}{2}, \\quad \\cos(60^\\circ) = \\frac{1}{2}, \\quad \\tan(60^\\circ) = \\sqrt{3}, \\quad \\csc(60^\\circ) = \\frac{2\\sqrt{3}}{3}$$",
+          "$$\\text{sen}(30^\\circ) = \\frac{1}{2}, \\quad \\cos(30^\\circ) = \\frac{\\sqrt{3}}{2}, \\quad \\tan(30^\\circ) = \\frac{\\sqrt{3}}{3}, \\quad \\sec(30^\\circ) = \\frac{2\\sqrt{3}}{3}$$",
+          "[FIGURA: angulos_notables_triangulos_geometricos | Triángulos notables para deducir valores exactos de 30°, 45° y 60°]",
+        ],
+      },
+      {
+        heading: "Ángulo de Referencia y Cuadrantes",
+        level: 1,
+        content: [
+          "El **ángulo de referencia $\\bar{\\theta}$** es el ángulo agudo positivo formado por el lado terminal de $\\theta$ y el eje $x$:",
+          "• Cuadrante I: $\\bar{\\theta} = \\theta$",
+          "• Cuadrante II: $\\bar{\\theta} = 180^\\circ - \\theta = \\pi - \\theta$",
+          "• Cuadrante III: $\\bar{\\theta} = \\theta - 180^\\circ = \\theta - \\pi$",
+          "• Cuadrante IV: $\\bar{\\theta} = 360^\\circ - \\theta = 2\\pi - \\theta$",
+          "[FIGURA: angulo_referencia_cuadrantes | Fórmulas y esquemas del ángulo de referencia en los cuatro cuadrantes]",
+          "Ejemplo 4:",
+          "• $\\cos(7\\pi/3) = \\cos(\\pi/3) = \\frac{1}{2}$.",
+          "• $\\csc(5\\pi/4) = -\\csc(\\pi/4) = -\\sqrt{2}$ (negativo en cuadrante III).",
+          "• $\\cot(-\\pi/4) = -\\cot(\\pi/4) = -1$ (negativo en cuadrante IV).",
+        ],
+      },
+      {
+        heading: "Área de un Triángulo y Paridad Trigonométrica",
+        level: 1,
+        content: [
+          "Teorema: El área $A$ de un triángulo con lados $a, b$ y ángulo comprendido $\\theta$ es:",
+          "$$A = \\frac{1}{2}ab \\; \\text{sen } \\theta$$",
+          "Ejemplo 5: Triángulo isósceles con área $24\\text{ cm}^2$ y ángulo $\\theta = 5\\pi/6$:",
+          "$$A = \\frac{1}{2}a^2 \\text{sen}\\left(\\frac{5\\pi}{6}\\right) = \\frac{1}{2}a^2\\left(\\frac{1}{2}\\right) = 24 \\implies a^2 = 96 \\implies a = \\sqrt{96}\\text{ cm}$$",
+          "Relaciones de paridad (Ángulos $\\theta$ y $-\\theta$):",
+          "• $\\text{sen}(-\\theta) = -\\text{sen}(\\theta), \\quad \\tan(-\\theta) = -\\tan(\\theta), \\quad \\csc(-\\theta) = -\\csc(\\theta), \\quad \\cot(-\\theta) = -\\cot(\\theta)$ (Funciones Impares).",
+          "• $\\cos(-\\theta) = \\cos(\\theta), \\quad \\sec(-\\theta) = \\sec(\\theta)$ (Funciones Pares).",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 27: APLICACIONES DE TRIÁNGULOS, LEY DE SENO Y COSENO
+  // ══════════════════════════════════════════════════════════════
+  27: {
+    num: 27,
+    title: "Aplicaciones de Triángulos Rectángulos, Ley de Seno y Coseno",
+    pdfPages: "Págs. 108 – 112",
+    tag: "Trigonometría",
+    sections: [
+      {
+        heading: "Aplicaciones de Trigonometría en Triángulos Rectángulos",
+        level: 1,
+        content: [
+          "• **Línea de Visión:** Línea recta que une el ojo del observador con el objeto observado.",
+          "• **Ángulo de Elevación:** Ángulo formado entre la horizontal y la línea de visión cuando el objeto está por encima del observador.",
+          "• **Ángulo de Depresión:** Ángulo formado entre la horizontal y la línea de visión cuando el objeto está por debajo del observador.",
+          "[FIGURA: angulo_elevacion_depresion | Ángulos de elevación y depresión respecto a la línea visual horizontal]",
+          "Ejemplo 2 (Altura Edificio Coltejer): Un topógrafo mide un ángulo de elevación de $11^\\circ$ a una distancia de $900\\text{ m}$ de la base:",
+          "$$\\tan(11^\\circ) = \\frac{h}{900} \\implies h = 900\\tan(11^\\circ) \\approx 175 \\text{ metros}$$",
+          "Ejemplo 3 (Cubierta de Nubes): Un reflector apunta verticalmente hacia arriba formando un ángulo de $75^\\circ$ desde el suelo con un observador a $600\\text{ m}$ que ve la luz a $45^\\circ$:",
+          "$$h = (600 - x)\\tan(45^\\circ) = 600 - x \\quad \\text{y} \\quad h = x\\tan(75^\\circ) \\implies h = \\frac{600\\tan(75^\\circ)}{\\tan(75^\\circ) + 1} \\approx 473.21 \\text{ metros}$$",
+        ],
+      },
+      {
+        heading: "Ley de Seno y Caso Ambiguo",
+        level: 1,
+        content: [
+          "Teorema: En cualquier triángulo $ABC$ con lados opuestos $a, b, c$:",
+          "$$\\frac{\\text{sen } A}{a} = \\frac{\\text{sen } B}{b} = \\frac{\\text{sen } C}{c}$$",
+          "[FIGURA: ley_senos_triangulo_general | Demostración geométrica de la Ley de Senos mediante la altura]",
+          "Demostración: Trazando la altura $h$ sobre el lado $BC$, en los dos triángulos rectángulos resultantes tenemos $h = c \\; \\text{sen } B = b \\; \\text{sen } C \\implies \\frac{\\text{sen } B}{b} = \\frac{\\text{sen } C}{c}$.",
+          "Aplicaciones y Casos:",
+          "• **Caso LAA / ALA:** Se conoce un lado y dos ángulos $\\implies$ solución única.",
+          "• **Caso SSA (Caso Ambiguo):** Se conocen dos lados y el ángulo opuesto a uno de ellos. Puede tener: $0$ soluciones, $1$ solución o $2$ soluciones distintas.",
+          "Ejemplo 4 (Torre de Pisa): La torre se inclina $5.6^\\circ$ respecto a la vertical. A $105\\text{ m}$ de la base, el ángulo de elevación es $29.2^\\circ$:",
+          "$$\\angle C = 90^\\circ - 5.6^\\circ = 84.4^\\circ, \\quad \\angle B = 180^\\circ - 29.2^\\circ - 84.4^\\circ = 66.4^\\circ$$",
+          "$$a = \\frac{105 \\; \\text{sen}(29.2^\\circ)}{\\text{sen}(66.4^\\circ)} \\approx 55.9 \\text{ m}$$",
+          "Ejemplo 7 (Caso de Dos Soluciones): Resolver $ABC$ si $A = 43.1^\\circ, a = 186.2, b = 248.6$:",
+          "$$\\text{sen } B = \\frac{248.6 \\; \\text{sen}(43.1^\\circ)}{186.2} \\approx 0.9192 \\implies B \\approx 65.82^\\circ \\quad \\text{ó} \\quad B' = 180^\\circ - 65.82^\\circ = 114.18^\\circ$$",
+          "Ambos ángulos generan triángulos válidos (ya que $114.18^\\circ + 43.1^\\circ < 180^\\circ$).",
+        ],
+      },
+      {
+        heading: "Ley de Coseno",
+        level: 1,
+        content: [
+          "Teorema: En cualquier triángulo $ABC$:",
+          "$$a^2 = b^2 + c^2 - 2bc \\cos A$$",
+          "$$b^2 = a^2 + c^2 - 2ac \\cos B$$",
+          "$$c^2 = a^2 + b^2 - 2ab \\cos C$$",
+          "Demostración analítica: Colocando el vértice $A$ en el origen $(0,0)$, $B$ en $(c, 0)$ y $C$ en $(b\\cos A, b\\text{ sen } A)$. Aplicando la fórmula de distancia:",
+          "$$a^2 = d(B, C)^2 = (b\\cos A - c)^2 + (b\\text{ sen } A)^2 = b^2(\\cos^2 A + \\text{sen}^2 A) - 2bc\\cos A + c^2 = b^2 + c^2 - 2bc\\cos A$$",
+          "Ejemplo 8: Un automóvil viaja $40\\text{ mi}$ hacia el Este y luego $20\\text{ mi}$ hacia el Noreste ($45^\\circ$ al norte del este, ángulo interior $135^\\circ$):",
+          "$$d^2 = 20^2 + 40^2 - 2(20)(40)\\cos(135^\\circ) = 2000 - 1600\\left(-\\frac{\\sqrt{2}}{2}\\right) = 2000 + 800\\sqrt{2}$$",
+          "$$d = \\sqrt{2000 + 800\\sqrt{2}} \\approx 55.96 \\text{ millas}$$",
+          "Ejemplo 9: Hallar los ángulos del triángulo con lados $a = 20, b = 25, c = 22$:",
+          "$$\\cos A = \\frac{b^2 + c^2 - a^2}{2bc} = \\frac{25^2 + 22^2 - 20^2}{2(25)(22)} \\approx 0.644 \\implies \\angle A \\approx 49.87^\\circ$$",
+          "$$\\cos B = \\frac{a^2 + c^2 - b^2}{2ac} \\approx 0.294 \\implies \\angle B \\approx 72.88^\\circ, \\quad \\angle C = 180^\\circ - (A + B) \\approx 57.25^\\circ$$",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 28: FUNCIONES TRIGONOMÉTRICAS DE NÚMEROS REALES
+  // ══════════════════════════════════════════════════════════════
+  28: {
+    num: 28,
+    title: "Funciones Trigonométricas de Números Reales",
+    pdfPages: "Págs. 113 – 116",
+    tag: "Trigonometría",
+    sections: [
+      {
+        heading: "Circunferencia Unitaria y Funciones Trigonométricas en ℝ",
+        level: 1,
+        content: [
+          "La **circunferencia unitaria** es el conjunto de puntos $\\{(x, y) \\in \\mathbb{R}^2 \\mid x^2 + y^2 = 1\\}$.",
+          "Para cualquier número real $t \\in \\mathbb{R}$, enrollamos una recta sobre el círculo unitario partiendo de $(1, 0)$ hasta un punto terminal $P = (x, y)$:",
+          "$$\\text{sen } t = y, \\quad \\cos t = x, \\quad \\tan t = \\frac{y}{x} \\; (x \\neq 0)$$",
+          "$$\\cot t = \\frac{x}{y} \\; (y \\neq 0), \\quad \\sec t = \\frac{1}{x} \\; (x \\neq 0), \\quad \\csc t = \\frac{1}{y} \\; (y \\neq 0)$$",
+          "[FIGURA: circunferencia_unitaria_completa | Círculo unitario con coordenadas cartesianas y radianes notables]",
+          "Periodicidad:",
+          "• Las funciones $\\text{sen } t$ y $\\cos t$ tienen **periodo fundamental $2\\pi$**: $\\text{sen}(t + 2\\pi n) = \\text{sen } t$, $\\cos(t + 2\\pi n) = \\cos t$, $\\forall n \\in \\mathbb{Z}$.",
+        ],
+      },
+      {
+        heading: "Gráficas de Seno y Coseno",
+        level: 1,
+        content: [
+          "• **Función Seno ($y = \\text{sen } x$):** Dominio $\\mathbb{R}$, Rango $[-1, 1]$, pasa por el origen $(0,0)$, periodo $2\\pi$.",
+          "• **Función Coseno ($y = \\cos x$):** Dominio $\\mathbb{R}$, Rango $[-1, 1]$, pasa por $(0, 1)$, periodo $2\\pi$.",
+          "[FIGURA: graficas_seno_coseno | Ondas fundamentales de seno y coseno con periodo 2π y amplitud 1]",
+        ],
+      },
+      {
+        heading: "Función Tangente y Asíntotas Verticales",
+        level: 1,
+        content: [
+          "Como $\\tan t = \\frac{\\text{sen } t}{\\cos t}$, la tangente no está definida cuando $\\cos t = 0$, es decir, en $t = \\frac{\\pi}{2} + n\\pi$ ($n \\in \\mathbb{Z}$).",
+          "• Dominio: $D_{\\tan} = \\mathbb{R} \\setminus \\{t \\in \\mathbb{R} \\mid t = \\frac{\\pi}{2} + n\\pi, n \\in \\mathbb{Z}\\}$.",
+          "• Rango: $R_{\\tan} = \\mathbb{R}$.",
+          "• **Periodo fundamental:** $\\pi$ (es decir, $\\tan(t + \\pi) = \\tan t$).",
+          "• Presenta asíntotas verticales en $t = \\pm \\frac{\\pi}{2}, \\pm \\frac{3\\pi}{2}, \\dots$.",
+          "[FIGURA: grafica_tangente_asintotas | Gráfica de la función tangente con asíntotas verticales periódicas en múltiplos impares de π/2]",
+        ],
+      },
+      {
+        heading: "Gráficas de las Funciones Recíprocas (sec, csc, cot)",
+        level: 1,
+        content: [
+          "• **Cosecante ($y = \\csc t = \\frac{1}{\\text{sen } t}$):** Dominio $\\mathbb{R} \\setminus \\{n\\pi\\}$, Rango $(-\\infty, -1] \\cup [1, \\infty)$, periodo $2\\pi$, asíntotas en $t = n\\pi$.",
+          "• **Secante ($y = \\sec t = \\frac{1}{\\cos t}$):** Dominio $\\mathbb{R} \\setminus \\{\\frac{\\pi}{2} + n\\pi\\}$, Rango $(-\\infty, -1] \\cup [1, \\infty)$, periodo $2\\pi$, asíntotas en $t = \\frac{\\pi}{2} + n\\pi$.",
+          "• **Cotangente ($y = \\cot t = \\frac{1}{\\tan t}$):** Dominio $\\mathbb{R} \\setminus \\{n\\pi\\}$, Rango $\\mathbb{R}$, periodo $\\pi$, asíntotas en $t = n\\pi$.",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 29: IDENTIDADES TRIGONOMÉTRICAS
+  // ══════════════════════════════════════════════════════════════
+  29: {
+    num: 29,
+    title: "Identidades Trigonométricas",
+    pdfPages: "Págs. 117 – 121",
+    tag: "Trigonometría",
+    sections: [
+      {
+        heading: "Identidades Trigonométricas Fundamentales",
+        level: 1,
+        content: [
+          "Una identidad es una igualdad válida para todos los valores del dominio.",
+          "• **Identidades Recíprocas:**",
+          "$$\\text{sen } t = \\frac{1}{\\csc t}, \\quad \\cos t = \\frac{1}{\\sec t}, \\quad \\tan t = \\frac{1}{\\cot t} = \\frac{\\text{sen } t}{\\cos t}$$",
+          "• **Identidades Pitagóricas:**",
+          "$$\\text{sen}^2 t + \\cos^2 t = 1$$",
+          "$$1 + \\tan^2 t = \\sec^2 t$$",
+          "$$1 + \\cot^2 t = \\csc^2 t$$",
+          "Demostración de Pitagóricas: Como $\\text{sen } t = y$ y $\\cos t = x$ en la circunferencia unitaria $x^2 + y^2 = 1$, sustituyendo directamente se obtiene $\\text{sen}^2 t + \\cos^2 t = 1$. Dividiendo entre $\\cos^2 t$ resulta $1 + \\tan^2 t = \\sec^2 t$, y dividiendo entre $\\text{sen}^2 t$ se obtiene $1 + \\cot^2 t = \\csc^2 t$.",
+        ],
+      },
+      {
+        heading: "Demostración y Simplificación de Identidades",
+        level: 2,
+        content: [
+          "Sugerencias metodológicas: Comenzar por el lado más complejo, escribir todo en términos de $\\text{sen}$ y $\\cos$, y utilizar factorizaciones o conjugados algebraicos.",
+          "Ejemplo 2: Simplificar $\\cos^3 x + \\text{sen}^2 x \\cos x = \\cos x(\\cos^2 x + \\text{sen}^2 x) = \\cos x(1) = \\cos x$.",
+          "Ejemplo 5: Demostrar $\\frac{1 + \\sec^2 x}{1 + \\tan^2 x} = 1 + \\cos^2 x$:",
+          "$$\\frac{1 + \\sec^2 x}{\\sec^2 x} = \\frac{1}{\\sec^2 x} + \\frac{\\sec^2 x}{\\sec^2 x} = \\cos^2 x + 1 = 1 + \\cos^2 x$$",
+          "Ejemplo 5.2: Demostrar $2\\tan x \\sec x = \\frac{1}{1 - \\text{sen } x} - \\frac{1}{1 + \\text{sen } x}$:",
+          "$$\\frac{(1 + \\text{sen } x) - (1 - \\text{sen } x)}{(1 - \\text{sen } x)(1 + \\text{sen } x)} = \\frac{2\\text{sen } x}{1 - \\text{sen}^2 x} = \\frac{2\\text{sen } x}{\\cos^2 x} = 2\\left(\\frac{\\text{sen } x}{\\cos x}\\right)\\left(\\frac{1}{\\cos x}\\right) = 2\\tan x \\sec x$$",
+        ],
+      },
+      {
+        heading: "Fórmulas de Adición, Sustracción y Forma Armónica",
+        level: 1,
+        content: [
+          "• **Suma y Resta de Ángulos:**",
+          "$$\\text{sen}(s \\pm t) = \\text{sen } s \\cos t \\pm \\cos s \\; \\text{sen } t$$",
+          "$$\\cos(s \\pm t) = \\cos s \\cos t \\mp \\text{sen } s \\; \\text{sen } t$$",
+          "$$\\tan(s \\pm t) = \\frac{\\tan s \\pm \\tan t}{1 \\mp \\tan s \\tan t}$$",
+          "[FIGURA: identidad_suma_angulos_geometrica | Esquema geométrico para las identidades de adición de ángulos]",
+          "Ejemplo 6: $\\cos(20^\\circ)\\cos(70^\\circ) - \\text{sen}(20^\\circ)\\text{sen}(70^\\circ) = \\cos(20^\\circ + 70^\\circ) = \\cos(90^\\circ) = 0$.",
+          "• **Expresiones de la forma $A\\text{sen } x + B\\cos x = k\\cos(x + \\phi)$:**",
+          "Ejemplo 8: Expresar $\\frac{1}{2}\\text{sen } x + \\frac{\\sqrt{3}}{2}\\cos x$ en la forma $k\\cos(x + \\phi)$:",
+          "$$k\\cos(x + \\phi) = k\\cos x \\cos \\phi - k\\text{sen } x \\text{sen } \\phi = (-k\\text{sen } \\phi)\\text{sen } x + (k\\cos \\phi)\\cos x$$",
+          "Igualando coeficientes: $-k\\text{sen } \\phi = 1/2$ y $k\\cos \\phi = \\sqrt{3}/2 \\implies k^2 = 1/4 + 3/4 = 1 \\implies k = 1$. Con $\\text{sen } \\phi < 0$ y $\\cos \\phi > 0$ (Cuadrante IV), $\\phi = -\\pi/6$.",
+          "$$\\frac{1}{2}\\text{sen } x + \\frac{\\sqrt{3}}{2}\\cos x = \\cos\\left(x - \\frac{\\pi}{6}\\right)$$",
+        ],
+      },
+      {
+        heading: "Fórmulas para el Ángulo Doble y Semiángulo",
+        level: 1,
+        content: [
+          "• **Ángulo Doble:**",
+          "$$\\text{sen}(2x) = 2\\text{sen } x \\cos x$$",
+          "$$\\cos(2x) = \\cos^2 x - \\text{sen}^2 x = 2\\cos^2 x - 1 = 1 - 2\\text{sen}^2 x$$",
+          "$$\\tan(2x) = \\frac{2\\tan x}{1 - \\tan^2 x}$$",
+          "• **Fórmulas de Reducción de Potencia:**",
+          "$$\\text{sen}^2 x = \\frac{1 - \\cos(2x)}{2}, \\quad \\cos^2 x = \\frac{1 + \\cos(2x)}{2}$$",
+          "• **Fórmulas del Semiángulo ($u/2$):**",
+          "$$\\text{sen}\\left(\\frac{u}{2}\\right) = \\pm \\sqrt{\\frac{1 - \\cos u}{2}}, \\quad \\cos\\left(\\frac{u}{2}\\right) = \\pm \\sqrt{\\frac{1 + \\cos u}{2}}, \\quad \\tan\\left(\\frac{u}{2}\\right) = \\frac{1 - \\cos u}{\\text{sen } u} = \\frac{\\text{sen } u}{1 + \\cos u}$$",
+          "Ejemplo 10: Calcule el valor exacto de $\\cos(22.5^\\circ) = \\cos(45^\\circ/2)$:",
+          "$$\\cos(22.5^\\circ) = +\\sqrt{\\frac{1 + \\cos 45^\\circ}{2}} = \\sqrt{\\frac{1 + \\frac{\\sqrt{2}}{2}}{2}} = \\frac{\\sqrt{2 + \\sqrt{2}}}{2}$$",
+        ],
+      },
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO 30: ECUACIONES TRIGONOMÉTRICAS
+  // ══════════════════════════════════════════════════════════════
+  30: {
+    num: 30,
+    title: "Ecuaciones Trigonométricas",
+    pdfPages: "Págs. 122 – 125",
+    tag: "Trigonometría",
+    sections: [
+      {
+        heading: "Fundamentos y Métodos de Solución",
+        level: 1,
+        content: [
+          "Una **ecuación trigonométrica** es una ecuación en términos de funciones trigonométricas donde la incógnita representa la medida en radianes de ángulos.",
+          "Para resolverla se usan operaciones algebraicas e identidades trigonométricas para aislar la función y luego obtener todas las soluciones en el intervalo base $[0, 2\\pi)$, extendiéndolas a $\\mathbb{R}$ sumando múltiplos enteros del periodo.",
+          "[FIGURA: ecuaciones_trig_circulo_soluciones | Localización de soluciones angulares en el círculo trigonométrico]",
+          "Ejemplo 1: Resuelva $4\\text{sen}^2 x - 1 = 0$:",
+          "$$(2\\text{sen } x + 1)(2\\text{sen } x - 1) = 0 \\implies \\text{sen } x = -\\frac{1}{2} \\quad \\text{ó} \\quad \\text{sen } x = \\frac{1}{2}$$",
+          "• Para $\\text{sen } x = 1/2$: $x = \\frac{\\pi}{6}, \\frac{5\\pi}{6}$.",
+          "• Para $\\text{sen } x = -1/2$: $x = \\frac{7\\pi}{6}, \\frac{11\\pi}{6}$.",
+          "Solución general en $\\mathbb{R}$ ($k \\in \\mathbb{Z}$):",
+          "$$x = \\frac{\\pi}{6} + 2k\\pi, \\quad x = \\frac{5\\pi}{6} + 2k\\pi, \\quad x = \\frac{7\\pi}{6} + 2k\\pi, \\quad x = \\frac{11\\pi}{6} + 2k\\pi$$",
+        ],
+      },
+      {
+        heading: "Ecuaciones Cuadráticas y Factorización en Trigonometría",
+        level: 1,
+        content: [
+          "Ejemplo 2: Resuelva $2(\\cos^2 x)\\csc x + 1 = \\csc x$:",
+          "$$2(1 - \\text{sen}^2 x)\\frac{1}{\\text{sen } x} + 1 = \\frac{1}{\\text{sen } x} \\implies 2 - 2\\text{sen}^2 x + \\text{sen } x = 1 \\implies 2\\text{sen}^2 x - \\text{sen } x - 1 = 0$$",
+          "Factorizando: $(2\\text{sen } x + 1)(\\text{sen } x - 1) = 0 \\implies \\text{sen } x = 1 \\text{ ó } \\text{sen } x = -\\frac{1}{2}$.",
+          "$$x = \\frac{\\pi}{2} + 2k\\pi, \\quad x = \\frac{7\\pi}{6} + 2k\\pi, \\quad x = \\frac{11\\pi}{6} + 2k\\pi, \\quad k \\in \\mathbb{Z}$$",
+          "Ejemplo 3: Resuelva $4\\text{sen}(3x) + 2\\text{sen}(3x)\\cos x - \\cos x - 2 = 0$:",
+          "$$2\\text{sen}(3x)(2 + \\cos x) - (2 + \\cos x) = (2 + \\cos x)(2\\text{sen}(3x) - 1) = 0$$",
+          "Como $2 + \\cos x \\neq 0$ ($\\|\\cos x\\| \\le 1$), tenemos $\\text{sen}(3x) = \\frac{1}{2} \\implies 3x = \\frac{\\pi}{6} + 2k\\pi$ ó $3x = \\frac{5\\pi}{6} + 2k\\pi$:",
+          "$$x = \\frac{\\pi}{18} + \\frac{2k\\pi}{3} \\quad \\text{ó} \\quad x = \\frac{5\\pi}{18} + \\frac{2k\\pi}{3}, \\quad k \\in \\mathbb{Z}$$",
+        ],
+      },
+      {
+        heading: "Ecuaciones con Transformación de Funciones e Identidades",
+        level: 1,
+        content: [
+          "Ejemplo 5: Resuelva $\\cos 3x - \\cos 5x = 0$:",
+          "Escribiendo $3x = 4x - x$ y $5x = 4x + x$:",
+          "$$\\cos(4x - x) - \\cos(4x + x) = 2\\text{sen } 4x \\; \\text{sen } x = 0$$",
+          "• $\\text{sen } 4x = 0 \\implies 4x = k\\pi \\implies x = \\frac{k\\pi}{4}, \\quad k \\in \\mathbb{Z}$.",
+          "• $\\text{sen } x = 0 \\implies x = k\\pi, \\quad k \\in \\mathbb{Z}$ (subconjunto del anterior).",
+          "Solución final: $x = \\frac{k\\pi}{4}, \\quad k \\in \\mathbb{Z}$.",
+          "Ejemplo 7: Resuelva $\\text{sen}^2 x + \\text{sen } x \\cos x = 0$:",
+          "$$\\text{sen } x(\\text{sen } x + \\cos x) = 0$$",
+          "• $\\text{sen } x = 0 \\implies x = k\\pi, \\quad k \\in \\mathbb{Z}$.",
+          "• $\\text{sen } x + \\cos x = 0 \\iff \\tan x = -1 \\implies x = -\\frac{\\pi}{4} + m\\pi, \\quad m \\in \\mathbb{Z}$.",
+          "Ejemplo 10: Resuelva $3\\tan^3 x - \\tan x = 3\\sec^2 x - 4$:",
+          "$$3\\tan^3 x - \\tan x = 3(1 + \\tan^2 x) - 4 = 3\\tan^2 x - 1 \\implies 3\\tan^3 x - 3\\tan^2 x - \\tan x + 1 = 0$$",
+          "$$3\\tan^2 x(\\tan x - 1) - (\\tan x - 1) = (3\\tan^2 x - 1)(\\tan x - 1) = (\\sqrt{3}\\tan x + 1)(\\sqrt{3}\\tan x - 1)(\\tan x - 1) = 0$$",
+          "$$\\tan x = -\\frac{1}{\\sqrt{3}} \\implies x = -\\frac{\\pi}{6} + k\\pi, \\quad \\tan x = \\frac{1}{\\sqrt{3}} \\implies x = \\frac{\\pi}{6} + k\\pi, \\quad \\tan x = 1 \\implies x = \\frac{\\pi}{4} + k\\pi$$",
+        ],
+      },
+      {
+        heading: "Soluciones en el Intervalo [0, 2π) y Uso de Calculadora",
+        level: 1,
+        content: [
+          "Ejemplo 12: Halle todas las soluciones de $\\tan^4 x - 10\\tan^2 x + 9 = 0$ en $[0, 2\\pi)$:",
+          "$$(\\tan^2 x - 9)(\\tan^2 x - 1) = (\\tan x + 3)(\\tan x - 3)(\\tan x + 1)(\\tan x - 1) = 0$$",
+          "Valores de $\\tan x$ y soluciones en $[0, 2\\pi)$:",
+          "• $\\tan x = 1 \\implies x = \\frac{\\pi}{4}, \\frac{5\\pi}{4}$.",
+          "• $\\tan x = -1 \\implies x = \\frac{3\\pi}{4}, \\frac{7\\pi}{4}$.",
+          "• $\\tan x = 3 \\implies x = \\arctan(3) \\approx 1.249 \\quad \\text{y} \\quad x = 1.249 + \\pi \\approx 4.391$.",
+          "• $\\tan x = -3 \\implies x = \\arctan(-3) + \\pi \\approx -1.249 + \\pi = 1.893 \\quad \\text{y} \\quad x = 1.893 + \\pi = 5.034$.",
+          "El conjunto solución exacto en $[0, 2\\pi)$ consta de $8$ soluciones reales:",
+          "$$\\left\\{\\frac{\\pi}{4}, \\frac{3\\pi}{4}, \\frac{5\\pi}{4}, \\frac{7\\pi}{4}, 1.249, 1.893, 4.391, 5.034\\right\\}$$",
+        ],
+      },
+    ],
+  },
 };
 

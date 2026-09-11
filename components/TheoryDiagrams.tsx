@@ -987,6 +987,657 @@ export function TheoryDiagram({ id, caption }: TheoryDiagramProps) {
       );
       break;
 
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 21: TRAMOS, VALOR ABSOLUTO Y POTENCIAS
+    // ══════════════════════════════════════════════════════════════
+    case "tramos_ejemplo_rectas":
+      diagramContent = (
+        <svg viewBox="0 0 460 230" className="w-full max-w-lg mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          {/* Grid lines */}
+          <line x1="30" y1="160" x2="430" y2="160" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="210" y1="210" x2="210" y2="20" stroke="#556b5d" strokeWidth="1.5" />
+          <text x="435" y="164" fill="#A89F8D" fontSize="10">x</text>
+          <text x="214" y="25" fill="#A89F8D" fontSize="10">y</text>
+
+          {/* Tramo 1: x <= -2 -> y = -x - 3 (from x=-5 => y=2 to x=-2 => y=-1) */}
+          <line x1="70" y1="100" x2="150" y2="190" stroke="#7A8F73" strokeWidth="2.5" />
+          <circle cx="150" cy="190" r="4" fill="#7A8F73" />
+          <text x="75" y="90" fill="#7A8F73" fontSize="10" fontWeight="bold">y = −x − 3</text>
+
+          {/* Tramo 2: -2 < x < 1 -> y = 3 */}
+          <line x1="150" y1="70" x2="240" y2="70" stroke="#dfa745" strokeWidth="2.5" />
+          <circle cx="150" cy="70" r="4" fill="#151d18" stroke="#dfa745" strokeWidth="2" />
+          <circle cx="240" cy="70" r="4" fill="#151d18" stroke="#dfa745" strokeWidth="2" />
+          <text x="180" y="60" fill="#dfa745" fontSize="10" fontWeight="bold">y = 3</text>
+
+          {/* Tramo 3: x = 1 -> y = 2 */}
+          <circle cx="240" cy="100" r="4.5" fill="#EDE5D8" stroke="#dfa745" strokeWidth="1.5" />
+          <text x="250" y="102" fill="#EDE5D8" fontSize="9.5">punto (1, 2)</text>
+
+          {/* Tramo 4: x > 1 -> y = 1/2 x + 1/2 (from x=1,y=1 to x=5,y=3) */}
+          <line x1="240" y1="130" x2="380" y2="70" stroke="#C8B99D" strokeWidth="2.5" />
+          <circle cx="240" cy="130" r="4" fill="#151d18" stroke="#C8B99D" strokeWidth="2" />
+          <text x="320" y="60" fill="#C8B99D" fontSize="10" fontWeight="bold">y = ½x + ½</text>
+
+          {/* Axis markers */}
+          <text x="145" y="175" fill="#A89F8D" fontSize="9">−2</text>
+          <text x="237" y="175" fill="#A89F8D" fontSize="9">1</text>
+          <text x="200" y="73" fill="#A89F8D" fontSize="9">3</text>
+        </svg>
+      );
+      break;
+
+    case "valor_absoluto_desplazado":
+      diagramContent = (
+        <svg viewBox="0 0 460 210" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="20" y1="160" x2="440" y2="160" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="230" y1="200" x2="230" y2="20" stroke="#556b5d" strokeWidth="1.5" />
+
+          {/* W shape for g(x) = ||x| - 3| */}
+          {/* x <= -3: y = -x - 3 (x=-6 => y=3, x=-3 => y=0) */}
+          <line x1="80" y1="50" x2="140" y2="160" stroke="#dfa745" strokeWidth="2.5" />
+          {/* -3 < x < 0: y = x + 3 (x=-3 => y=0, x=0 => y=3) */}
+          <line x1="140" y1="160" x2="230" y2="50" stroke="#dfa745" strokeWidth="2.5" />
+          {/* 0 <= x < 3: y = -x + 3 (x=0 => y=3, x=3 => y=0) */}
+          <line x1="230" y1="50" x2="320" y2="160" stroke="#dfa745" strokeWidth="2.5" />
+          {/* x >= 3: y = x - 3 (x=3 => y=0, x=6 => y=3) */}
+          <line x1="320" y1="160" x2="380" y2="50" stroke="#dfa745" strokeWidth="2.5" />
+
+          {/* Points */}
+          <circle cx="140" cy="160" r="3.5" fill="#FAF6EE" />
+          <circle cx="230" cy="50" r="3.5" fill="#FAF6EE" />
+          <circle cx="320" cy="160" r="3.5" fill="#FAF6EE" />
+
+          <text x="130" y="178" fill="#EDE5D8" fontSize="10">−3</text>
+          <text x="218" y="42" fill="#FAF6EE" fontSize="10" fontWeight="bold">(0, 3)</text>
+          <text x="315" y="178" fill="#EDE5D8" fontSize="10">3</text>
+          <text x="330" y="45" fill="#dfa745" fontSize="11" fontWeight="bold">g(x) = ||x| − 3|</text>
+        </svg>
+      );
+      break;
+
+    case "funciones_potencia_pares_impares":
+      diagramContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#7A8F73]">Potencias Pares: f(x) = x² y x⁴</div>
+            <svg viewBox="0 0 200 150" className="w-full h-32 mx-auto">
+              <line x1="10" y1="110" x2="190" y2="110" stroke="#556b5d" strokeWidth="1" />
+              <line x1="100" y1="10" x2="100" y2="140" stroke="#556b5d" strokeWidth="1" />
+              {/* x^2 */}
+              <path d="M 40,20 Q 100,140 160,20" fill="none" stroke="#EDE5D8" strokeWidth="2" />
+              {/* x^4 */}
+              <path d="M 50,15 C 80,110 85,110 100,110 C 115,110 120,110 150,15" fill="none" stroke="#7A8F73" strokeWidth="2" strokeDasharray="4,2" />
+              <text x="162" y="25" fill="#EDE5D8" fontSize="9">x²</text>
+              <text x="152" y="15" fill="#7A8F73" fontSize="9">x⁴</text>
+            </svg>
+            <p className="text-[10px] text-[#A89F8D]">Pasan por (−1,1), (0,0) y (1,1). Simetría par.</p>
+          </div>
+
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#dfa745]">Potencias Impares: f(x) = x³ y x⁵</div>
+            <svg viewBox="0 0 200 150" className="w-full h-32 mx-auto">
+              <line x1="10" y1="75" x2="190" y2="75" stroke="#556b5d" strokeWidth="1" />
+              <line x1="100" y1="10" x2="100" y2="140" stroke="#556b5d" strokeWidth="1" />
+              {/* x^3 */}
+              <path d="M 40,135 Q 85,85 100,75 Q 115,65 160,15" fill="none" stroke="#EDE5D8" strokeWidth="2" />
+              {/* x^5 */}
+              <path d="M 55,140 C 85,80 90,75 100,75 C 110,75 115,70 145,10" fill="none" stroke="#dfa745" strokeWidth="2" strokeDasharray="4,2" />
+              <text x="162" y="20" fill="#EDE5D8" fontSize="9">x³</text>
+              <text x="146" y="12" fill="#dfa745" fontSize="9">x⁵</text>
+            </svg>
+            <p className="text-[10px] text-[#A89F8D]">Pasan por (−1,−1), (0,0) y (1,1). Simetría impar.</p>
+          </div>
+        </div>
+      );
+      break;
+
+    case "funciones_raiz_n":
+      diagramContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#7A8F73]">Raíz de Índice Par: f(x) = √x</div>
+            <svg viewBox="0 0 200 130" className="w-full h-28 mx-auto">
+              <line x1="20" y1="100" x2="190" y2="100" stroke="#556b5d" strokeWidth="1" />
+              <line x1="50" y1="10" x2="50" y2="120" stroke="#556b5d" strokeWidth="1" />
+              <path d="M 50,100 Q 80,40 180,30" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
+              <circle cx="50" cy="100" r="3.5" fill="#7A8F73" />
+              <text x="130" y="25" fill="#7A8F73" fontSize="10" fontWeight="bold">y = √x</text>
+              <text x="40" y="115" fill="#A89F8D" fontSize="9">(0,0)</text>
+            </svg>
+            <p className="text-[10.5px] text-[#EDE5D8]">Dominio: [0, ∞), Rango: [0, ∞)</p>
+          </div>
+
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#dfa745]">Raíz de Índice Impar: f(x) = ∛x</div>
+            <svg viewBox="0 0 200 130" className="w-full h-28 mx-auto">
+              <line x1="10" y1="65" x2="190" y2="65" stroke="#556b5d" strokeWidth="1" />
+              <line x1="100" y1="10" x2="100" y2="120" stroke="#556b5d" strokeWidth="1" />
+              <path d="M 20,100 Q 70,80 100,65 Q 130,50 180,30" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+              <circle cx="100" cy="65" r="3.5" fill="#dfa745" />
+              <text x="140" y="25" fill="#dfa745" fontSize="10" fontWeight="bold">y = ∛x</text>
+            </svg>
+            <p className="text-[10.5px] text-[#EDE5D8]">Dominio: ℝ, Rango: ℝ</p>
+          </div>
+        </div>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 22: PARIDAD Y COMPOSICIÓN
+    // ══════════════════════════════════════════════════════════════
+    case "funciones_simetria_par_impar":
+      diagramContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#7A8F73]">Función Par: f(−x) = f(x)</div>
+            <svg viewBox="0 0 200 130" className="w-full h-28 mx-auto">
+              <line x1="15" y1="100" x2="185" y2="100" stroke="#556b5d" strokeWidth="1" />
+              <line x1="100" y1="10" x2="100" y2="120" stroke="#7A8F73" strokeWidth="1.5" strokeDasharray="3,3" />
+              <path d="M 35,25 Q 100,130 165,25" fill="none" stroke="#EDE5D8" strokeWidth="2.5" />
+              <circle cx="50" cy="45" r="3" fill="#dfa745" />
+              <circle cx="150" cy="45" r="3" fill="#dfa745" />
+              <text x="40" y="38" fill="#dfa745" fontSize="8.5">(−x, y)</text>
+              <text x="140" y="38" fill="#dfa745" fontSize="8.5">(x, y)</text>
+            </svg>
+            <p className="text-[10.5px] text-[#A89F8D]">Simetría especular respecto al eje Y</p>
+          </div>
+
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#dfa745]">Función Impar: f(−x) = −f(x)</div>
+            <svg viewBox="0 0 200 130" className="w-full h-28 mx-auto">
+              <line x1="15" y1="65" x2="185" y2="65" stroke="#556b5d" strokeWidth="1" />
+              <line x1="100" y1="10" x2="100" y2="120" stroke="#556b5d" strokeWidth="1" />
+              <path d="M 30,110 Q 75,75 100,65 Q 125,55 170,20" fill="none" stroke="#EDE5D8" strokeWidth="2.5" />
+              <circle cx="45" cy="98" r="3" fill="#7A8F73" />
+              <circle cx="155" cy="32" r="3" fill="#7A8F73" />
+              <text x="25" y="94" fill="#7A8F73" fontSize="8.5">(−x, −y)</text>
+              <text x="140" y="26" fill="#7A8F73" fontSize="8.5">(x, y)</text>
+            </svg>
+            <p className="text-[10.5px] text-[#A89F8D]">Simetría de rotación 180° respecto al origen (0,0)</p>
+          </div>
+        </div>
+      );
+      break;
+
+    case "funciones_composicion_maquinas":
+      diagramContent = (
+        <svg viewBox="0 0 460 120" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          {/* Input x */}
+          <text x="20" y="65" fill="#FAF6EE" fontSize="13" fontWeight="bold">x</text>
+          <line x1="35" y1="60" x2="90" y2="60" stroke="#7A8F73" strokeWidth="2" markerEnd="url(#arrow)" />
+
+          {/* Machine g */}
+          <rect x="95" y="30" width="85" height="60" rx="8" fill="#223028" stroke="#7A8F73" strokeWidth="1.8" />
+          <text x="137" y="55" fill="#FAF6EE" fontSize="11" fontWeight="bold" textAnchor="middle">Máquina g</text>
+          <text x="137" y="72" fill="#7A8F73" fontSize="10" textAnchor="middle">g(x)</text>
+
+          {/* Intermediate g(x) */}
+          <line x1="180" y1="60" x2="250" y2="60" stroke="#dfa745" strokeWidth="2" />
+          <text x="215" y="52" fill="#dfa745" fontSize="10.5" textAnchor="middle">g(x)</text>
+
+          {/* Machine f */}
+          <rect x="255" y="30" width="85" height="60" rx="8" fill="#223028" stroke="#dfa745" strokeWidth="1.8" />
+          <text x="297" y="55" fill="#FAF6EE" fontSize="11" fontWeight="bold" textAnchor="middle">Máquina f</text>
+          <text x="297" y="72" fill="#dfa745" fontSize="10" textAnchor="middle">f(u)</text>
+
+          {/* Output (f o g)(x) */}
+          <line x1="340" y1="60" x2="395" y2="60" stroke="#EDE5D8" strokeWidth="2" />
+          <text x="405" y="65" fill="#FAF6EE" fontSize="11.5" fontWeight="bold">(f ∘ g)(x)</text>
+        </svg>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 23: INVERSAS Y RECTA HORIZONTAL
+    // ══════════════════════════════════════════════════════════════
+    case "prueba_recta_horizontal":
+      diagramContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#7A8F73]">Función 1-1 (Inyectiva)</div>
+            <svg viewBox="0 0 200 130" className="w-full h-28 mx-auto">
+              <line x1="15" y1="100" x2="185" y2="100" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="10" x2="40" y2="120" stroke="#556b5d" strokeWidth="1" />
+              <path d="M 40,100 Q 80,40 180,30" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
+              {/* Horizontal line */}
+              <line x1="20" y1="55" x2="185" y2="55" stroke="#dfa745" strokeWidth="1.5" strokeDasharray="3,3" />
+              <circle cx="85" cy="55" r="3.5" fill="#dfa745" />
+              <text x="95" y="50" fill="#dfa745" fontSize="8.5">1 solo corte</text>
+            </svg>
+            <p className="text-[10.5px] text-[#EDE5D8]">Pasa la prueba: Es Inyectiva</p>
+          </div>
+
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#e06c75]">No es 1-1 (No Inyectiva)</div>
+            <svg viewBox="0 0 200 130" className="w-full h-28 mx-auto">
+              <line x1="15" y1="100" x2="185" y2="100" stroke="#556b5d" strokeWidth="1" />
+              <line x1="100" y1="10" x2="100" y2="120" stroke="#556b5d" strokeWidth="1" />
+              <path d="M 40,25 Q 100,120 160,25" fill="none" stroke="#EDE5D8" strokeWidth="2.5" />
+              {/* Horizontal line */}
+              <line x1="20" y1="55" x2="185" y2="55" stroke="#e06c75" strokeWidth="1.5" strokeDasharray="3,3" />
+              <circle cx="58" cy="55" r="3.5" fill="#e06c75" />
+              <circle cx="142" cy="55" r="3.5" fill="#e06c75" />
+              <text x="100" y="50" fill="#e06c75" fontSize="8.5" textAnchor="middle">2 cortes: f(a) = f(b)</text>
+            </svg>
+            <p className="text-[10.5px] text-[#e06c75]">Falla la prueba: No tiene inversa</p>
+          </div>
+        </div>
+      );
+      break;
+
+    case "inversa_simetria_identidad":
+      diagramContent = (
+        <svg viewBox="0 0 460 230" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="30" y1="190" x2="430" y2="190" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="110" y1="210" x2="110" y2="20" stroke="#556b5d" strokeWidth="1.5" />
+
+          {/* Identity line y = x */}
+          <line x1="60" y1="200" x2="380" y2="40" stroke="#A89F8D" strokeWidth="1.5" strokeDasharray="4,4" />
+          <text x="385" y="45" fill="#A89F8D" fontSize="10.5">y = x</text>
+
+          {/* f(x) = sqrt(2x+1) */}
+          <path d="M 80,190 Q 140,110 320,80" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
+          <text x="325" y="80" fill="#7A8F73" fontSize="11" fontWeight="bold">y = f(x)</text>
+
+          {/* f^-1(x) = (x^2 - 1)/2 for x >= 0 */}
+          <path d="M 110,160 Q 190,140 220,-20" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+          <text x="230" y="30" fill="#dfa745" fontSize="11" fontWeight="bold">y = f⁻¹(x)</text>
+
+          {/* Symmetric points (0, 1) and (1, 0) */}
+          <circle cx="110" cy="140" r="3.5" fill="#7A8F73" />
+          <circle cx="160" cy="190" r="3.5" fill="#dfa745" />
+          <text x="115" y="138" fill="#7A8F73" fontSize="9">(0, 1)</text>
+          <text x="160" y="205" fill="#dfa745" fontSize="9">(1, 0)</text>
+        </svg>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 24: EXPONENCIALES
+    // ══════════════════════════════════════════════════════════════
+    case "exponencial_bases_comparacion":
+      diagramContent = (
+        <svg viewBox="0 0 460 220" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="30" y1="170" x2="430" y2="170" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="230" y1="210" x2="230" y2="20" stroke="#556b5d" strokeWidth="1.5" />
+          <text x="435" y="174" fill="#A89F8D" fontSize="10">x</text>
+          <text x="234" y="25" fill="#A89F8D" fontSize="10">y</text>
+
+          {/* Common point (0, 1) */}
+          <circle cx="230" cy="130" r="4" fill="#FAF6EE" />
+          <text x="238" y="132" fill="#FAF6EE" fontSize="10" fontWeight="bold">(0, 1)</text>
+
+          {/* y = 3^x */}
+          <path d="M 70,168 Q 210,165 260,25" fill="none" stroke="#7A8F73" strokeWidth="2" />
+          <text x="265" y="30" fill="#7A8F73" fontSize="10" fontWeight="bold">y = 3ˣ</text>
+
+          {/* y = 2^x */}
+          <path d="M 50,168 Q 200,160 290,40" fill="none" stroke="#dfa745" strokeWidth="2" />
+          <text x="295" y="45" fill="#dfa745" fontSize="10" fontWeight="bold">y = 2ˣ</text>
+
+          {/* y = (1/2)^x */}
+          <path d="M 170,40 Q 260,160 410,168" fill="none" stroke="#C8B99D" strokeWidth="2" strokeDasharray="4,3" />
+          <text x="130" y="45" fill="#C8B99D" fontSize="10" fontWeight="bold">y = (½)ˣ</text>
+
+          <text x="50" y="185" fill="#A89F8D" fontSize="9.5">Asíntota horizontal y = 0</text>
+        </svg>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 25: LOGARITMOS
+    // ══════════════════════════════════════════════════════════════
+    case "logaritmo_exponencial_inversa":
+      diagramContent = (
+        <svg viewBox="0 0 460 220" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="30" y1="160" x2="430" y2="160" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="170" y1="210" x2="170" y2="20" stroke="#556b5d" strokeWidth="1.5" />
+
+          {/* y = x */}
+          <line x1="60" y1="200" x2="380" y2="40" stroke="#A89F8D" strokeWidth="1.5" strokeDasharray="4,4" />
+          <text x="385" y="45" fill="#A89F8D" fontSize="10">y = x</text>
+
+          {/* Exponential y = a^x (a > 1) */}
+          <path d="M 50,158 Q 150,150 220,30" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
+          <circle cx="170" cy="115" r="3.5" fill="#7A8F73" />
+          <text x="135" y="115" fill="#7A8F73" fontSize="9.5">(0, 1)</text>
+          <text x="225" y="35" fill="#7A8F73" fontSize="11" fontWeight="bold">y = aˣ</text>
+
+          {/* Logarithm y = log_a(x) */}
+          <path d="M 175,200 Q 180,140 370,70" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+          <circle cx="215" cy="160" r="3.5" fill="#dfa745" />
+          <text x="215" y="175" fill="#dfa745" fontSize="9.5">(1, 0)</text>
+          <text x="375" y="75" fill="#dfa745" fontSize="11" fontWeight="bold">y = logₐ(x)</text>
+
+          <text x="185" y="200" fill="#dfa745" fontSize="9">Asíntota x = 0</text>
+        </svg>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 26: ÁNGULOS Y TRIGONOMETRÍA DE ÁNGULOS
+    // ══════════════════════════════════════════════════════════════
+    case "triangulo_rectangulo_razones":
+      diagramContent = (
+        <svg viewBox="0 0 460 200" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          {/* Right triangle */}
+          <polygon points="60,160 320,160 320,40" fill="rgba(122,143,115,0.12)" stroke="#7A8F73" strokeWidth="2.5" />
+          {/* Right angle symbol at (320, 160) */}
+          <polyline points="305,160 305,145 320,145" fill="none" stroke="#7A8F73" strokeWidth="1.5" />
+
+          {/* Angle theta arc at (60, 160) */}
+          <path d="M 100,160 A 40 40 0 0 0 92,145" fill="none" stroke="#dfa745" strokeWidth="2" />
+          <text x="105" y="152" fill="#dfa745" fontSize="12" fontWeight="bold">θ</text>
+
+          {/* Labels */}
+          <text x="190" y="178" fill="#EDE5D8" fontSize="11" fontWeight="bold" textAnchor="middle">Cateto Adyacente (x)</text>
+          <text x="330" y="105" fill="#EDE5D8" fontSize="11" fontWeight="bold">Cateto Opuesto (y)</text>
+          <text x="175" y="90" fill="#FAF6EE" fontSize="11" fontWeight="bold">Hipotenusa r = √(x²+y²)</text>
+        </svg>
+      );
+      break;
+
+    case "angulos_notables_triangulos_geometricos":
+      diagramContent = (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#7A8F73]">Triángulo 45° - 45° - 90°</div>
+            <svg viewBox="0 0 160 140" className="w-full h-28 mx-auto">
+              <polygon points="30,120 130,120 130,20" fill="rgba(122,143,115,0.15)" stroke="#7A8F73" strokeWidth="2" />
+              <polyline points="118,120 118,108 130,108" fill="none" stroke="#7A8F73" strokeWidth="1.2" />
+              <text x="80" y="134" fill="#EDE5D8" fontSize="9.5">1</text>
+              <text x="135" y="75" fill="#EDE5D8" fontSize="9.5">1</text>
+              <text x="65" y="65" fill="#dfa745" fontSize="10" fontWeight="bold">√2</text>
+              <text x="50" y="115" fill="#dfa745" fontSize="8.5">45°</text>
+              <text x="110" y="45" fill="#dfa745" fontSize="8.5">45°</text>
+            </svg>
+            <p className="text-[10px] text-[#A89F8D]">sen(45°) = cos(45°) = √2/2, tan(45°) = 1</p>
+          </div>
+
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#dfa745]">Triángulo 30° - 60° - 90°</div>
+            <svg viewBox="0 0 160 140" className="w-full h-28 mx-auto">
+              <polygon points="20,120 140,120 140,30" fill="rgba(223,167,69,0.15)" stroke="#dfa745" strokeWidth="2" />
+              <polyline points="128,120 128,108 140,108" fill="none" stroke="#dfa745" strokeWidth="1.2" />
+              <text x="80" y="134" fill="#EDE5D8" fontSize="9.5">√3</text>
+              <text x="145" y="80" fill="#EDE5D8" fontSize="9.5">1</text>
+              <text x="70" y="65" fill="#7A8F73" fontSize="10" fontWeight="bold">2</text>
+              <text x="45" y="115" fill="#dfa745" fontSize="8.5">30°</text>
+              <text x="120" y="55" fill="#dfa745" fontSize="8.5">60°</text>
+            </svg>
+            <p className="text-[10px] text-[#A89F8D]">sen(30°) = 1/2, cos(30°) = √3/2, tan(30°) = √3/3</p>
+          </div>
+        </div>
+      );
+      break;
+
+    case "angulo_referencia_cuadrantes":
+      diagramContent = (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="p-2 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.1)] text-center space-y-1">
+            <div className="text-[11px] font-bold text-[#7A8F73]">Cuadrante I</div>
+            <svg viewBox="0 0 80 80" className="w-full h-16 mx-auto">
+              <line x1="5" y1="40" x2="75" y2="40" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="5" x2="40" y2="75" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="40" x2="68" y2="15" stroke="#dfa745" strokeWidth="2" />
+              <text x="50" y="32" fill="#dfa745" fontSize="8">θ̄ = θ</text>
+            </svg>
+            <div className="text-[9px] text-[#EDE5D8]">θ̄ = θ</div>
+          </div>
+
+          <div className="p-2 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.1)] text-center space-y-1">
+            <div className="text-[11px] font-bold text-[#7A8F73]">Cuadrante II</div>
+            <svg viewBox="0 0 80 80" className="w-full h-16 mx-auto">
+              <line x1="5" y1="40" x2="75" y2="40" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="5" x2="40" y2="75" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="40" x2="12" y2="15" stroke="#dfa745" strokeWidth="2" />
+              <text x="18" y="32" fill="#dfa745" fontSize="8">θ̄</text>
+            </svg>
+            <div className="text-[9px] text-[#EDE5D8]">θ̄ = π − θ (180°−θ)</div>
+          </div>
+
+          <div className="p-2 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.1)] text-center space-y-1">
+            <div className="text-[11px] font-bold text-[#7A8F73]">Cuadrante III</div>
+            <svg viewBox="0 0 80 80" className="w-full h-16 mx-auto">
+              <line x1="5" y1="40" x2="75" y2="40" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="5" x2="40" y2="75" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="40" x2="12" y2="65" stroke="#dfa745" strokeWidth="2" />
+              <text x="18" y="52" fill="#dfa745" fontSize="8">θ̄</text>
+            </svg>
+            <div className="text-[9px] text-[#EDE5D8]">θ̄ = θ − π (θ−180°)</div>
+          </div>
+
+          <div className="p-2 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.1)] text-center space-y-1">
+            <div className="text-[11px] font-bold text-[#7A8F73]">Cuadrante IV</div>
+            <svg viewBox="0 0 80 80" className="w-full h-16 mx-auto">
+              <line x1="5" y1="40" x2="75" y2="40" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="5" x2="40" y2="75" stroke="#556b5d" strokeWidth="1" />
+              <line x1="40" y1="40" x2="68" y2="65" stroke="#dfa745" strokeWidth="2" />
+              <text x="50" y="52" fill="#dfa745" fontSize="8">θ̄</text>
+            </svg>
+            <div className="text-[9px] text-[#EDE5D8]">θ̄ = 2π − θ (360°−θ)</div>
+          </div>
+        </div>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 27: LEY DE SENO Y COSENO
+    // ══════════════════════════════════════════════════════════════
+    case "angulo_elevacion_depresion":
+      diagramContent = (
+        <svg viewBox="0 0 460 170" className="w-full max-w-lg mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          {/* Observer left */}
+          <circle cx="60" cy="110" r="5" fill="#dfa745" />
+          <text x="35" y="130" fill="#EDE5D8" fontSize="10">Observador A</text>
+
+          {/* Horizontal line */}
+          <line x1="60" y1="110" x2="260" y2="110" stroke="#556b5d" strokeWidth="1.5" strokeDasharray="4,4" />
+          <text x="140" y="105" fill="#A89F8D" fontSize="9.5">Línea Horizontal</text>
+
+          {/* Line of sight UP to Object B */}
+          <line x1="60" y1="110" x2="240" y2="30" stroke="#7A8F73" strokeWidth="2" />
+          <circle cx="240" cy="30" r="5" fill="#7A8F73" />
+          <text x="248" y="32" fill="#FAF6EE" fontSize="10">Objeto elevado</text>
+          <text x="115" y="85" fill="#dfa745" fontSize="10" fontWeight="bold">Ángulo Elevación</text>
+
+          {/* Observer right / Line of sight DOWN */}
+          <circle cx="300" cy="40" r="5" fill="#dfa745" />
+          <line x1="300" y1="40" x2="430" y2="40" stroke="#556b5d" strokeWidth="1.5" strokeDasharray="4,4" />
+          <line x1="300" y1="40" x2="410" y2="130" stroke="#C8B99D" strokeWidth="2" />
+          <circle cx="410" cy="130" r="5" fill="#C8B99D" />
+          <text x="350" y="70" fill="#dfa745" fontSize="10" fontWeight="bold">Ángulo Depresión</text>
+          <text x="385" y="145" fill="#EDE5D8" fontSize="10">Objeto bajo</text>
+        </svg>
+      );
+      break;
+
+    case "ley_senos_triangulo_general":
+      diagramContent = (
+        <svg viewBox="0 0 460 200" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          {/* Oblique triangle ABC */}
+          <polygon points="60,160 380,160 220,40" fill="rgba(122,143,115,0.1)" stroke="#7A8F73" strokeWidth="2.5" />
+          {/* Height h from C to AB */}
+          <line x1="220" y1="40" x2="220" y2="160" stroke="#dfa745" strokeWidth="1.8" strokeDasharray="4,3" />
+          <polyline points="208,160 208,148 220,148" fill="none" stroke="#dfa745" strokeWidth="1.2" />
+          <text x="228" y="105" fill="#dfa745" fontSize="11" fontWeight="bold">h = c·sen(B) = b·sen(C)</text>
+
+          {/* Vertices */}
+          <text x="45" y="170" fill="#FAF6EE" fontSize="12" fontWeight="bold">B</text>
+          <text x="390" y="170" fill="#FAF6EE" fontSize="12" fontWeight="bold">C</text>
+          <text x="215" y="30" fill="#FAF6EE" fontSize="12" fontWeight="bold">A</text>
+
+          {/* Opposing sides */}
+          <text x="220" y="180" fill="#EDE5D8" fontSize="11" textAnchor="middle">lado a</text>
+          <text x="120" y="90" fill="#EDE5D8" fontSize="11">lado c</text>
+          <text x="310" y="90" fill="#EDE5D8" fontSize="11">lado b</text>
+        </svg>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 28: CIRCUNFERENCIA UNITARIA Y ONDAS
+    // ══════════════════════════════════════════════════════════════
+    case "circunferencia_unitaria_completa":
+      diagramContent = (
+        <svg viewBox="0 0 380 380" className="w-full max-w-sm mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          {/* Coordinate axes */}
+          <line x1="20" y1="190" x2="360" y2="190" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="190" y1="20" x2="190" y2="360" stroke="#556b5d" strokeWidth="1.5" />
+          <text x="365" y="194" fill="#A89F8D" fontSize="10">x</text>
+          <text x="194" y="25" fill="#A89F8D" fontSize="10">y</text>
+
+          {/* Unit circle */}
+          <circle cx="190" cy="190" r="130" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
+
+          {/* Key angles rays */}
+          {/* 30 deg (pi/6) */}
+          <line x1="190" y1="190" x2="302" y2="125" stroke="rgba(217,203,182,0.3)" strokeWidth="1" />
+          <circle cx="302" cy="125" r="3.5" fill="#dfa745" />
+          <text x="310" y="125" fill="#EDE5D8" fontSize="8.5">(√3/2, ½) π/6</text>
+
+          {/* 45 deg (pi/4) */}
+          <line x1="190" y1="190" x2="282" y2="98" stroke="rgba(217,203,182,0.3)" strokeWidth="1" />
+          <circle cx="282" cy="98" r="3.5" fill="#7A8F73" />
+          <text x="290" y="95" fill="#FAF6EE" fontSize="8.5">(√2/2, √2/2) π/4</text>
+
+          {/* 60 deg (pi/3) */}
+          <line x1="190" y1="190" x2="255" y2="77" stroke="rgba(217,203,182,0.3)" strokeWidth="1" />
+          <circle cx="255" cy="77" r="3.5" fill="#dfa745" />
+          <text x="260" y="70" fill="#EDE5D8" fontSize="8.5">(½, √3/2) π/3</text>
+
+          {/* Axis intercepts */}
+          <circle cx="320" cy="190" r="4" fill="#EDE5D8" />
+          <text x="325" y="185" fill="#EDE5D8" fontSize="9">(1, 0) 0</text>
+
+          <circle cx="190" cy="60" r="4" fill="#EDE5D8" />
+          <text x="195" y="55" fill="#EDE5D8" fontSize="9">(0, 1) π/2</text>
+
+          <circle cx="60" cy="190" r="4" fill="#EDE5D8" />
+          <text x="15" y="185" fill="#EDE5D8" fontSize="9">(−1, 0) π</text>
+
+          <circle cx="190" cy="320" r="4" fill="#EDE5D8" />
+          <text x="195" y="335" fill="#EDE5D8" fontSize="9">(0, −1) 3π/2</text>
+        </svg>
+      );
+      break;
+
+    case "graficas_seno_coseno":
+      diagramContent = (
+        <div className="space-y-4">
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#7A8F73]">Función Seno: y = sen(x) (Periodo 2π, Rango [−1, 1])</div>
+            <svg viewBox="0 0 460 140" className="w-full h-28 mx-auto">
+              <line x1="20" y1="70" x2="440" y2="70" stroke="#556b5d" strokeWidth="1.2" />
+              <line x1="230" y1="10" x2="230" y2="130" stroke="#556b5d" strokeWidth="1.2" />
+              {/* Sine curve [-2pi, 2pi] */}
+              <path d="M 50,70 Q 95,15 140,70 Q 185,125 230,70 Q 275,15 320,70 Q 365,125 410,70" fill="none" stroke="#7A8F73" strokeWidth="2.5" />
+              {/* Labels */}
+              <text x="220" y="85" fill="#A89F8D" fontSize="8.5">0</text>
+              <text x="315" y="85" fill="#A89F8D" fontSize="8.5">π</text>
+              <text x="405" y="85" fill="#A89F8D" fontSize="8.5">2π</text>
+              <text x="135" y="85" fill="#A89F8D" fontSize="8.5">−π</text>
+              <text x="40" y="85" fill="#A89F8D" fontSize="8.5">−2π</text>
+            </svg>
+          </div>
+
+          <div className="p-3 bg-[#223028]/80 rounded-xl border border-[rgba(217,203,182,0.12)] text-center space-y-2">
+            <div className="text-xs font-bold text-[#dfa745]">Función Coseno: y = cos(x) (Periodo 2π, Rango [−1, 1])</div>
+            <svg viewBox="0 0 460 140" className="w-full h-28 mx-auto">
+              <line x1="20" y1="70" x2="440" y2="70" stroke="#556b5d" strokeWidth="1.2" />
+              <line x1="230" y1="10" x2="230" y2="130" stroke="#556b5d" strokeWidth="1.2" />
+              {/* Cosine curve [-2pi, 2pi] */}
+              <path d="M 50,15 Q 95,70 140,125 Q 185,70 230,15 Q 275,70 320,125 Q 365,70 410,15" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+              <text x="220" y="85" fill="#A89F8D" fontSize="8.5">0</text>
+              <text x="315" y="85" fill="#A89F8D" fontSize="8.5">π</text>
+              <text x="405" y="85" fill="#A89F8D" fontSize="8.5">2π</text>
+              <text x="135" y="85" fill="#A89F8D" fontSize="8.5">−π</text>
+              <text x="40" y="85" fill="#A89F8D" fontSize="8.5">−2π</text>
+            </svg>
+          </div>
+        </div>
+      );
+      break;
+
+    case "grafica_tangente_asintotas":
+      diagramContent = (
+        <svg viewBox="0 0 460 180" className="w-full max-w-lg mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="20" y1="90" x2="440" y2="90" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="230" y1="10" x2="230" y2="170" stroke="#556b5d" strokeWidth="1.5" />
+
+          {/* Asymptotes at -3pi/2, -pi/2, pi/2, 3pi/2 */}
+          <line x1="110" y1="10" x2="110" y2="170" stroke="#e06c75" strokeWidth="1.2" strokeDasharray="4,4" />
+          <line x1="170" y1="10" x2="170" y2="170" stroke="#e06c75" strokeWidth="1.2" strokeDasharray="4,4" />
+          <line x1="290" y1="10" x2="290" y2="170" stroke="#e06c75" strokeWidth="1.2" strokeDasharray="4,4" />
+          <line x1="350" y1="10" x2="350" y2="170" stroke="#e06c75" strokeWidth="1.2" strokeDasharray="4,4" />
+
+          {/* Branch in (-pi/2, pi/2) */}
+          <path d="M 180,165 Q 220,120 230,90 Q 240,60 280,15" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+          {/* Branch in (pi/2, 3pi/2) */}
+          <path d="M 300,165 Q 340,120 350,90 Q 360,60 400,15" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+          {/* Branch in (-3pi/2, -pi/2) */}
+          <path d="M 60,165 Q 100,120 110,90 Q 120,60 160,15" fill="none" stroke="#dfa745" strokeWidth="2.5" />
+
+          <text x="295" y="25" fill="#e06c75" fontSize="9">x = π/2</text>
+          <text x="140" y="25" fill="#e06c75" fontSize="9">x = −π/2</text>
+          <text x="235" y="105" fill="#FAF6EE" fontSize="10" fontWeight="bold">(0,0)</text>
+          <text x="375" y="165" fill="#dfa745" fontSize="10" fontWeight="bold">Periodo π</text>
+        </svg>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 29: IDENTIDADES TRIGONOMÉTRICAS
+    // ══════════════════════════════════════════════════════════════
+    case "identidad_suma_angulos_geometrica":
+      diagramContent = (
+        <svg viewBox="0 0 460 220" className="w-full max-w-md mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          {/* Geometric deduction rectangles and triangles */}
+          <rect x="80" y="40" width="280" height="150" fill="rgba(122,143,115,0.06)" stroke="#556b5d" strokeWidth="1" />
+          <line x1="80" y1="190" x2="360" y2="190" stroke="#7A8F73" strokeWidth="2" />
+
+          {/* Triangles with angles s and t */}
+          <polyline points="80,190 290,60 360,190" fill="rgba(223,167,69,0.15)" stroke="#dfa745" strokeWidth="2" />
+          <line x1="80" y1="190" x2="290" y2="190" stroke="#EDE5D8" strokeWidth="1.5" />
+
+          <text x="115" y="180" fill="#7A8F73" fontSize="11" fontWeight="bold">s</text>
+          <text x="145" y="150" fill="#dfa745" fontSize="11" fontWeight="bold">t</text>
+          <text x="240" y="110" fill="#FAF6EE" fontSize="10.5">sen(s+t) = sen s·cos t + cos s·sen t</text>
+          <text x="240" y="130" fill="#C8B99D" fontSize="10.5">cos(s+t) = cos s·cos t − sen s·sen t</text>
+        </svg>
+      );
+      break;
+
+    // ══════════════════════════════════════════════════════════════
+    // MÓDULO 30: ECUACIONES TRIGONOMÉTRICAS
+    // ══════════════════════════════════════════════════════════════
+    case "ecuaciones_trig_circulo_soluciones":
+      diagramContent = (
+        <svg viewBox="0 0 360 240" className="w-full max-w-sm mx-auto select-none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="20" y1="120" x2="340" y2="120" stroke="#556b5d" strokeWidth="1.5" />
+          <line x1="180" y1="15" x2="180" y2="225" stroke="#556b5d" strokeWidth="1.5" />
+
+          <circle cx="180" cy="120" r="90" fill="none" stroke="#7A8F73" strokeWidth="2" />
+
+          {/* Horizontal lines y = 1/2 and y = -1/2 */}
+          <line x1="80" y1="75" x2="280" y2="75" stroke="#7A8F73" strokeWidth="1.5" strokeDasharray="3,3" />
+          <text x="285" y="78" fill="#7A8F73" fontSize="9">sen x = ½</text>
+          <circle cx="258" cy="75" r="4" fill="#7A8F73" />
+          <circle cx="102" cy="75" r="4" fill="#7A8F73" />
+          <text x="265" y="68" fill="#FAF6EE" fontSize="9" fontWeight="bold">π/6</text>
+          <text x="75" y="68" fill="#FAF6EE" fontSize="9" fontWeight="bold">5π/6</text>
+
+          <line x1="80" y1="165" x2="280" y2="165" stroke="#dfa745" strokeWidth="1.5" strokeDasharray="3,3" />
+          <text x="285" y="168" fill="#dfa745" fontSize="9">sen x = −½</text>
+          <circle cx="258" cy="165" r="4" fill="#dfa745" />
+          <circle cx="102" cy="165" r="4" fill="#dfa745" />
+          <text x="265" y="180" fill="#dfa745" fontSize="9" fontWeight="bold">11π/6</text>
+          <text x="70" y="180" fill="#dfa745" fontSize="9" fontWeight="bold">7π/6</text>
+        </svg>
+      );
+      break;
+
     default:
       return null;
   }
