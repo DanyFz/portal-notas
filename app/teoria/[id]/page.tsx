@@ -1,15 +1,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MathText } from "@/components/MathText";
+import { TheoryDiagram } from "@/components/TheoryDiagrams";
 import { THEORY_MODULES, TheoryModule } from "@/lib/theoryModules";
 
 /* ──────────────────────────────────────────────────────────────
    HELPER COMPONENT: Theory Paragraph Card
    Renders textbook monograph callouts for definitions,
-   theorems, examples, formulas, lists, and warnings.
+   theorems, examples, formulas, lists, diagrams, and warnings.
    ────────────────────────────────────────────────────────────── */
 function TheoryParagraph({ text }: { text: string }) {
   const trimmed = text.trim();
+
+  // Visual Diagram Callout: [FIGURA: id | Caption] or [DIAGRAMA: id | Caption]
+  const diagramMatch = trimmed.match(/^\[(?:FIGURA|DIAGRAMA):\s*([a-zA-Z0-9_\-]+)(?:\s*\|\s*([^\]]+))?\]$/i);
+  if (diagramMatch) {
+    const diagramId = diagramMatch[1];
+    const diagramCaption = diagramMatch[2]?.trim();
+    return <TheoryDiagram id={diagramId} caption={diagramCaption} />;
+  }
 
   // Block formula: starts and ends with $$
   if (trimmed.startsWith("$$") && trimmed.endsWith("$$")) {
