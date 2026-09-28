@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
+import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Student } from "@/lib/types";
@@ -8,6 +9,7 @@ import { Student } from "@/lib/types";
 export default function AdminDashboardPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const excelInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,6 +37,9 @@ export default function AdminDashboardPage() {
   const [showBulkGradeModal, setShowBulkGradeModal] = useState(false);
   const [showMoveGroupModal, setShowMoveGroupModal] = useState(false);
   const [showQuizPassModal, setShowQuizPassModal] = useState(false);
+  const [showExcelImportModal, setShowExcelImportModal] = useState(false);
+  const [excelPreviewStudents, setExcelPreviewStudents] = useState<{fullName: string; email: string; group: string; program?: string}[]>([]);
+  const [excelImportMode, setExcelImportMode] = useState<"add" | "replace">("add");
 
   // Dedicated Student Group Change Modal State
   const [studentToChangeGroup, setStudentToChangeGroup] = useState<Student | null>(null);
@@ -632,7 +637,7 @@ export default function AdminDashboardPage() {
       fullName: newStudent.fullName.trim(),
       username: cleanUser,
       email: newStudent.email.trim() || `${cleanUser}@unal.edu.co`,
-      program: newStudent.program.trim() || "Ingeniería",
+      program: newStudent.program.trim() || "",
       group: targetGroup,
       grades: defaultGrades,
       attendance: defaultAttendance,
@@ -678,6 +683,150 @@ export default function AdminDashboardPage() {
     };
     reader.readAsText(file);
     event.target.value = "";
+  }
+
+  // Import Excel/CSV file with columns: nombre, correo, grupo
+  function handleExcelFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet, { defval: "" });
+
+        if (jsonData.length === 0) {
+          alert("El archivo está vacío o no se pudieron leer datos.");
+          return;
+        }
+
+        // Detect column names (case-insensitive, flexible matching)
+        const firstRow = jsonData[0];
+        const headers = Object.keys(firstRow);
+
+        function findColumn(candidates: string[]): string | null {
+          for (const candidate of candidates) {
+            const found = headers.find((h) => h.toLowerCase().trim() === candidate.toLowerCase());
+            if (found) return found;
+          }
+          // Partial match
+          for (const candidate of candidates) {
+            const found = headers.find((h) => h.toLowerCase().trim().includes(candidate.toLowerCase()));
+            if (found) return found;
+          }
+          return null;
+        }
+
+        const nameCol = findColumn(["nombre", "nombre completo", "fullname", "name", "full_name", "nombres", "estudiante"]);
+        const emailCol = findColumn(["correo", "email", "correo electrónico", "correo electronico", "mail", "e-mail"]);
+        const groupCol = findColumn(["grupo", "group", "seccion", "sección"]);
+        const programCol = findColumn(["carrera", "programa", "program", "programa académico", "programa academico"]);
+
+        if (!nameCol && !emailCol) {
+          alert(`No se encontraron las columnas necesarias.\n\nColumnas detectadas: ${headers.join(", ")}\n\nSe requiere al menos una columna de "nombre" o "correo".`);
+          return;
+        }
+
+        const previewed: {fullName: string; email: string; group: string; program?: string}[] = [];
+
+        for (const row of jsonData) {
+          const name = nameCol ? String(row[nameCol] || "").trim() : "";
+          const email = emailCol ? String(row[emailCol] || "").trim() : "";
+          const group = groupCol ? String(row[groupCol] || "").trim() : "";
+          const program = programCol ? String(row[programCol] || "").trim() : "";
+
+          // Skip empty rows
+          if (!name && !email) continue;
+
+          previewed.push({
+            fullName: name,
+            email: email,
+            group: group || (selectedGroup !== "ALL" ? selectedGroup : groups[0] || "Sin Grupo"),
+            ...(program ? { program } : {}),
+          });
+        }
+
+        if (previewed.length === 0) {
+          alert("No se encontraron estudiantes válidos en el archivo.");
+          return;
+        }
+
+        setExcelPreviewStudents(previewed);
+        setExcelImportMode("add");
+        setShowExcelImportModal(true);
+      } catch (err) {
+        alert("Error al leer el archivo: " + (err instanceof Error ? err.message : String(err)));
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    event.target.value = "";
+  }
+
+  // Confirm Excel import
+  function handleConfirmExcelImport() {
+    const newStudents: Student[] = excelPreviewStudents.map((ep) => {
+      // Generate username from email (before @) or from name
+      let username = "";
+      if (ep.email && ep.email.includes("@")) {
+        username = ep.email.split("@")[0].toLowerCase().trim();
+      } else if (ep.email) {
+        username = ep.email.toLowerCase().trim();
+      } else {
+        // Generate from name
+        username = ep.fullName
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s]/g, "")
+          .split(/\s+/)
+          .join(".");
+      }
+
+      const defaultGrades: Record<string, number | null> = {};
+      const defaultAttendance: Record<string, string> = {};
+      evaluationColumns.forEach((col) => {
+        defaultGrades[col] = null;
+        defaultAttendance[col] = "pendiente";
+      });
+
+      // Ensure group exists
+      const targetGroup = ep.group.trim() || (selectedGroup !== "ALL" ? selectedGroup : groups[0] || "Sin Grupo");
+      if (targetGroup && !groups.includes(targetGroup)) {
+        setCustomGroups((prev) => [...new Set([...prev, targetGroup])]);
+      }
+
+      return {
+        fullName: ep.fullName || username,
+        username: username,
+        email: ep.email || `${username}@unal.edu.co`,
+        program: ep.program || "",
+        group: targetGroup,
+        grades: defaultGrades,
+        attendance: defaultAttendance,
+      };
+    });
+
+    if (excelImportMode === "replace") {
+      setStudents(newStudents);
+    } else {
+      // Add mode: skip duplicates by username
+      const existingUsernames = new Set(students.map((s) => s.username.toLowerCase()));
+      const uniqueNew = newStudents.filter((s) => !existingUsernames.has(s.username.toLowerCase()));
+      const skipped = newStudents.length - uniqueNew.length;
+
+      if (skipped > 0) {
+        alert(`Se omitieron ${skipped} estudiantes que ya existían (mismo usuario).`);
+      }
+
+      setStudents((prev) => [...prev, ...uniqueNew]);
+    }
+
+    setShowExcelImportModal(false);
+    setExcelPreviewStudents([]);
   }
 
   // Save changes to API
@@ -759,6 +908,14 @@ export default function AdminDashboardPage() {
         ref={fileInputRef}
         onChange={handleImportBackup}
         accept=".json"
+        className="hidden"
+      />
+      {/* Hidden File Input for Excel Import */}
+      <input
+        type="file"
+        ref={excelInputRef}
+        onChange={handleExcelFileSelect}
+        accept=".xlsx,.xls,.csv"
         className="hidden"
       />
 
@@ -1077,6 +1234,18 @@ export default function AdminDashboardPage() {
                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
               <span>Nuevo Estudiante</span>
+            </button>
+
+            <button
+              onClick={() => excelInputRef.current?.click()}
+              className="h-8 px-3 rounded-md bg-[#1e3325] hover:bg-[#274432] border border-[#2f6645]/60 text-[#a5e0b8] text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
+              title="Subir archivo Excel o CSV con columnas: nombre, correo, grupo"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="hidden sm:inline">Importar Excel</span>
+              <span className="sm:hidden">Excel</span>
             </button>
 
             <button
@@ -1864,7 +2033,7 @@ export default function AdminDashboardPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[#A89F8D] block mb-1">Programa</label>
+                  <label className="text-[#A89F8D] block mb-1">Programa <span className="text-[#A89F8D]/50">(opcional)</span></label>
                   <input
                     type="text"
                     placeholder="ej: Ingeniería Civil"
@@ -2442,6 +2611,131 @@ export default function AdminDashboardPage() {
                 className="h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider bg-red-800 hover:bg-red-700 text-white cursor-pointer disabled:opacity-50"
               >
                 Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Importar Excel */}
+      {showExcelImportModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3.5 sm:p-4 z-50 animate-fadeIn">
+          <div className="bg-[#18231c] border border-[rgba(217,203,182,0.2)] rounded-xl max-w-2xl w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[rgba(217,203,182,0.1)] pb-3">
+              <div>
+                <h2 className="text-sm font-serif font-bold text-[#FAF6EE] flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#2f6645]" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Importar Estudiantes desde Excel
+                </h2>
+                <p className="text-[10px] text-[#A89F8D] mt-0.5">{excelPreviewStudents.length} estudiantes encontrados en el archivo</p>
+              </div>
+              <button onClick={() => { setShowExcelImportModal(false); setExcelPreviewStudents([]); }} className="text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer">✕</button>
+            </div>
+
+            {/* Import mode selector */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-[#121914] border border-[rgba(217,203,182,0.08)]">
+              <label className="text-xs text-[#A89F8D] font-mono shrink-0">Modo:</label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setExcelImportMode("add")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-all ${
+                    excelImportMode === "add"
+                      ? "bg-[#25362c] text-[#FAF6EE] border border-[#3b4e42] shadow-sm"
+                      : "text-[#A89F8D] hover:text-[#EDE5D8] border border-transparent"
+                  }`}
+                >
+                  Agregar a los existentes
+                </button>
+                <button
+                  onClick={() => setExcelImportMode("replace")}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium cursor-pointer transition-all ${
+                    excelImportMode === "replace"
+                      ? "bg-red-950/60 text-red-200 border border-red-800/50 shadow-sm"
+                      : "text-[#A89F8D] hover:text-[#EDE5D8] border border-transparent"
+                  }`}
+                >
+                  Reemplazar todo
+                </button>
+              </div>
+            </div>
+
+            {excelImportMode === "replace" && (
+              <div className="p-2.5 rounded-md bg-red-950/40 border border-red-800/40 text-[11px] text-red-300 flex items-start gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mt-0.5 shrink-0 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span>⚠️ Esto reemplazará TODA la lista actual de estudiantes incluyendo notas y asistencia.</span>
+              </div>
+            )}
+
+            {/* Preview table */}
+            <div className="rounded-lg border border-[rgba(217,203,182,0.12)] overflow-hidden">
+              <div className="max-h-64 overflow-auto">
+                <table className="w-full text-xs">
+                  <thead className="bg-[#1b2620] sticky top-0 z-10">
+                    <tr>
+                      <th className="p-2 px-3 text-left text-[#8FA698] font-mono text-[11px] w-10">#</th>
+                      <th className="p-2 px-3 text-left text-[#FAF6EE] font-mono text-[11px]">Nombre</th>
+                      <th className="p-2 px-3 text-left text-[#FAF6EE] font-mono text-[11px]">Correo</th>
+                      <th className="p-2 px-3 text-left text-[#FAF6EE] font-mono text-[11px]">Grupo</th>
+                      <th className="p-2 px-3 text-left text-[#FAF6EE] font-mono text-[11px]">Carrera</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[rgba(217,203,182,0.06)]">
+                    {excelPreviewStudents.slice(0, 50).map((ep, i) => (
+                      <tr key={i} className="hover:bg-[#1f2d24]/40">
+                        <td className="p-1.5 px-3 text-[#8FA698]/60 font-mono">{i + 1}</td>
+                        <td className="p-1.5 px-3 text-[#EDE5D8] font-medium truncate max-w-[200px]">{ep.fullName || <span className="text-[#A89F8D]/50 italic">Sin nombre</span>}</td>
+                        <td className="p-1.5 px-3 text-[#C8B99D] font-mono truncate max-w-[200px]">{ep.email || <span className="text-[#A89F8D]/50 italic">Auto</span>}</td>
+                        <td className="p-1.5 px-3">
+                          <span className="px-1.5 py-0.5 rounded bg-[#1e2a22] border border-[#3b4e42] text-[#8FA698] font-mono text-[10px]">
+                            {ep.group}
+                          </span>
+                        </td>
+                        <td className="p-1.5 px-3 text-[#A89F8D] truncate max-w-[150px]">{ep.program || <span className="text-[#A89F8D]/30">—</span>}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {excelPreviewStudents.length > 50 && (
+                <div className="p-2 text-center text-[10px] text-[#A89F8D] border-t border-[rgba(217,203,182,0.08)] bg-[#121914]">
+                  Mostrando 50 de {excelPreviewStudents.length} estudiantes
+                </div>
+              )}
+            </div>
+
+            {/* Info about columns detected */}
+            <div className="p-2.5 rounded-lg bg-[#121914] border border-[rgba(217,203,182,0.08)] text-[11px] text-[#A89F8D]">
+              <span className="font-mono text-[#8FA698]">💡 Tip:</span> El archivo Excel/CSV debe tener columnas con nombres como:{" "}
+              <span className="font-mono text-[#C8B99D]">nombre</span>,{" "}
+              <span className="font-mono text-[#C8B99D]">correo</span>,{" "}
+              <span className="font-mono text-[#C8B99D]">grupo</span>{" "}
+              (y opcionalmente <span className="font-mono text-[#C8B99D]">carrera</span>/<span className="font-mono text-[#C8B99D]">programa</span>).
+              El usuario se generará automáticamente desde el correo.
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(217,203,182,0.1)]">
+              <button
+                onClick={() => { setShowExcelImportModal(false); setExcelPreviewStudents([]); }}
+                className="h-8 px-3 rounded-md text-xs text-[#A89F8D] hover:text-[#FAF6EE] cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmExcelImport}
+                className={`h-8 px-4 rounded-md text-xs font-bold uppercase tracking-wider cursor-pointer ${
+                  excelImportMode === "replace"
+                    ? "bg-red-800 hover:bg-red-700 text-white"
+                    : "academic-btn-primary"
+                }`}
+              >
+                {excelImportMode === "replace"
+                  ? `Reemplazar con ${excelPreviewStudents.length} estudiantes`
+                  : `Agregar ${excelPreviewStudents.length} estudiantes`
+                }
               </button>
             </div>
           </div>

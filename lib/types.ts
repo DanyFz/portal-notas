@@ -3,7 +3,7 @@ export interface Student {
   email: string;
   group: string;
   fullName: string;
-  program: string;
+  program?: string;
   grades: Record<string, number | null>;
   attendance: Record<string, string>;
 }

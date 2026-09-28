@@ -191,7 +191,9 @@ export default function DashboardPage() {
               <h1 className="text-lg sm:text-2xl font-serif font-bold text-[#FAF6EE] truncate">{student.fullName}</h1>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 <span className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md border border-[#7A8F73]/30 text-[#EDE5D8] bg-[#7A8F73]/15 font-medium">{student.group}</span>
+                {student.program && (
                 <span className="text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md border border-[rgba(217,203,182,0.15)] text-[#C8B99D] bg-[#223028] font-medium">{student.program}</span>
+                )}
               </div>
               <p className="text-[11px] sm:text-xs text-[#A89F8D] mt-1 truncate">{student.email}</p>
             </div>
