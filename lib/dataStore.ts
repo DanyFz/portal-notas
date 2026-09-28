@@ -8,6 +8,23 @@ export interface StoredData {
   customGroups?: string[];
 }
 
+function normalizeStudents(students: Student[]): Student[] {
+  return students.map((s) => {
+    const updatedAttendance = { ...(s.attendance || {}) };
+    if (s.grades) {
+      Object.entries(s.grades).forEach(([quiz, grade]) => {
+        if (grade !== null && typeof grade === "number" && grade > 0) {
+          updatedAttendance[quiz] = "presente";
+        }
+      });
+    }
+    return {
+      ...s,
+      attendance: updatedAttendance,
+    };
+  });
+}
+
 /**
  * Reads student data and quiz settings from Vercel Blob or local filesystem.
  */
@@ -34,7 +51,7 @@ export async function readData(): Promise<StoredData> {
           const data = await response.json();
           if (data && Array.isArray(data.students)) {
             return {
-              students: data.students,
+              students: normalizeStudents(data.students),
               quizPasswords: data.quizPasswords || {},
               customGroups: data.customGroups || [],
             };
@@ -53,7 +70,7 @@ export async function readData(): Promise<StoredData> {
     const data = JSON.parse(fileContent);
     if (data && Array.isArray(data.students)) {
       return {
-        students: data.students,
+        students: normalizeStudents(data.students),
         quizPasswords: data.quizPasswords || {},
         customGroups: data.customGroups || [],
       };
@@ -69,9 +86,10 @@ export async function readData(): Promise<StoredData> {
  * Writes student data and quiz settings to Vercel Blob and local filesystem.
  */
 export async function writeData(data: StoredData): Promise<{ success: boolean; targets: string[]; error?: string }> {
+  const normalizedStudents = normalizeStudents(data.students || []);
   const payload = JSON.stringify(
     {
-      students: data.students,
+      students: normalizedStudents,
       quizPasswords: data.quizPasswords || {},
       customGroups: data.customGroups || [],
     },

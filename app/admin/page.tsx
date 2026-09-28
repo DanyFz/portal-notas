@@ -286,9 +286,7 @@ export default function AdminDashboardPage() {
               updatedAttendance[col] = "ausente";
             }
           } else if (parsed !== null && parsed > 0) {
-            if (currentAtt !== "excusa") {
-              updatedAttendance[col] = "presente";
-            }
+            updatedAttendance[col] = "presente";
           } else if (trimmed.toLowerCase() === "excusa" || trimmed.toLowerCase() === "e") {
             updatedAttendance[col] = "excusa";
           }
@@ -598,9 +596,18 @@ export default function AdminDashboardPage() {
     setStudents((prev) =>
       prev.map((s) => {
         if (targetUsernames.includes(s.username)) {
+          const updatedAttendance = { ...(s.attendance || {}) };
+          if (num !== null && num > 0) {
+            updatedAttendance[bulkGradeCol] = "presente";
+          } else if (num === 0) {
+            if (s.attendance?.[bulkGradeCol] !== "presente") {
+              updatedAttendance[bulkGradeCol] = "ausente";
+            }
+          }
           return {
             ...s,
             grades: { ...(s.grades || {}), [bulkGradeCol]: num },
+            attendance: updatedAttendance,
           };
         }
         return s;
