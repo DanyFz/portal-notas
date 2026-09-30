@@ -389,18 +389,17 @@ export default function AdminDashboardPage() {
     setSelectedUsernames([]);
   }
 
-  // Copy single student email to clipboard
-  function handleCopyEmail(emailOrUser: string, id: string) {
-    const raw = (emailOrUser || "").trim();
-    const email = raw.includes("@") ? raw : `${raw}@unal.edu.co`;
-    if (!email) return;
+  // Copy single student username to clipboard
+  function handleCopyUsername(username: string, id: string) {
+    const cleanUser = (username || "").split("@")[0].trim();
+    if (!cleanUser) return;
 
     if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(email);
+      navigator.clipboard.writeText(cleanUser);
     } else {
       try {
         const textArea = document.createElement("textarea");
-        textArea.value = email;
+        textArea.value = cleanUser;
         textArea.style.position = "fixed";
         textArea.style.opacity = "0";
         document.body.appendChild(textArea);
@@ -413,35 +412,35 @@ export default function AdminDashboardPage() {
       }
     }
     setCopiedUser(id);
-    setCopyNotification(`Copiado: ${email}`);
+    setCopyNotification(`Usuario copiado: ${cleanUser}`);
     setTimeout(() => {
       setCopiedUser((prev) => (prev === id ? null : prev));
     }, 2000);
     setTimeout(() => {
-      setCopyNotification((prev) => (prev === `Copiado: ${email}` ? null : prev));
+      setCopyNotification((prev) => (prev === `Usuario copiado: ${cleanUser}` ? null : prev));
     }, 3000);
   }
 
-  // Bulk copy emails helper (for selected students or currently filtered group)
-  function handleCopyBulkEmails(useSelected: boolean = true) {
+  // Bulk copy usernames helper (for selected students or currently filtered group)
+  function handleCopyBulkUsernames(useSelected: boolean = true) {
     const targetStudents =
       useSelected && selectedUsernames.length > 0
         ? students.filter((s) => selectedUsernames.includes(s.username))
         : filteredStudents;
 
-    const emails = targetStudents
-      .map((s) => s.email?.trim() || `${s.username.trim()}@unal.edu.co`)
+    const usernames = targetStudents
+      .map((s) => (s.username || "").split("@")[0].trim())
       .filter(Boolean)
-      .join("; ");
+      .join(", ");
 
-    if (!emails) return;
+    if (!usernames) return;
 
     if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(emails);
+      navigator.clipboard.writeText(usernames);
     } else {
       try {
         const textArea = document.createElement("textarea");
-        textArea.value = emails;
+        textArea.value = usernames;
         textArea.style.position = "fixed";
         textArea.style.opacity = "0";
         document.body.appendChild(textArea);
@@ -455,7 +454,7 @@ export default function AdminDashboardPage() {
     }
 
     const count = targetStudents.length;
-    setCopyNotification(`${count} correo${count === 1 ? "" : "s"} copiado${count === 1 ? "" : "s"} al portapapeles`);
+    setCopyNotification(`${count} usuario${count === 1 ? "" : "s"} copiado${count === 1 ? "" : "s"} al portapapeles`);
     setTimeout(() => {
       setCopyNotification(null);
     }, 3000);
@@ -1274,14 +1273,14 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-1.5 bg-[#1b2b21] border border-[#2f6645] px-2.5 py-1 rounded-lg animate-fadeIn text-xs">
                 <span className="font-mono text-[#a5e0b8] font-semibold">{selectedUsernames.length} selecc.</span>
                 <button
-                  onClick={() => handleCopyBulkEmails(true)}
+                  onClick={() => handleCopyBulkUsernames(true)}
                   className="px-2 py-0.5 rounded bg-[#274432] text-[#FAF6EE] hover:bg-[#345942] font-mono cursor-pointer flex items-center gap-1"
-                  title="Copiar correos de los estudiantes seleccionados"
+                  title="Copiar usuarios de los estudiantes seleccionados"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#8FA698]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                  <span>Copiar Correos</span>
+                  <span>Copiar Usuarios</span>
                 </button>
                 <button
                   onClick={() => setShowMoveGroupModal(true)}
@@ -1382,15 +1381,15 @@ export default function AdminDashboardPage() {
             )}
 
             <button
-              onClick={() => handleCopyBulkEmails(false)}
+              onClick={() => handleCopyBulkUsernames(false)}
               className="h-8 px-2.5 sm:px-3 rounded-md bg-[#223028] hover:bg-[#2b3c33] border border-[rgba(217,203,182,0.15)] text-[#FAF6EE] text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
-              title="Copiar correos de todos los estudiantes mostrados según el filtro actual"
+              title="Copiar usuarios de todos los estudiantes mostrados según el filtro actual"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#8FA698]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              <span className="hidden sm:inline">Copiar Correos ({filteredStudents.length})</span>
-              <span className="sm:hidden">Correos ({filteredStudents.length})</span>
+              <span className="hidden sm:inline">Copiar Usuarios ({filteredStudents.length})</span>
+              <span className="sm:hidden">Usuarios ({filteredStudents.length})</span>
             </button>
 
             <button
@@ -1531,7 +1530,7 @@ export default function AdminDashboardPage() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleCopyEmail(st.email || st.username, `grades-${st.username}`);
+                                  handleCopyUsername(st.username, `grades-${st.username}`);
                                 }}
                                 className={`p-1 rounded transition-all cursor-pointer shrink-0 ${
                                   copiedUser === `grades-${st.username}`
@@ -1540,8 +1539,8 @@ export default function AdminDashboardPage() {
                                 }`}
                                 title={
                                   copiedUser === `grades-${st.username}`
-                                    ? "¡Correo copiado!"
-                                    : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
+                                    ? "¡Usuario copiado!"
+                                    : `Copiar usuario (${st.username})`
                                 }
                               >
                                 {copiedUser === `grades-${st.username}` ? (
@@ -1741,7 +1740,7 @@ export default function AdminDashboardPage() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleCopyEmail(st.email || st.username, `att-${st.username}`);
+                                handleCopyUsername(st.username, `att-${st.username}`);
                               }}
                               className={`p-0.5 rounded transition-all cursor-pointer shrink-0 ${
                                 copiedUser === `att-${st.username}`
@@ -1750,8 +1749,8 @@ export default function AdminDashboardPage() {
                               }`}
                               title={
                                 copiedUser === `att-${st.username}`
-                                  ? "¡Correo copiado!"
-                                  : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
+                                  ? "¡Usuario copiado!"
+                                  : `Copiar usuario (${st.username})`
                               }
                             >
                               {copiedUser === `att-${st.username}` ? (
@@ -1900,7 +1899,7 @@ export default function AdminDashboardPage() {
                           />
                           <button
                             type="button"
-                            onClick={() => handleCopyEmail(st.email || st.username, `user-${st.username}`)}
+                            onClick={() => handleCopyUsername(st.username, `user-${st.username}`)}
                             className={`p-1 rounded shrink-0 transition-all cursor-pointer ${
                               copiedUser === `user-${st.username}`
                                 ? "bg-[#183624] text-[#a5e0b8]"
@@ -1908,8 +1907,8 @@ export default function AdminDashboardPage() {
                             }`}
                             title={
                               copiedUser === `user-${st.username}`
-                                ? "¡Correo copiado!"
-                                : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
+                                ? "¡Usuario copiado!"
+                                : `Copiar usuario (${st.username})`
                             }
                           >
                             {copiedUser === `user-${st.username}` ? (
@@ -1925,38 +1924,12 @@ export default function AdminDashboardPage() {
                         </div>
                       </td>
                       <td className="p-1.5 px-3 border-r border-[rgba(217,203,182,0.06)]">
-                        <div className="flex items-center gap-1.5">
-                          <input
-                            type="text"
-                            value={st.email}
-                            onChange={(e) => handleStudentFieldChange(st.username, "email", e.target.value)}
-                            className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15]"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleCopyEmail(st.email || st.username, `email-${st.username}`)}
-                            className={`p-1 rounded shrink-0 transition-all cursor-pointer ${
-                              copiedUser === `email-${st.username}`
-                                ? "bg-[#183624] text-[#a5e0b8]"
-                                : "hover:bg-[#25362c] text-[#A89F8D]/60 hover:text-[#8FA698]"
-                            }`}
-                            title={
-                              copiedUser === `email-${st.username}`
-                                ? "¡Correo copiado!"
-                                : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
-                            }
-                          >
-                            {copiedUser === `email-${st.username}` ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#a5e0b8]" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                              </svg>
-                            )}
-                          </button>
-                        </div>
+                        <input
+                          type="text"
+                          value={st.email}
+                          onChange={(e) => handleStudentFieldChange(st.username, "email", e.target.value)}
+                          className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15]"
+                        />
                       </td>
                       <td className="p-1.5 px-3 border-r border-[rgba(217,203,182,0.06)]">
                         <input
@@ -2125,9 +2098,9 @@ export default function AdminDashboardPage() {
                   <span>{studentToChangeGroup.username} · {studentToChangeGroup.program || "UNAL"}</span>
                   <button
                     type="button"
-                    onClick={() => handleCopyEmail(studentToChangeGroup.email || studentToChangeGroup.username, `modal-${studentToChangeGroup.username}`)}
+                    onClick={() => handleCopyUsername(studentToChangeGroup.username, `modal-${studentToChangeGroup.username}`)}
                     className="inline-flex items-center gap-1 text-[#8FA698] hover:text-[#FAF6EE] cursor-pointer hover:underline"
-                    title={`Copiar correo (${studentToChangeGroup.email || `${studentToChangeGroup.username}@unal.edu.co`})`}
+                    title={`Copiar usuario (${studentToChangeGroup.username})`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
