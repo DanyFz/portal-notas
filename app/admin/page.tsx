@@ -25,6 +25,10 @@ export default function AdminDashboardPage() {
   // Sorting
   const [sortBy, setSortBy] = useState<"name-asc" | "name-desc" | "avg-desc" | "avg-asc" | "absent-desc" | "group">("name-asc");
 
+  // Copy to clipboard state
+  const [copiedUser, setCopiedUser] = useState<string | null>(null);
+  const [copyNotification, setCopyNotification] = useState<string | null>(null);
+
   // Selection for bulk actions (students)
   const [selectedUsernames, setSelectedUsernames] = useState<string[]>([]);
 
@@ -383,6 +387,78 @@ export default function AdminDashboardPage() {
     const set = new Set(selectedUsernames.map((u) => u.toLowerCase()));
     setStudents((prev) => prev.filter((s) => !set.has(s.username.toLowerCase())));
     setSelectedUsernames([]);
+  }
+
+  // Copy single student email to clipboard
+  function handleCopyEmail(emailOrUser: string, id: string) {
+    const raw = (emailOrUser || "").trim();
+    const email = raw.includes("@") ? raw : `${raw}@unal.edu.co`;
+    if (!email) return;
+
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(email);
+    } else {
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = email;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      } catch (e) {
+        console.error("Clipboard copy error:", e);
+      }
+    }
+    setCopiedUser(id);
+    setCopyNotification(`Copiado: ${email}`);
+    setTimeout(() => {
+      setCopiedUser((prev) => (prev === id ? null : prev));
+    }, 2000);
+    setTimeout(() => {
+      setCopyNotification((prev) => (prev === `Copiado: ${email}` ? null : prev));
+    }, 3000);
+  }
+
+  // Bulk copy emails helper (for selected students or currently filtered group)
+  function handleCopyBulkEmails(useSelected: boolean = true) {
+    const targetStudents =
+      useSelected && selectedUsernames.length > 0
+        ? students.filter((s) => selectedUsernames.includes(s.username))
+        : filteredStudents;
+
+    const emails = targetStudents
+      .map((s) => s.email?.trim() || `${s.username.trim()}@unal.edu.co`)
+      .filter(Boolean)
+      .join("; ");
+
+    if (!emails) return;
+
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(emails);
+    } else {
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = emails;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      } catch (e) {
+        console.error("Clipboard copy error:", e);
+      }
+    }
+
+    const count = targetStudents.length;
+    setCopyNotification(`${count} correo${count === 1 ? "" : "s"} copiado${count === 1 ? "" : "s"} al portapapeles`);
+    setTimeout(() => {
+      setCopyNotification(null);
+    }, 3000);
   }
 
   // Add evaluation column
@@ -1198,6 +1274,16 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-1.5 bg-[#1b2b21] border border-[#2f6645] px-2.5 py-1 rounded-lg animate-fadeIn text-xs">
                 <span className="font-mono text-[#a5e0b8] font-semibold">{selectedUsernames.length} selecc.</span>
                 <button
+                  onClick={() => handleCopyBulkEmails(true)}
+                  className="px-2 py-0.5 rounded bg-[#274432] text-[#FAF6EE] hover:bg-[#345942] font-mono cursor-pointer flex items-center gap-1"
+                  title="Copiar correos de los estudiantes seleccionados"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#8FA698]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Copiar Correos</span>
+                </button>
+                <button
                   onClick={() => setShowMoveGroupModal(true)}
                   className="px-2 py-0.5 rounded bg-[#274432] text-[#FAF6EE] hover:bg-[#345942] font-mono cursor-pointer flex items-center gap-1"
                   title="Mover estudiantes seleccionados a otro grupo"
@@ -1294,6 +1380,18 @@ export default function AdminDashboardPage() {
                 </svg>
               </button>
             )}
+
+            <button
+              onClick={() => handleCopyBulkEmails(false)}
+              className="h-8 px-2.5 sm:px-3 rounded-md bg-[#223028] hover:bg-[#2b3c33] border border-[rgba(217,203,182,0.15)] text-[#FAF6EE] text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors"
+              title="Copiar correos de todos los estudiantes mostrados según el filtro actual"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#8FA698]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span className="hidden sm:inline">Copiar Correos ({filteredStudents.length})</span>
+              <span className="sm:hidden">Correos ({filteredStudents.length})</span>
+            </button>
 
             <button
               onClick={() => setShowBulkGradeModal(true)}
@@ -1425,9 +1523,38 @@ export default function AdminDashboardPage() {
                             <div className="text-[10px] text-[#A89F8D] truncate">{st.program || "Sin programa"}</div>
                           </td>
 
-                          {/* Username */}
+                          {/* Username with Copy Button */}
                           <td className="p-2 px-3 font-mono text-[11px] text-[#C8B99D] border-r border-[rgba(217,203,182,0.06)]">
-                            {st.username}
+                            <div className="flex items-center gap-1.5 justify-between">
+                              <span className="truncate">{st.username}</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCopyEmail(st.email || st.username, `grades-${st.username}`);
+                                }}
+                                className={`p-1 rounded transition-all cursor-pointer shrink-0 ${
+                                  copiedUser === `grades-${st.username}`
+                                    ? "bg-[#183624] text-[#a5e0b8]"
+                                    : "hover:bg-[#25362c] text-[#A89F8D]/60 hover:text-[#8FA698]"
+                                }`}
+                                title={
+                                  copiedUser === `grades-${st.username}`
+                                    ? "¡Correo copiado!"
+                                    : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
+                                }
+                              >
+                                {copiedUser === `grades-${st.username}` ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#a5e0b8]" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                  </svg>
+                                )}
+                              </button>
+                            </div>
                           </td>
 
                           {/* Interactive Group Badge (Opens Group Change Modal) */}
@@ -1608,7 +1735,36 @@ export default function AdminDashboardPage() {
                         </td>
                         <td className="p-2.5 px-4 text-[#FAF6EE] font-medium sticky left-0 z-10 bg-[#17211b] group-hover:bg-[#1d2921] border-r border-[rgba(217,203,182,0.1)] truncate max-w-[240px]">
                           <div className="truncate font-semibold">{st.fullName}</div>
-                          <div className="text-[10px] text-[#A89F8D] truncate">{st.username}</div>
+                          <div className="text-[10px] text-[#A89F8D] truncate flex items-center gap-1.5 font-mono mt-0.5">
+                            <span className="truncate">{st.username}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyEmail(st.email || st.username, `att-${st.username}`);
+                              }}
+                              className={`p-0.5 rounded transition-all cursor-pointer shrink-0 ${
+                                copiedUser === `att-${st.username}`
+                                  ? "text-[#a5e0b8]"
+                                  : "text-[#A89F8D]/60 hover:text-[#8FA698]"
+                              }`}
+                              title={
+                                copiedUser === `att-${st.username}`
+                                  ? "¡Correo copiado!"
+                                  : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
+                              }
+                            >
+                              {copiedUser === `att-${st.username}` ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3 text-[#a5e0b8]" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </td>
                         <td className="p-2 px-3 font-mono text-[11px] text-center text-[#8FA698] border-r border-[rgba(217,203,182,0.06)]">
                           <button
@@ -1735,20 +1891,72 @@ export default function AdminDashboardPage() {
                         />
                       </td>
                       <td className="p-1.5 px-3 border-r border-[rgba(217,203,182,0.06)]">
-                        <input
-                          type="text"
-                          value={st.username}
-                          onChange={(e) => handleStudentFieldChange(st.username, "username", e.target.value)}
-                          className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15]"
-                        />
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={st.username}
+                            onChange={(e) => handleStudentFieldChange(st.username, "username", e.target.value)}
+                            className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleCopyEmail(st.email || st.username, `user-${st.username}`)}
+                            className={`p-1 rounded shrink-0 transition-all cursor-pointer ${
+                              copiedUser === `user-${st.username}`
+                                ? "bg-[#183624] text-[#a5e0b8]"
+                                : "hover:bg-[#25362c] text-[#A89F8D]/60 hover:text-[#8FA698]"
+                            }`}
+                            title={
+                              copiedUser === `user-${st.username}`
+                                ? "¡Correo copiado!"
+                                : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
+                            }
+                          >
+                            {copiedUser === `user-${st.username}` ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#a5e0b8]" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
                       </td>
                       <td className="p-1.5 px-3 border-r border-[rgba(217,203,182,0.06)]">
-                        <input
-                          type="text"
-                          value={st.email}
-                          onChange={(e) => handleStudentFieldChange(st.username, "email", e.target.value)}
-                          className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15]"
-                        />
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={st.email}
+                            onChange={(e) => handleStudentFieldChange(st.username, "email", e.target.value)}
+                            className="academic-input w-full h-7 px-2 font-mono text-xs rounded bg-[#131a15]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleCopyEmail(st.email || st.username, `email-${st.username}`)}
+                            className={`p-1 rounded shrink-0 transition-all cursor-pointer ${
+                              copiedUser === `email-${st.username}`
+                                ? "bg-[#183624] text-[#a5e0b8]"
+                                : "hover:bg-[#25362c] text-[#A89F8D]/60 hover:text-[#8FA698]"
+                            }`}
+                            title={
+                              copiedUser === `email-${st.username}`
+                                ? "¡Correo copiado!"
+                                : `Copiar correo (${st.email || `${st.username}@unal.edu.co`})`
+                            }
+                          >
+                            {copiedUser === `email-${st.username}` ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-[#a5e0b8]" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
                       </td>
                       <td className="p-1.5 px-3 border-r border-[rgba(217,203,182,0.06)]">
                         <input
@@ -1913,7 +2121,20 @@ export default function AdminDashboardPage() {
             <div className="bg-[#121914] p-3.5 rounded-xl border border-[rgba(217,203,182,0.08)] flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-semibold text-[#FAF6EE]">{studentToChangeGroup.fullName}</h3>
-                <p className="text-[10px] font-mono text-[#A89F8D]">{studentToChangeGroup.username} · {studentToChangeGroup.program || "UNAL"}</p>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-[#A89F8D] mt-0.5">
+                  <span>{studentToChangeGroup.username} · {studentToChangeGroup.program || "UNAL"}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyEmail(studentToChangeGroup.email || studentToChangeGroup.username, `modal-${studentToChangeGroup.username}`)}
+                    className="inline-flex items-center gap-1 text-[#8FA698] hover:text-[#FAF6EE] cursor-pointer hover:underline"
+                    title={`Copiar correo (${studentToChangeGroup.email || `${studentToChangeGroup.username}@unal.edu.co`})`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span>{copiedUser === `modal-${studentToChangeGroup.username}` ? "¡Copiado!" : "Copiar"}</span>
+                  </button>
+                </div>
               </div>
               <div className="text-right">
                 <span className="text-[9px] font-mono text-[#A89F8D] block uppercase">Grupo Actual:</span>
@@ -2746,6 +2967,15 @@ export default function AdminDashboardPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* Floating Copy Toast Notification */}
+      {copyNotification && (
+        <div className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#182a20] border border-[#2f553f] text-[#a5e0b8] text-xs font-mono shadow-2xl animate-fadeIn">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[#8FA698] shrink-0" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+          <span>{copyNotification}</span>
         </div>
       )}
     </div>
